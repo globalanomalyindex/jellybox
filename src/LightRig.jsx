@@ -60,7 +60,7 @@ export function LightRig({ light, setLight, fieldRef, onOpenChange, animateTrack
     <div className="light-field" ref={fieldRef}>
       <div className="light-anchor" data-edge={light.x > .8 ? 'right' : light.x < .2 ? 'left' : undefined} style={{ left: `${light.x * 100}%`, top: `${light.y * 100}%` }}>
         <button ref={bulb} type="button" className={`light-bulb ${dragging ? 'is-dragging' : ''} ${light.enabled ? '' : 'is-off'}`} aria-label="Move light or open lighting options" aria-describedby="light-instructions" aria-haspopup="dialog" aria-expanded={open} onPointerDown={start} onPointerMove={move} onPointerUp={end} onPointerCancel={end} onLostPointerCapture={end} onKeyDown={keyboard} onClick={() => { if (suppressClick.current) { suppressClick.current = false; return; } setOpen(value => !value); }}><Lightbulb size={26} weight={light.enabled ? 'fill' : 'regular'} /></button>
-        <span className="light-hint" aria-hidden="true">{dragging ? 'follow the shadow' : 'drag me · click to tune'}</span>
+        <span className="light-hint" aria-hidden="true">{dragging ? 'release to place' : 'drag me · click to tune'}</span>
       </div>
     </div>
     <span className="sr-only" id="light-instructions">Drag to move the light. Arrow keys move it; Shift moves farther. Enter opens lighting options.</span>

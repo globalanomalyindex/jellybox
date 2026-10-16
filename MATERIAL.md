@@ -28,9 +28,11 @@ Spectral.js supplies cached pigment-inspired transitions. It does not simulate c
 
 The bulb controls a real scene light. Highlight direction, colored casts and sampled flux follow its position/height/softness/warmth. Reading regions quiet receiver artifacts. The shared scene continues through the story using a viewport-bounded scroll frame and 64 px scissor guard.
 
+Receiver sampling remains bounded, but cached fields move with their material every frame. Rebasing the canvas translates the sampled field immediately; it must not wait up to 125 ms for another photon tick. Paper grain keeps its document-space phase.
+
 The optional bottom scroll cue copies only a framebuffer strip plus 24 px guard and runs a 13-tap progressive filter. Its shallow clear-water concentration and crown respond to the same light. It restores renderer state, disposes owned resources and skips at zero strength. Three masked browser backdrop layers soften live DOM text above the canvas. This hybrid does not make WebGL sample HTML and is not a physical jelly slab.
 
-The cue yields to the signature, selected text, focus, forced colors/reduced transparency and document end. Neither it nor the optical canvas intercepts input.
+The cue is active only while the story is entering/occupying the viewport. It turns off immediately on returning to the hero and yields to the signature, selected text, focus, forced colors/reduced transparency and document end. Neither it nor the optical canvas intercepts input.
 
 ## Limits
 

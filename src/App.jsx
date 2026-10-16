@@ -1,5 +1,5 @@
 import { Component, lazy, Suspense, useEffect, useLayoutEffect, useRef, useState } from 'react';
-import { ArrowCounterClockwise, Drop, SlidersHorizontal, SquaresFour, X } from '@phosphor-icons/react';
+import { Drop, SlidersHorizontal, SquaresFour, X } from '@phosphor-icons/react';
 import { createOptics } from './optics.js';
 import { MOTION, motionStyle } from './motion.js';
 import { controlPigment } from '../packages/react/src/tokens.js';
@@ -244,7 +244,7 @@ export function App({ active = true }) {
           const age = (now - s.nudge) / 1000;
           const impulse = s.nudge && !s.reducedMotion && s.params.motion > 0 && age < 1 ? Math.max(0, Math.sin(age * Math.PI)) * Math.exp(-age * 2) * 2 : 0;
           const lightField = s.lightField;
-          return { width: innerWidth, height: canvasFrame.height, viewportTop: canvasY, viewportHeight: innerHeight, dpr: Math.min(devicePixelRatio, innerWidth < 700 ? 1.3 : 1.5) * Math.sqrt(innerHeight / canvasFrame.height), pointer: project(s.pointer), parallax: s.parallax, hero: project(s.hero),
+          return { width: innerWidth, height: canvasFrame.height, documentTop: canvasFrame.top, viewportTop: canvasY, viewportHeight: innerHeight, dpr: Math.min(devicePixelRatio, innerWidth < 700 ? 1.3 : 1.5) * Math.sqrt(innerHeight / canvasFrame.height), pointer: project(s.pointer), parallax: s.parallax, hero: project(s.hero),
             buttons: s.rects.map((r, i) => r && project({ ...r, ...assist(i), arrival: presentation.current.arrival[i], ...(transfer ? { width: transfer.poses[i].width, height: transfer.poses[i].height, x: r.x + (r.width - transfer.poses[i].width) / 2, y: r.y + (r.height - transfer.poses[i].height) / 2, merge: transfer.poses[i].merge, neckStrain: transfer.poses[i].strain || 0, ...(transfer.materialOnly ? { x: transfer.poses[i].x - scrollX - transfer.poses[i].width / 2, y: transfer.poses[i].y - scrollY - transfer.poses[i].height / 2 } : {}), transferring: true } : {}), hover: Math.max(s.hovers[i], s.selected === i ? 0.35 : 0), pressed: s.pressed[i], stir: impulse, docked: s.selected !== null, tabbed: s.selected === i, color: colors[i] })).filter(Boolean),
             panel: s.panelRect && panelSurfaceRef.current ? project({ ...s.panelRect, density: s.densityRegion ? { ...project(s.densityRegion), opacity: s.densityRegion.opacity * Number(panelSurfaceRef.current.parentElement.style.getPropertyValue('--window-reveal') || 1) } : null, hover: shell?.closing ? 0 : 0.12, pressed: 0, stir: 0, color: rgb(transfer?.color ?? s.windowColor), colorSampled: true, cornerRadius: shell?.radius ?? 30, windowDepth: shell ? 1 : transfer ? .62 + .38 * transfer.attachment : s.windowDepth ?? 1, tab: s.tab, ...(shell ? { x: shell.x - scrollX - shell.width / 2, y: shell.y - scrollY - shell.height / 2, width: shell.width, height: shell.height, boundsSampled: true, morph: shell } : {}) }) : null,
             bubbles: s.bubbles.map((r, i) => project({ ...r, ...assist(i + s.rects.length), opacity: r.headerControl && s.closing ? 0 : r.opacity })), selections: s.selections?.map(project), assistanceBlocked, params: s.params, reducedMotion: s.reducedMotion,
@@ -363,14 +363,14 @@ export function App({ active = true }) {
   const panelView = index => <div className="panel-view" key={index}>
     <h2 className="sr-only">{PANELS[index].name}</h2>
     <PanelBoundary key={index}><Suspense fallback={<PanelSkeleton panel={index} />}>
-      <PanelContent panel={index} params={params} setParams={setParams} defaults={DEFAULTS} reducedMotion={reducedMotion} onAnnounce={setAnnouncement} onReady={revealContent} colors={colors} setColors={setColors} palettes={PALETTES} onNudge={() => setNudge(performance.now())} paused={paused} savedLook={savedLook} preferences={panelPreferences} setPreferences={setPanelPreferences} />
+      <PanelContent panel={index} params={params} setParams={setParams} defaults={DEFAULTS} reducedMotion={reducedMotion} onAnnounce={setAnnouncement} onReady={revealContent} onReset={reset} colors={colors} setColors={setColors} palettes={PALETTES} onNudge={() => setNudge(performance.now())} paused={paused} savedLook={savedLook} preferences={panelPreferences} setPreferences={setPanelPreferences} />
     </Suspense></PanelBoundary>
   </div>;
 
-  const reset = () => { setParams({ ...DEFAULTS }); setColors([...DEFAULT_COLORS]); setLight(defaultLightForViewport(innerWidth)); setPaused(false); setPanelPreferences({ colorTarget: 0, shapeOpen: false }); setAnnouncement("Experiment reset."); };
+  const reset = () => { setParams({ ...DEFAULTS }); setColors([...DEFAULT_COLORS]); setLight(defaultLightForViewport(innerWidth)); setPaused(false); setPanelPreferences({ colorTarget: 0, shapeOpen: false }); setAnnouncement('Experiment reset.'); };
   return <><div ref={appRef} className={`app ${fallback ? 'fallback' : 'jb-live'} ${paused ? 'is-paused' : ''} ${params.motion === 0 ? 'is-still' : ''}`} style={{ ...motionStyle, '--button-size': params.size, '--button-spacing': `${params.spacing}px` }}>
     <div className="optical-viewport" aria-hidden="true"><canvas className="optical-canvas" ref={canvasRef} /></div>
-    <header className="site-header"><a className="wordmark" href="#" aria-label="JellyBox home">jellybox<span className="wordmark-period">.</span></a><div className="header-right"><span className="header-description">Three buttons. A little light. A lot of jelly.</span><button className="reset-experiment" onClick={reset}><ArrowCounterClockwise size={16} /> Reset</button></div></header>
+    <header className="site-header"><nav aria-label="Project links"><a href="https://christopherfiore.net/" target="_blank" rel="noreferrer">Portfolio <span aria-hidden="true">↗</span></a><a href="https://github.com/globalanomalyindex/jellybox" target="_blank" rel="noreferrer">GitHub <span aria-hidden="true">↗</span></a></nav></header>
     <main aria-label="JellyBox button experiment"><section ref={studyRef} className="material-stage" aria-label="Interactive JellyBox material experiment">
       <LightRig animateTrack={!reducedMotion} light={light} setLight={setLight} fieldRef={lightFieldRef} onOpenChange={setLightOpen} />
       <div className="hero" ref={heroRef}><h1 className="sr-only">JellyBox</h1><img className="jellybox-logo" src={`${import.meta.env.BASE_URL}brand/jellybox-logo.svg`} alt="" aria-hidden="true" /></div>
@@ -393,7 +393,7 @@ export function App({ active = true }) {
         </section>}
       </div>
     </section>
-    <DesignStory />
+    <DesignStory motionEnabled={!paused && !reducedMotion} />
     </main>
     <footer className="site-footer"><span>JellyBox <span className="footer-cross">—</span> by christopher robin fiore · MIT</span><JellySwitch tone="info" label="Continuous motion" checked={!paused} onCheckedChange={enabled => setPaused(!enabled)} /></footer>
     <div className="sr-only" role="status" aria-live="polite">{announcement}</div>

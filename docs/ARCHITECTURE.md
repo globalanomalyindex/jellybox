@@ -14,6 +14,8 @@ Native DOM bounds are measured into one shared scene. The renderer shapes transp
 
 One viewport-bounded document canvas follows scroll through `scrollFrame`; its scissor keeps work near the visible region. The page light/receiver continues through the article. Geometry caches settle at subpixel precision; expensive sampled caustics have bounded update rates. Three resources, observers and animation frames have explicit teardown.
 
+Cached caustic textures are translated with their material every frame, independently of the sampling cadence. Document-canvas rebases do not change their attachment or the paper texture's document-space origin.
+
 ## Color and motion
 
 `renderer/motion.js` is canonical for durations/curves. `useMaterialColor` and the Spectral helpers cache 33 samples and carry one 480 ms pigment transition. The renderer consumes displayed samples directly when marked sampled, avoiding a second interpolation. Core native focus, selected checks and labels change independently of decorative pigment.
@@ -21,6 +23,8 @@ One viewport-bounded document canvas follows scroll through `scrollFrame`; its s
 Slider track travel is opt-in. The study uses one 240 ms accepted setting for callback, native value, number, fill and bulb after a deliberate click. Direct drag, value scrubbing and keys stay immediate. Escape cancels scrubbing; external controlled values remain authoritative.
 
 `PagePresentation` supplies one initial arrival and a guarded bottom cue. The renderer filters its own bottom framebuffer strip; browser backdrop layers handle live DOM text. There is no screenshot/raster replacement of the article.
+
+The story begins with 00 Abstract. Its two inline figures use the actual cached Spectral palette helper and canonical motion curves/timings. A figure plays once on entering view, stops offscreen/when hidden, and supports replay and native range inspection. Continuous-motion off and reduced motion disable automatic playback. These are explanatory charts, with no extra WebGL context, settings mutation or physical-simulation claim.
 
 ## Persistence and boundaries
 

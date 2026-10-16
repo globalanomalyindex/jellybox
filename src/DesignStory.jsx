@@ -1,13 +1,15 @@
 import { useEffect, useRef, useState } from 'react';
+import { ColorExample, MotionExample } from './StoryExamples.jsx';
 
 const CHAPTERS = [
+  ['story-abstract', 'Abstract'],
   ['story-introduction', 'Introduction'], ['story-density', 'Density'],
   ['story-continuity', 'Continuity'], ['story-color', 'Color'],
   ['story-light', 'Light'], ['story-interaction', 'Interaction'],
   ['story-study', 'One system'],
 ];
 
-export function DesignStory() {
+export function DesignStory({ motionEnabled = true }) {
   const articleRef = useRef(null);
   const indexRef = useRef(null);
   const [activeChapter, setActiveChapter] = useState(null);
@@ -69,10 +71,17 @@ export function DesignStory() {
     <div className="story-layout">
       <nav ref={indexRef} className="story-index" aria-label="Design story chapters">
         {CHAPTERS.map(([id, label], index) => <a key={id} href={`#${id}`} aria-current={activeChapter === id ? 'location' : undefined}>
-          <span className="story-chapter-number" aria-hidden="true">{String(index + 1).padStart(2, '0')}</span><span>{label}</span>
+          <span className="story-chapter-number" aria-hidden="true">{String(index).padStart(2, '0')}</span><span>{label}</span>
         </a>)}
       </nav>
       <div className="story-chapters">
+        <section id="story-abstract" className="story-section story-abstract" tabIndex={-1} aria-labelledby="story-abstract-title">
+          <h3 id="story-abstract-title">00 Abstract</h3>
+          <div className="story-copy">
+            <p>JellyBox is a React-based design system study built around one shared material. It keeps the fluidity, translucency and light reactivity of the glass metaphor, then uses changing density to give that surface structure. Color, light and motion work together to communicate hierarchy, state and ownership. Spectral.js supplies a shared, pigment-inspired path between colors.</p>
+            <p>I’m exploring whether this can make interfaces more intuitive: fluid spaces that gather, divide and reshape while labels and controls remain stable. The interactions work here; the UX hypothesis still needs testing.</p>
+          </div>
+        </section>
         <section id="story-introduction" className="story-section" tabIndex={-1} aria-labelledby="story-introduction-title">
           <h3 id="story-introduction-title">Introduction</h3>
           <div className="story-copy">
@@ -97,7 +106,9 @@ export function DesignStory() {
             <p>I began by building separate components, then narrowed the prototype back to three buttons so I could work on the relationships between them. The design system is the larger goal; this smaller experiment lets me develop its behavior in detail.</p>
             <p>A button expands into a pill, then joins the top-left edge of its window as a tab. Closing gathers it back into a button. Switching tools lets the old tab withdraw while the next one takes its place. The stretch, pinch and small settling wobble are there to explain where the space came from and who owns it now.</p>
             <p>The jelly moves around the interface’s structure: labels, values and click targets stay anchored. Custom Bézier curves and damped settling shape the motion, and an interrupted transition continues from its current state.</p>
+            <p>A larger space gets time to gather. A slider responds sooner. The little overshoot is reserved for the material; it never carries a value past its limit. These are authored interface responses, rather than measurements of physical jelly.</p>
           </div>
+          <MotionExample motionEnabled={motionEnabled} />
         </section>
 
         <section id="story-color" className="story-section" tabIndex={-1} aria-labelledby="story-color-title">
@@ -106,6 +117,7 @@ export function DesignStory() {
             <p>I use <a href="https://github.com/rvanwijnen/spectral.js/" target="_blank" rel="noreferrer">Spectral.js</a> for pigment-inspired color mixing. Its Kubelka–Munk model gives me a shared mixing path for the material’s colors. Precomputed samples let the controls and window follow that path smoothly, including when a color changes halfway through a transition.</p>
             <p>Color also has a job. Clear blue is the resting material; a highlight invites interaction; a denser selection marks the committed choice. Save uses green and Delete uses red. Labels, checks and focus indicators carry those meanings too. Trying a palette shows a preview before applying it, so exploring a color doesn’t silently change the current choice.</p>
           </div>
+          <ColorExample motionEnabled={motionEnabled} />
         </section>
 
         <section id="story-light" className="story-section" tabIndex={-1} aria-labelledby="story-light-title">

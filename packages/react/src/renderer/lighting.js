@@ -12,3 +12,14 @@ export function lightTemperature(warmth) {
   const t = clamp(warmth, 0, 1);
   return t < .5 ? [1 - (.5 - t) * .26, 1 - (.5 - t) * .1, 1] : [1, 1 - (t - .5) * .22, 1 - (t - .5) * .52];
 }
+
+// Transport the already sampled receiver in the same frame as its material.
+// A document-canvas rebase changes world coordinates, not the local light path;
+// waiting for the next photon sample leaves the cast behind for up to 125ms.
+export function moveReceiverField(field, position) {
+  if (field.origin) {
+    field.rect.x += position.x - field.origin.x;
+    field.rect.y += position.y - field.origin.y;
+  }
+  field.origin = { x: position.x, y: position.y };
+}

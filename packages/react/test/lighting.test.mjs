@@ -1,6 +1,18 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { DEFAULT_LIGHT, defaultLightForViewport, moveLight, lightTemperature } from '../src/renderer/lighting.js';
+import { DEFAULT_LIGHT, defaultLightForViewport, moveLight, lightTemperature, moveReceiverField } from '../src/renderer/lighting.js';
+
+test('cached light follows every scene translation between expensive sampling ticks', () => {
+  const field = { rect: { x: 10, y: 20, z: 200, w: 160 } };
+  moveReceiverField(field, { x: 100, y: 80 });
+  assert.deepEqual(field.rect, { x: 10, y: 20, z: 200, w: 160 });
+  moveReceiverField(field, { x: 100, y: 2080 });
+  assert.equal(field.rect.y, 2020);
+  moveReceiverField(field, { x: 120, y: 2070 });
+  assert.deepEqual(field.rect, { x: 30, y: 2010, z: 200, w: 160 });
+  moveReceiverField(field, { x: 100, y: 80 });
+  assert.deepEqual(field.rect, { x: 10, y: 20, z: 200, w: 160 });
+});
 
 test('drag distance scales with the canvas and keeps the bulb reachable at every edge', () => {
   assert.deepEqual(moveLight({ x: .5, y: .5 }, 100, -50, { width: 1000, height: 500 }), { x: .6, y: .4 });

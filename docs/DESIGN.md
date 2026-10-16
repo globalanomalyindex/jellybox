@@ -10,6 +10,8 @@ The supplied two-line black SVG is static and unshaded. Keep the opening logo, t
 
 The story has a readable main column, persistent chapter index and a compact horizontal index. Native fragments and scroll position own chapter highlighting; document-end clamping still selects the final chapter. Working panels remain in document flow.
 
+00 Abstract introduces the design-system proposition without calling this React Native or claiming tested UX benefits. Inline motion/color figures explain the adjacent prose using shared implementation values. Keep them compact, inspectable and finite; no decorative autoplay loops. The header contains only Portfolio and GitHub links; Reset experiment belongs in Explore.
+
 ## Density and hierarchy
 
 A quiet thin reading film and a concentrated perimeter belong to one parent. Inner groups are filled neutral clear-water concentrations with a narrow defined shoulder, broad crown and quieter receiver artifacts. No opaque inner white card, hollow glowing outline or residual pill over primary text.

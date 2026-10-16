@@ -4,7 +4,7 @@ import { tabWarpY, tabUnwarpY, tabDensity, tabMaximumLift, TAB_GLSL, TAB_DEPTH_R
 import * as THREE from 'three';
 import { MOTION, sampleBezier, stepJellyResponse, stepAttraction } from './motion.js';
 import { surfacePigment, windowPigment } from './surface-color.js';
-import { lightTemperature } from './lighting.js';
+import { lightTemperature, moveReceiverField } from './lighting.js';
 import { DEFAULT_MATERIAL, JELLY_MATERIAL } from './material.js';
 import { DENSITY_GLSL, densityFieldProfile, densityClearing, densityPresentation, densityAttenuation, densityColorWeight, stepDensitySettle } from './density-field.js';
 import { volumeCrown, volumeHeight, volumeFullness } from './volume-profile.js';
@@ -1037,6 +1037,8 @@ export function createOptics(canvas, { getScene, onError = () => {}, onAfterRend
       camera.position.set(clamp(parallax.x || 0, -1, 1) * 150, -clamp(parallax.y || 0, -1, 1) * 110, 1100);
       camera.lookAt(0, 0, 0);
       camera.updateMatrixWorld();
+      // Keep paper grain in document space across viewport-canvas rebases.
+      paper.color.offset.y = paper.relief.offset.y = -(state.documentTop ?? 0) / 256;
       // Compensate the lower incidence angle to retain a luminous white floor.
       // Less neutral fill makes the blocked beam's colored replacement visible.
       const lighting = state.light;
@@ -1377,6 +1379,7 @@ export function createOptics(canvas, { getScene, onError = () => {}, onAfterRend
         deformSelectionRim(body, timestamp, moving, slot.motion.travelling);
       });
       const geometryEnd = performance.now();
+      bodies.forEach(body => { if (body.live) moveReceiverField(body.field, body.mesh.position); });
       const sceneKey = JSON.stringify([buttonStates.map(b => b && [b.x, b.y, b.width, b.height, b.hover, b.pressed, b.stir, b.color, b.cornerRadius]), parent.tab, parent.density, parent.densityElapsed,
         bodies.map(body => [Math.round(body.hover * 10000), Math.round(body.pressed * 10000),
           Math.round(body.centerZ * 10000), Math.round(body.c * 10000), Math.round(body.r * 10000),

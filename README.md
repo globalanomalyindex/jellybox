@@ -4,7 +4,7 @@ Three buttons. A little light. A lot of jelly.
 
 A design-system study by [Christopher Robin Fiore](https://christopherfiore.net/), using density, connected movement, color and light to explain an interface. The working prototype is three jelly buttons that gather into shared workspaces. The reusable React foundation is included for experimentation; this is a research preview, not a finished production UI kit.
 
-**[Try the live study](https://globalanomalyindex.github.io/jellybox/)** · [Design story](https://globalanomalyindex.github.io/jellybox/#story-introduction) · [Download v0.4.1](https://github.com/globalanomalyindex/jellybox/releases/tag/v0.4.1)
+**[Try the live study](https://globalanomalyindex.github.io/jellybox/)** · [Design story](https://globalanomalyindex.github.io/jellybox/#story-abstract) · [Download v0.4.2](https://github.com/globalanomalyindex/jellybox/releases/tag/v0.4.2)
 
 ![JellyBox: three blue jelly controls and the project signature](docs/media/hero.jpg)
 
@@ -25,7 +25,7 @@ Public clones intentionally use a system-font fallback. The author's live site u
 
 ## Play
 
-- **Explore:** motion presets, size, spacing, and one browser-local saved look. Save is explicit; ordinary tuning and Reset do not overwrite it.
+- **Explore:** motion presets, size, spacing, Reset experiment, and one browser-local saved look. Save is explicit; ordinary tuning and Reset do not overwrite it.
 - **Color:** preview a palette before committing, or choose individual pigments.
 - **Material:** translucency, light, thickness, lift and prism. Shape & optics gathers out of the parent window as a denser folder.
 - **Light:** drag the bulb, or focus it and use arrow keys (Shift moves farther). Enter opens its controls.
@@ -40,7 +40,7 @@ The repository contains `@jellybox/react`: sixteen core controls, scoped CSS, se
 ```sh
 npm run pack:library
 # In another React project:
-npm install /path/to/jellybox/release/jellybox-react-0.4.1.tgz
+npm install /path/to/jellybox/release/jellybox-react-0.4.2.tgz
 ```
 
 Release archives are also attached to [GitHub Releases](https://github.com/globalanomalyindex/jellybox/releases). This release is not published on npm. Import `@jellybox/react/styles.css` once; see the [package guide](packages/react/README.md) and [component API](docs/COMPONENTS.md).

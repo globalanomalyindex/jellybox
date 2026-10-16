@@ -13,7 +13,7 @@ export interface OpticalSelection extends OpticalBody { id: string; key: string;
 export interface OpticalLight { x: number; y: number; height: number; intensity: number; softness: number; warmth: number; enabled?: boolean; }
 export interface OpticalScene {
   width: number; height: number; dpr?: number; reducedMotion?: boolean; params?: Partial<MaterialParams>;
-  viewportTop?: number; viewportHeight?: number; light?: OpticalLight | null;
+  viewportTop?: number; viewportHeight?: number; documentTop?: number; light?: OpticalLight | null;
   scrollEdge?: { height: number; strength: number } | null;
   panel?: OpticalBody | null; buttons?: readonly OpticalBody[]; bubbles?: readonly OpticalBody[]; selections?: readonly OpticalSelection[];
   parallax?: { x?: number; y?: number }; pointer?: { x?: number; y?: number; visible?: boolean };

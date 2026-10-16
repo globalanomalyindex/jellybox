@@ -1,6 +1,6 @@
 {
   "name": "jellybox-workspace",
-  "version": "0.4.1",
+  "version": "0.4.2",
   "private": true,
   "license": "MIT",
   "workspaces": [
@@ -11,7 +11,7 @@
     "dev": "vite",
     "build": "vite build && node scripts/prepare-sites-build.mjs",
     "build:library": "vite build --config vite.library.config.mjs",
-    "test:components": "npm run build:library && node --test tests/selection-motion.test.mjs packages/react/test/*.test.mjs",
+    "test:components": "npm run build:library && node --test tests/selection-motion.test.mjs tests/story-model.test.mjs packages/react/test/*.test.mjs",
     "preview": "vite preview",
     "test:sites": "node --test tests/sites-worker.test.mjs",
     "pack:library": "npm run build:library && node scripts/pack-library.mjs",

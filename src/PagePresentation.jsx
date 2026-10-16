@@ -1,5 +1,6 @@
 import { useLayoutEffect, useRef } from 'react';
 import { MOTION, sampleBezier } from '../packages/react/src/renderer/motion.js';
+import { scrollEdgeState } from './scroll-presentation.js';
 
 const clamp = value => Math.max(0, Math.min(1, value));
 
@@ -39,22 +40,19 @@ export function usePagePresentation(appRef, buttonRefs) {
     };
     const updateEdge = () => {
       edgeFrame = null;
-      const baseHeight = Math.max(72, Math.min(112, innerHeight * .12));
       const credits = root.querySelector('.story-authorship').getBoundingClientRect();
-      // The opening screen's signature remains completely outside the blur.
-      const creditClearance = credits.bottom > 0 && credits.top < innerHeight ? Math.max(0, innerHeight - credits.bottom - 16) : baseHeight;
-      const height = Math.min(baseHeight, creditClearance);
-      edge.style.height = `${height}px`;
-      presentation.current.edgeHeight = height;
-      const remaining = document.documentElement.scrollHeight - innerHeight - scrollY;
+      const storyTop = root.querySelector('.story-header').getBoundingClientRect().top;
       const focused = document.activeElement;
       const bounds = focused?.matches('a, button, input, select, textarea, [tabindex]') ? focused.getBoundingClientRect() : null;
-      const protectFocus = bounds && bounds.bottom > innerHeight - height - 12 && bounds.top < innerHeight;
+      const protectFocus = bounds && bounds.bottom > innerHeight - 124 && bounds.top < innerHeight;
       const selection = getSelection()?.isCollapsed === false;
-      const t = clamp((remaining - 8) / Math.max(1, height));
-      const strength = height < 12 || forced.matches || transparent.matches || protectFocus || selection ? 0 : t * t * (3 - 2 * t);
-      edge.style.opacity = strength;
-      edge.dataset.more = String(remaining > 8);
+      const state = scrollEdgeState({ viewportHeight: innerHeight, documentHeight: document.documentElement.scrollHeight, scroll: scrollY, storyTop, credits,
+        protected: protectFocus || selection, transparent: forced.matches || transparent.matches });
+      edge.style.height = `${state.height}px`;
+      presentation.current.edgeHeight = state.height;
+      edge.style.opacity = state.strength;
+      edge.dataset.active = String(state.active);
+      edge.dataset.more = String(state.more);
       edge.dataset.protected = String(Boolean(protectFocus || selection));
     };
     const scheduleEdge = () => { if (edgeFrame === null) edgeFrame = requestAnimationFrame(updateEdge); };

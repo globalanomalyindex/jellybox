@@ -1,6 +1,6 @@
 # Verification and limits
 
-The release checks use the existing 106 component/model tests plus 4 optional static-adapter tests, a clean install/build and a packed-package consumer. Coverage includes native server-rendered semantics, color policies, deterministic selection/window/density continuity, slider accepted-value behavior and bounded surface registration. Tests are behavior/model evidence, not a substitute for real browser or assistive-technology testing.
+The release checks use 109 component/model tests plus 4 optional static-adapter tests, a clean install/build and a packed-package consumer. Coverage includes native server-rendered semantics, color policies, deterministic selection/window/density continuity, slider accepted-value behavior, cached receiver attachment between sampling ticks, scroll-cue hero/end guards and bounded surface registration. Tests are behavior/model evidence, not a substitute for real browser or assistive-technology testing.
 
 The prototype has also been inspected in the native browser for palette changes, dark pigment with light on/off, transparent title/body paint, folder/slider behavior, story navigation, first-screen composition and the progressive scroll cue's end/focus/selection guards. The release checks repeat subpath asset loading and core interactions on the deployed site. Screenshots in docs/media show actual views, not generated outcome evidence.
 
