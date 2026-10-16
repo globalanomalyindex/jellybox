@@ -24,7 +24,9 @@ Slider track travel is opt-in. The study uses one 240 ms accepted setting for ca
 
 `PagePresentation` supplies one initial arrival and a guarded bottom cue. The renderer filters its own bottom framebuffer strip; browser backdrop layers handle live DOM text. There is no screenshot/raster replacement of the article.
 
-The story begins with 00 Abstract. Its two inline figures use the actual cached Spectral palette helper and canonical motion curves/timings. A figure plays once on entering view, stops offscreen/when hidden, and supports replay and native range inspection. Continuous-motion off and reduced motion disable automatic playback. These are explanatory charts, with no extra WebGL context, settings mutation or physical-simulation claim.
+The story begins with 00 Abstract. Its density, motion and color figures reuse the package controls and the page's optical renderer. Visible story surfaces enter the same 32-slot pool with stable identities; offscreen hero bodies are culled without changing the light's document-space reference. The density figure borrows the parent-body slot while the main window is offscreen, with explicit ownership resetting optical history. It uses the actual folder field and optional bounded concentration input, not a separate outline or WebGL context. Standalone story controls use bounded contact casts to protect adjacent text.
+
+The motion chart uses canonical curves/timings and Web Animations transform tracks. It loops only while at least 35% visible and the document is awake; Continuous motion off and reduced motion stop it. Its forward response runs at the real duration, holds 800 ms, returns over 600 ms and rests 400 ms. There is no replay control or React frame clock. Color grouping has explicit preview, commit, revert and separate states. Its shared pigment and material connection show membership; words and icons carry the same meaning. These examples affect their own local state, never the main experiment or saved look. The state example uses the public JellyActivityButton, a clearly labeled simulated task, determinate/indeterminate progress, cancellation and selected outcomes. The light example temporarily routes the same point light to a visible task target; hover/focus previews lighting while the committed check stays put. Its bounded response uses the canonical gather curve and releases the main lamp when offscreen.
 
 ## Persistence and boundaries
 
@@ -46,3 +48,8 @@ The static site builds to `dist/client`. Hash links keep story navigation compat
 | Page/story composition | `src/styles.css`, `DesignStory.jsx`, `PagePresentation.jsx` |
 
 See MATERIAL.md and MOTION.md for the functional contracts. Keep new behavior local to its owner rather than adding parallel clocks or per-control rendering contexts.
+
+
+## Readable material
+
+The optional optical renderer copies its current display-encoded framebuffer to a GPU texture and samples a 3×3 grid for each registered label into a tiny atlas. One asynchronous readback, bounded to 40 labels and 10Hz, supplies actual material/light luminances without rendering DOM text into WebGL. Shared ink selection checks the least favorable sample, preserves passing ink, and requests a thin glyph halo where bright/dark samples cannot support one ink. DOM text remains native; extra HTML face fills are removed only on sampled surfaces. The CSS fallback accounts for its neutral transmitting receiver. Async resources and callbacks are disposed/guarded on unmount.

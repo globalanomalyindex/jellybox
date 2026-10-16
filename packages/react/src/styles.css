@@ -114,6 +114,19 @@
 .jb-scene { position: relative; isolation: isolate; overflow: visible; }
 .jb-optical-canvas { position: absolute; inset: -32px; width: calc(100% + 64px); height: calc(100% + 64px); pointer-events: none; z-index: -1; }
 .jb-live [data-gel-rendered="true"] { background: transparent; box-shadow: none; border-color: transparent; }
+
+/* Ink is immediate; interpolating it would pass through unreadable grays.
+   A narrow glyph halo is reserved for mixed bright/dark sampled highlights. */
+[data-gel-ink], [data-gel-ink] :is(.jb-button-face, .jb-selection-content, .jb-selection-label, .jb-selection-description, .jb-field-label, .jb-range-value, .jb-dropdown-value, .jb-dropdown-option-copy, .jb-alert-copy, .jb-table-cell-content) { color: var(--jb-rendered-ink) !important; text-shadow: var(--jb-ink-halo, none) !important; }
+[data-gel-ink] { --jb-control-ink: var(--jb-rendered-ink) !important; --jb-ink: var(--jb-rendered-ink) !important; }
+[data-gel-ink] :is(.jb-button-face, .jb-alert-copy, .jb-checkbox-face, .jb-table-cell-content) { background: transparent !important; backdrop-filter: none !important; -webkit-backdrop-filter: none !important; box-shadow: none !important; border-color: transparent; }
+.jb-badge[data-gel-ink]::before { display: none; }
+[data-gel-ink-guard="true"] svg { filter: drop-shadow(0 0 .7px var(--jb-ink-edge)); }
+.jb-activity { min-width: 180px; }
+.jb-activity .jb-spinner { display: none; }
+.jb-activity[aria-busy="true"] { opacity: 1; }
+.jb-activity[data-gel-activity="loading"]:not([data-gel-rendered="true"]) { background: radial-gradient(ellipse at 25% 50%, rgb(91 175 243 / .78), transparent 65%), var(--jb-skin); }
+@media (forced-colors: active) { [data-gel-ink], [data-gel-ink] :is(.jb-button-face, .jb-selection-content, .jb-selection-label, .jb-selection-description, .jb-field-label, .jb-range-value, .jb-dropdown-value, .jb-dropdown-option-copy, .jb-alert-copy, .jb-table-cell-content) { color: ButtonText !important; text-shadow: none !important; } }
 .jb-live [data-gel-selection-rendered="true"] > .jb-selection-contour { display: none; }
 .jb-paused .jb-spinner, .jb-paused .jb-skeleton-line::after { animation-play-state: paused; }
 @keyframes jb-spin { to { transform: rotate(360deg); } }

@@ -8,13 +8,15 @@ import { useSavedLook } from './useSavedLook.js';
 import { DEFAULT_EXPERIMENT, DEFAULT_COLORS } from './experiment.js';
 import { useDockedToolbar } from './useDockedToolbar.js';
 import { useJellyColor } from '../packages/react/src/useMaterialColor.js';
-import { OPTICAL_SURFACE_LIMIT } from '../packages/react/src/renderer/surface-layout.js';
+import { intersectRect, pickSurfaces } from '../packages/react/src/renderer/surface-layout.js';
 import { PanelSkeleton } from './PanelSkeleton.jsx';
 import { LightRig } from './LightRig.jsx';
 import { DesignStory } from './DesignStory.jsx';
 import { ProgressiveScrollEdge, usePagePresentation } from './PagePresentation.jsx';
 import { defaultLightForViewport } from './lighting.js';
 import { tabOutlinePath } from '../packages/react/src/renderer/tab-surface.js';
+import { applyJellyInk, clearJellyInk, inkSampleRect } from '../packages/react/src/contrast.js';
+import { stepJellyResponse } from '../packages/react/src/renderer/motion.js';
 import { JellyButton, JellySwitch, useJellyWindow, SEMANTIC_COLORS } from '../packages/react/src/index.js';
 
 const loadPanels = () => import('./PanelContent.jsx');
@@ -74,6 +76,8 @@ export function App({ active = true }) {
   const { edgeRef, presentation } = usePagePresentation(appRef, buttonRefs);
   const panelSurfaceRef = useRef(null);
   const panelInnerRef = useRef(null);
+  const storyScopeRef = useRef(null);
+  const storyDirty = useRef(true);
   const bubbleElements = useRef([]);
   const measureRef = useRef(() => {});
   const movingUntil = useRef(0);
@@ -124,6 +128,7 @@ export function App({ active = true }) {
   sceneRef.current.closing = closing;
   sceneRef.current.reducedMotion = reducedMotion;
   sceneRef.current.active = active;
+  sceneRef.current.fallback = fallback;
 
   useEffect(() => {
     const media = matchMedia('(prefers-reduced-motion: reduce)');
@@ -132,6 +137,7 @@ export function App({ active = true }) {
     const rectOf = el => { const r = el?.getBoundingClientRect(); return r ? { x: r.x, y: r.y, width: r.width, height: r.height } : null; };
     let surfaceIdentity = 0;
     const surfaceIds = new WeakMap();
+    const inkNodes = new Map();
     const surfaceId = el => { if (!surfaceIds.has(el)) surfaceIds.set(el, `control-${++surfaceIdentity}`); return surfaceIds.get(el); };
     const measure = () => {
       const s = sceneRef.current;
@@ -157,13 +163,44 @@ export function App({ active = true }) {
         phase: Number(getComputedStyle(densityRegion).getPropertyValue('--jb-density-phase').trim() || (densityRegion.dataset.open === 'true' ? '1' : '0')),
         pigment: s.colors[s.tabOwner], opacity: Number(getComputedStyle(densityRegion.closest('.panel-view')).opacity) } : null;
       const panelOpacity = panelInnerRef.current ? Number(getComputedStyle(panelInnerRef.current.closest('.jelly-panel')).opacity) : 1;
-      s.controlsDragging = Boolean(panelInnerRef.current?.querySelector('[data-gel-dragging="true"]'));
-      s.bubbles = bubbleElements.current.filter(el => el.isConnected).slice(0, OPTICAL_SURFACE_LIMIT).map(el => (el.dataset.gelRendered = 'true', ({ ...rectOf(el),
+      const viewport = { x: 0, y: -160, width: innerWidth, height: innerHeight + 320 };
+      const mainInView = s.panelRect && intersectRect(s.panelRect, viewport).height > 1;
+      const mass = [...(storyScopeRef.current?.querySelectorAll('[data-story-mass]') || [])].find(el => intersectRect(rectOf(el), viewport).height > 1);
+      const storyMass = !mainInView ? mass : null;
+      storyScopeRef.current?.querySelectorAll('[data-story-mass]').forEach(el => {
+        if (el === storyMass && !s.fallback) el.dataset.gelRendered = 'true';
+        else delete el.dataset.gelRendered;
+      });
+      const storyRegion = storyMass?.querySelector('[data-density-region]');
+      s.storyPanel = storyMass ? { ...rectOf(storyMass), pigment: storyMass.dataset.massPigment } : null;
+      s.storyDensity = storyRegion ? { ...rectOf(storyRegion), folder: true,
+        expandedHeight: [storyRegion.querySelector(':scope > h4'), storyRegion.querySelector(':scope > .jelly-details-summary'), storyRegion.querySelector('.jelly-details-content')].reduce((sum, el) => sum + (el?.getBoundingClientRect().height ?? 0), 0),
+        open: storyRegion.dataset.open === 'true', hover: storyRegion.dataset.densityHover === 'true',
+        phase: Number(getComputedStyle(storyRegion).getPropertyValue('--jb-density-phase')),
+        concentration: Number(storyRegion.closest('[data-story-concentration]')?.dataset.storyConcentration ?? 1),
+        pigment: storyMass.dataset.massPigment, opacity: 1 } : null;
+      const spotlight = storyScopeRef.current?.querySelector('[data-story-spotlight][data-spotlight="true"]');
+      const spotTarget = spotlight?.querySelector('[data-spot-target="true"]');
+      s.spotlight = spotTarget && intersectRect(rectOf(spotlight), viewport).height > 1 ? { ...rectOf(spotTarget), spread: Number(spotlight.dataset.spotSpread) } : null;
+      const parentElement = storyMass || (mainInView ? panelInnerRef.current : null);
+      const allSurfaces = [...bubbleElements.current, ...(storyScopeRef.current?.querySelectorAll('[data-gel-surface]') || [])].filter(el => el.isConnected && !el.closest('[hidden]'));
+      const chosen = pickSurfaces(allSurfaces.map(el => ({ el, kind: el.dataset.gelSurface || 'control', visibleRect: intersectRect(rectOf(el), viewport) })));
+      const claims = new Set(s.fallback ? [] : chosen.map(item => item.el));
+      inkNodes.clear();
+      buttonRefs.current.forEach((el, i) => { if (el) inkNodes.set(`primary-${i}`, el); });
+      allSurfaces.forEach(el => { if (claims.has(el)) { el.dataset.gelRendered = 'true'; inkNodes.set(surfaceId(el), el); } else { delete el.dataset.gelRendered; clearJellyInk(el); } });
+      s.controlsDragging = Boolean(appRef.current?.querySelector('[data-gel-dragging="true"]'));
+      s.bubbles = chosen.map(({ el }) => ({ ...rectOf(el),
         id: surfaceId(el),
+        attached: Boolean(parentElement?.contains(el)),
+        contact: Boolean(el.closest('.story-demo')),
+        layer: el.dataset.gelSurface === 'thumb' ? 2 : el.dataset.gelSurface === 'fill' ? 1.5 : 1,
         disabled: el.disabled || el.closest('.jb-slider')?.classList.contains('jb-disabled') || el.dataset.gelAssist === 'false',
         assist: el.dataset.gelSurface === 'thumb' || el.matches('button') && !el.closest('[data-gel-group]'),
         headerControl: el.classList.contains('dock-close'),
         feedback: el.dataset.gelFeedback,
+        activity: el.dataset.gelActivity,
+        progress: el.dataset.gelProgress === undefined ? undefined : Number(el.dataset.gelProgress),
         kind: el.dataset.gelSurface || 'control',
         emphasis: el.closest('.jb-slider-compact') ? Number(getComputedStyle(el).getPropertyValue('--jb-slider-emphasis')) : 1,
         grouped: Boolean(el.closest('[data-gel-group]')),
@@ -172,11 +209,12 @@ export function App({ active = true }) {
         colorSampled: Boolean(el.dataset.gelSampled),
         hover: el.dataset.gelHover === 'true' ? 1 : 0, pressed: el.dataset.gelPressed === 'true' ? 1 : 0,
         selected: !el.closest('[data-gel-group]') && (el.getAttribute('aria-pressed') === 'true' || el.getAttribute('aria-expanded') === 'true'),
-        opacity: (getComputedStyle(el).visibility === 'hidden' ? 0 : 1) * (el.closest('.panel-view') ? Number(getComputedStyle(el.closest('.panel-view')).opacity) * panelOpacity : 1)
+        opacity: (getComputedStyle(el).visibility === 'hidden' ? 0 : Number(getComputedStyle(el).opacity)) * (el.closest('.panel-view') ? Number(getComputedStyle(el.closest('.panel-view')).opacity) * panelOpacity : 1)
           * (el.closest('.jelly-details-reveal') ? Number(getComputedStyle(el.closest('.jelly-details-reveal')).opacity) : 1),
         clip: el.closest('.jelly-details-clip') ? rectOf(el.closest('.jelly-details-clip')) : undefined,
         cornerRadius: Math.min(parseFloat(getComputedStyle(el).borderTopLeftRadius) || 24, el.offsetHeight / 2),
-      })));
+      }));
+      storyDirty.current = false;
       s.selections = [...(panelInnerRef.current?.querySelectorAll('.panel-view:not(.is-outgoing) [data-gel-group]') || [])].flatMap(group => {
         const selected = group.querySelector('[data-gel-option][aria-checked="true"], [data-gel-option][aria-selected="true"], [data-gel-option][aria-pressed="true"]');
         return selected ? [{ ...rectOf(selected), id: group.dataset.gelGroup, key: selected.dataset.gelKey,
@@ -193,13 +231,14 @@ export function App({ active = true }) {
     const scroll = () => {
       const s = sceneRef.current, previous = s.measuredScroll || { x: scrollX, y: scrollY };
       const dx = previous.x - scrollX, dy = previous.y - scrollY;
-      for (const rect of [s.hero, s.lightField, s.panelRect, s.densityRegion, ...s.rects, ...s.bubbles, ...s.bubbles.map(r => r.clip), ...(s.selections || [])]) if (rect) { rect.x += dx; rect.y += dy; }
+      for (const rect of [s.hero, s.lightField, s.panelRect, s.densityRegion, s.storyPanel, s.storyDensity, s.spotlight, ...s.rects, ...s.bubbles, ...s.bubbles.map(r => r.clip), ...(s.selections || [])]) if (rect) { rect.x += dx; rect.y += dy; }
+      if (dx || dy) storyDirty.current = true;
       s.measuredScroll = { x: scrollX, y: scrollY };
     };
     window.addEventListener('scroll', scroll, { passive: true });
     const pointer = e => {
       if (e.pointerType === 'touch') { sceneRef.current.pointer.visible = false; return; }
-      sceneRef.current.pointer = { x: e.clientX, y: e.clientY, visible: Boolean(e.target.closest('.jelly-workbench')) };
+      sceneRef.current.pointer = { x: e.clientX, y: e.clientY, visible: Boolean(e.target.closest('.jelly-workbench, .story-demo')) };
     };
     const leave = () => {
       const s = sceneRef.current;
@@ -221,6 +260,7 @@ export function App({ active = true }) {
           const s = sceneRef.current;
           if (!s.active) return null;
           const now = performance.now();
+          const delta = Math.min(.055, Math.max(.001, (now - s.lastSceneTime) / 1000));
           s.lastSceneTime = now;
           scroll();
           // Material assistance is local; native targets never drift with it.
@@ -237,27 +277,38 @@ export function App({ active = true }) {
           const canvasY = scrollY - canvasFrame.top;
           const project = rect => rect && ({ ...rect, y: rect.y + canvasY, ...(rect.clip ? { clip: { ...rect.clip, y: rect.clip.y + canvasY } } : {}) });
           // Measure transformed shell only while a container transition runs.
-          if (now < movingUntil.current) measure();
+          if (storyDirty.current || now < movingUntil.current) measure();
           const colors = s.colors.map((color, i) => rgb(controlPigment('action', s.selected === i ? 'selected' : s.pressed[i] ? 'pressed' : s.hovers[i] ? 'highlighted' : 'rest', color)));
           const transfer = toolbarFrame.current;
           const shell = transfer?.shell;
           const age = (now - s.nudge) / 1000;
           const impulse = s.nudge && !s.reducedMotion && s.params.motion > 0 && age < 1 ? Math.max(0, Math.sin(age * Math.PI)) * Math.exp(-age * 2) * 2 : 0;
           const lightField = s.lightField;
+          const nearby = r => r && r.y + r.height > -320 && r.y < innerHeight + 320;
+          let spotlight = null;
+          if (s.spotlight) {
+            const target = project(s.spotlight);
+            const response = s.spotlightResponse ||= {};
+            const options = { duration: MOTION.material, curve: MOTION.gather, instant: s.reducedMotion || s.params.motion === 0 };
+            spotlight = { x: stepJellyResponse(response, 'x', target.x + target.width / 2 - 30, delta, options), y: stepJellyResponse(response, 'y', target.y - 60, delta, options), height: target.spread, intensity: 1, softness: .55, warmth: .5, enabled: true };
+          } else s.spotlightResponse = null;
           return { width: innerWidth, height: canvasFrame.height, documentTop: canvasFrame.top, viewportTop: canvasY, viewportHeight: innerHeight, dpr: Math.min(devicePixelRatio, innerWidth < 700 ? 1.3 : 1.5) * Math.sqrt(innerHeight / canvasFrame.height), pointer: project(s.pointer), parallax: s.parallax, hero: project(s.hero),
-            buttons: s.rects.map((r, i) => r && project({ ...r, ...assist(i), arrival: presentation.current.arrival[i], ...(transfer ? { width: transfer.poses[i].width, height: transfer.poses[i].height, x: r.x + (r.width - transfer.poses[i].width) / 2, y: r.y + (r.height - transfer.poses[i].height) / 2, merge: transfer.poses[i].merge, neckStrain: transfer.poses[i].strain || 0, ...(transfer.materialOnly ? { x: transfer.poses[i].x - scrollX - transfer.poses[i].width / 2, y: transfer.poses[i].y - scrollY - transfer.poses[i].height / 2 } : {}), transferring: true } : {}), hover: Math.max(s.hovers[i], s.selected === i ? 0.35 : 0), pressed: s.pressed[i], stir: impulse, docked: s.selected !== null, tabbed: s.selected === i, color: colors[i] })).filter(Boolean),
-            panel: s.panelRect && panelSurfaceRef.current ? project({ ...s.panelRect, density: s.densityRegion ? { ...project(s.densityRegion), opacity: s.densityRegion.opacity * Number(panelSurfaceRef.current.parentElement.style.getPropertyValue('--window-reveal') || 1) } : null, hover: shell?.closing ? 0 : 0.12, pressed: 0, stir: 0, color: rgb(transfer?.color ?? s.windowColor), colorSampled: true, cornerRadius: shell?.radius ?? 30, windowDepth: shell ? 1 : transfer ? .62 + .38 * transfer.attachment : s.windowDepth ?? 1, tab: s.tab, ...(shell ? { x: shell.x - scrollX - shell.width / 2, y: shell.y - scrollY - shell.height / 2, width: shell.width, height: shell.height, boundsSampled: true, morph: shell } : {}) }) : null,
+            buttons: s.rects.map((r, i) => nearby(r) ? project({ ...r, ...assist(i), arrival: presentation.current.arrival[i], ...(transfer ? { width: transfer.poses[i].width, height: transfer.poses[i].height, x: r.x + (r.width - transfer.poses[i].width) / 2, y: r.y + (r.height - transfer.poses[i].height) / 2, merge: transfer.poses[i].merge, neckStrain: transfer.poses[i].strain || 0, ...(transfer.materialOnly ? { x: transfer.poses[i].x - scrollX - transfer.poses[i].width / 2, y: transfer.poses[i].y - scrollY - transfer.poses[i].height / 2 } : {}), transferring: true } : {}), hover: Math.max(s.hovers[i], s.selected === i ? 0.35 : 0), pressed: s.pressed[i], stir: impulse, docked: s.selected !== null, tabbed: s.selected === i, color: colors[i] }) : null),
+            panel: s.storyPanel ? project({ ...s.storyPanel, id: 'story-density', density: s.storyDensity ? project(s.storyDensity) : null, hover: 0, color: rgb(s.storyPanel.pigment), colorSampled: true, cornerRadius: 30, windowDepth: 1, boundsSampled: true }) : nearby(s.panelRect) && panelSurfaceRef.current ? project({ ...s.panelRect, id: 'primary-window', density: s.densityRegion ? { ...project(s.densityRegion), opacity: s.densityRegion.opacity * Number(panelSurfaceRef.current.parentElement.style.getPropertyValue('--window-reveal') || 1) } : null, hover: shell?.closing ? 0 : 0.12, pressed: 0, stir: 0, color: rgb(transfer?.color ?? s.windowColor), colorSampled: true, cornerRadius: shell?.radius ?? 30, windowDepth: shell ? 1 : transfer ? .62 + .38 * transfer.attachment : s.windowDepth ?? 1, tab: s.tab, ...(shell ? { x: shell.x - scrollX - shell.width / 2, y: shell.y - scrollY - shell.height / 2, width: shell.width, height: shell.height, boundsSampled: true, morph: shell } : {}) }) : null,
             bubbles: s.bubbles.map((r, i) => project({ ...r, ...assist(i + s.rects.length), opacity: r.headerControl && s.closing ? 0 : r.opacity })), selections: s.selections?.map(project), assistanceBlocked, params: s.params, reducedMotion: s.reducedMotion,
-            light: lightField ? project({ ...s.light, x: lightField.x + lightField.width * s.light.x, y: lightField.y + lightField.height * s.light.y }) : null,
+            light: spotlight || (lightField ? project({ ...s.light, x: lightField.x + lightField.width * s.light.x, y: lightField.y + lightField.height * s.light.y }) : null),
+            lightAnchor: spotlight ? { x: spotlight.x + 30, y: spotlight.y + 60 } : s.rects.length ? project({ x: s.rects.reduce((sum, r) => sum + r.x + r.width / 2, 0) / s.rects.length, y: s.rects.reduce((sum, r) => sum + r.y + r.height / 2, 0) / s.rects.length }) : undefined,
+            contrastTargets: [...s.rects.map((r, i) => r && ({ ...inkSampleRect(r), id: `primary-${i}` })), ...s.bubbles.filter(r => !['track', 'fill', 'thumb'].includes(r.kind)).map(r => ({ ...inkSampleRect(r), id: r.id, guard: r.activity === 'loading' }))].filter(Boolean).map(project),
             scrollEdge: edgeRef.current ? { height: presentation.current.edgeHeight, strength: Number(getComputedStyle(edgeRef.current).opacity) } : null };
         },
-        onError: error => { console.warn('Optical renderer:', error); document.documentElement.classList.remove('gel-bubbles-ready'); setFallback(true); },
+        onError: error => { console.warn('Optical renderer:', error); inkNodes.forEach(clearJellyInk); document.documentElement.classList.remove('gel-bubbles-ready'); setFallback(true); },
+        onContrast: readings => readings.forEach(result => applyJellyInk(inkNodes.get(result.id), result)),
       });
       document.documentElement.classList.add('optics-ready');
       if (canvasRef.current.dataset.bubblesReady === 'true') document.documentElement.classList.add('gel-bubbles-ready');
     } catch (error) { console.warn('Optical canvas unavailable.', error); setFallback(true); }
     return () => {
-      optics?.destroy(); observer.disconnect();
+      optics?.destroy(); observer.disconnect(); inkNodes.forEach(clearJellyInk);
       media.removeEventListener('change', change);
       window.removeEventListener('resize', measure); window.removeEventListener('scroll', scroll);
       window.removeEventListener('pointermove', pointer); document.removeEventListener('pointerleave', leave); window.removeEventListener('blur', leave);
@@ -268,7 +319,7 @@ export function App({ active = true }) {
   }, [createOptics]);
 
   useLayoutEffect(() => {
-    if (panel === null) { sceneRef.current.panelRect = null; sceneRef.current.bubbles = []; sceneRef.current.densityRegion = null; return; }
+    if (panel === null) { sceneRef.current.panelRect = null; bubbleElements.current = []; sceneRef.current.densityRegion = null; measureRef.current(); return; }
     const surface = panelSurfaceRef.current;
     const refreshBubbles = () => {
       bubbleElements.current = [...toolbarRef.current.querySelectorAll('.dock-close[data-gel-surface]'), ...panelInnerRef.current.querySelectorAll('.panel-view:not(.is-outgoing) [data-gel-surface]')];
@@ -291,6 +342,20 @@ export function App({ active = true }) {
   }, [visiblePanel, reducedMotion, openingVersion, closing]);
 
   useLayoutEffect(() => { measureRef.current(); }, [params, colors, light, active, fallback]);
+
+  useEffect(() => {
+    const node = storyScopeRef.current;
+    const invalidate = () => { storyDirty.current = true; };
+    const resize = new ResizeObserver(invalidate);
+    resize.observe(node);
+    const mutations = new MutationObserver(invalidate);
+    mutations.observe(node, { childList: true, subtree: true, attributes: true, attributeFilter: ['style', 'aria-pressed', 'aria-expanded', 'data-open', 'data-density-hover', 'data-gel-hover', 'data-gel-pressed', 'data-gel-dragging', 'data-story-concentration', 'data-gel-activity', 'data-gel-progress', 'data-spotlight', 'data-spot-target', 'data-spot-spread'] });
+    const transition = () => { movingUntil.current = Math.max(movingUntil.current, performance.now() + MOTION.densityGather + 80); invalidate(); };
+    node.addEventListener('transitionrun', transition);
+    node.addEventListener('jellybox:motion', transition);
+    invalidate();
+    return () => { resize.disconnect(); mutations.disconnect(); node.removeEventListener('transitionrun', transition); node.removeEventListener('jellybox:motion', transition); };
+  }, []);
 
   const gelEvent = (event, type, value) => {
     const element = event.target.closest('[data-gel-surface]') || event.target.closest('.jb-range-control')?.querySelector('.jb-range-thumb');
@@ -393,7 +458,11 @@ export function App({ active = true }) {
         </section>}
       </div>
     </section>
-    <DesignStory motionEnabled={!paused && !reducedMotion} />
+    <div ref={storyScopeRef} onPointerOver={e => gelEvent(e, 'gelHover', true)} onPointerOut={e => gelEvent(e, 'gelHover', false)}
+      onPointerDown={e => gelEvent(e, 'gelPressed', true)} onPointerUp={e => gelEvent(e, 'gelPressed', false)} onPointerCancel={e => gelEvent(e, 'gelPressed', false)}
+      onFocus={e => gelEvent(e, 'gelHover', true)} onBlur={e => gelEvent(e, 'gelHover', false)}>
+      <DesignStory motionEnabled={!paused && !reducedMotion} />
+    </div>
     </main>
     <footer className="site-footer"><span>JellyBox <span className="footer-cross">—</span> by christopher robin fiore · MIT</span><JellySwitch tone="info" label="Continuous motion" checked={!paused} onCheckedChange={enabled => setPaused(!enabled)} /></footer>
     <div className="sr-only" role="status" aria-live="polite">{announcement}</div>

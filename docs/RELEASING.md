@@ -45,9 +45,9 @@ This sets STORY_FONT_PART_1/2/3 secrets. Only the trusted deployment build uses 
 4. Tag the checked commit and publish the archive/checksum through GitHub Releases.
 
 ```sh
-git tag v0.4.2
-git push origin v0.4.2
-gh release create v0.4.2 release/jellybox-react-0.4.2.tgz release/SHA256SUMS --verify-tag --title 'JellyBox v0.4.2' --notes-file docs/releases/v0.4.2.md
+git tag v0.5.0
+git push origin v0.5.0
+gh release create v0.5.0 release/jellybox-react-0.5.0.tgz release/SHA256SUMS --verify-tag --title 'JellyBox v0.5.0' --notes-file docs/releases/v0.5.0.md
 ```
 
 Do not add commercial fonts, local scratch/history, machine paths, credentials, node_modules or generated builds to source. The release check catches common mistakes but does not replace review of asset rights or intended public content.

@@ -71,14 +71,15 @@ test('material color hook is SSR-safe and starts at the requested target', () =>
   assert.equal(renderToStaticMarkup(h(Material)), '<span style="background-color:#aabbcc">State is immediate</span>');
 });
 
-test('tone hook supplies material channels without changing semantic ink or content', () => {
+test('tone hook supplies material channels and a legible fallback ink while preserving content', () => {
   function Status() {
     return h('span', { style: useJellyToneStyle('danger') }, 'Failed');
   }
   const html = renderToStaticMarkup(h(Status));
   assert.match(html, /--jb-color:#f18787/);
   assert.match(html, /--jb-rgb:241 135 135/);
-  assert.match(html, /--jb-ink:#102d43/);
+  assert.match(html, /--jb-ink:#03121e/);
+  assert.match(html, /--jb-control-ink:#03121e/);
   assert.match(html, />Failed<\/span>/);
 });
 

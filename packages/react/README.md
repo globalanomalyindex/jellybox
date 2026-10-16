@@ -1,11 +1,11 @@
 # JellyBox React foundation
 
-Experimental React controls and a shared jelly material, used by the [JellyBox study](https://globalanomalyindex.github.io/jellybox/). Sixteen core components work with CSS/SVG alone; optional Three.js rendering supplies depth, transmitted light and connected density. This 0.4.2 preview is distributed on GitHub Releases, not npm.
+Experimental React controls and a shared jelly material, used by the [JellyBox study](https://globalanomalyindex.github.io/jellybox/). Seventeen core components work with CSS/SVG alone; optional Three.js rendering supplies depth, transmitted light and connected density. This 0.5.0 preview is distributed on GitHub Releases, not npm.
 
 ## Install
 
 ```sh
-npm install https://github.com/globalanomalyindex/jellybox/releases/download/v0.4.2/jellybox-react-0.4.2.tgz
+npm install https://github.com/globalanomalyindex/jellybox/releases/download/v0.5.0/jellybox-react-0.5.0.tgz
 ```
 
 React and React DOM 18/19 are peers. Import CSS once. For the optical entry, also install the supported Three 0.186 peer.
@@ -27,7 +27,7 @@ export function Example() {
 
 ## Core exports
 
-`JellyButton`, `JellySelectionGroup`, `JellySurface`, `JellySlider`, `JellySwitch`, `JellyInput`, `JellyBadge`, `JellyAlert`, `JellySkeleton`, `JellyTabs`, `JellyDropdown`, `JellyCheckbox`, `JellyDialog`, `JellyTable`, `JellyWindow`, `JellyLink`.
+`JellyButton`, `JellyActivityButton`, `JellySelectionGroup`, `JellySurface`, `JellySlider`, `JellySwitch`, `JellyInput`, `JellyBadge`, `JellyAlert`, `JellySkeleton`, `JellyTabs`, `JellyDropdown`, `JellyCheckbox`, `JellyDialog`, `JellyTable`, `JellyWindow`, `JellyLink`.
 
 Core also exports semantic tones, shared material/motion constants, bounded Spectral pigment helpers and their React hooks. It is ESM and server-renderable without Three. Types are included. The [API guide](https://github.com/globalanomalyindex/jellybox/blob/main/docs/COMPONENTS.md) and declarations describe props/native behaviors.
 
@@ -56,3 +56,10 @@ Styles use `.jb-*` and `--jb-*`. Override tokens locally on a wrapper. Import on
 The optional renderer is an authored real-time approximation, not a validated fluid/path-traced simulation. Native semantics/focus and preference handling are implemented, but your composition still needs rendered contrast, keyboard/device and assistive-technology checks. Performance depends on hardware and scene size.
 
 MIT. Spectral.js 3.0.0 attribution is in THIRD_PARTY_NOTICES.md. The package contains no JellyBox brand artwork, commercial font, site screenshots or development scratch files.
+
+
+### Activity and readable ink
+
+`JellyActivityButton` accepts an application-owned `status` (`idle`, `loading`, `success`, `warning`, `error`) and optional `progress` from 0–100. Loading uses native busy/disabled semantics. Without progress the rendered pigment circulates; with progress it gathers toward the reported amount. The component never starts a timer or invents success. Give failures a working retry callback. The story's timed task is explicitly a simulation.
+
+`JellyScene` samples nine background points per visible label in one bounded asynchronous GPU batch, at most ten times per second. Shared `chooseJellyInk` selects dark/light ink against the least favorable sample, keeps a passing choice stable, and adds a thin glyph halo for mixed highlights. The CSS fallback estimates its translucent skin over the neutral receiver. Forced colors use system ink. Sampling improves the supported composition; it is not an exhaustive pixel or WCAG certification. Low-level `createOptics` consumers provide `contrastTargets` and `onContrast` to connect the policy to their own DOM.

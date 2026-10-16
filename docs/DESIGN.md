@@ -10,7 +10,7 @@ The supplied two-line black SVG is static and unshaded. Keep the opening logo, t
 
 The story has a readable main column, persistent chapter index and a compact horizontal index. Native fragments and scroll position own chapter highlighting; document-end clamping still selects the final chapter. Working panels remain in document flow.
 
-00 Abstract introduces the design-system proposition without calling this React Native or claiming tested UX benefits. Inline motion/color figures explain the adjacent prose using shared implementation values. Keep them compact, inspectable and finite; no decorative autoplay loops. The header contains only Portfolio and GitHub links; Reset experiment belongs in Explore.
+00 Abstract introduces the design-system proposition without calling this React Native or claiming tested UX benefits. Inline density, motion and color figures explain the adjacent prose using the actual controls and shared renderer. Curves loop while visible, with quiet endpoint holds and no replay buttons. Keep headings and functional states; omit instructional sub-blurbs. Density gathers a working group; shared pigment communicates membership and pending edits. The header contains only Portfolio and GitHub links; Reset experiment belongs in Explore.
 
 ## Density and hierarchy
 
@@ -31,3 +31,8 @@ The movable bulb changes the material's highlights, transmitted casts and optica
 ## Requirements
 
 Preserve visible focus, native disclosure/forms, Escape, retained values, inert closing content, touch and keyboard input. Respect reduced motion, pause, forced colors and reduced transparency. Test actual rendered color/light combinations; do not infer universal contrast from pigment tokens. Follow MATERIAL.md and MOTION.md for implementation contracts and docs/VERIFICATION.md for evidence limits.
+
+
+## Activity and attention
+
+Loading is moving pigment inside the existing body. Known progress gathers toward a reported amount; unknown progress circulates without a percentage. Success, warning and failure use semantic color plus explicit labels/icons, with Cancel and Retry as real actions. The story labels its task as simulated. A task spotlight can follow pointer/keyboard preview while selection remains visibly committed. It is a feature of the shared light-reactive material, not a separate glowing border. Adaptive ink chooses dark/light text against actual sampled material, without fading ink through low-contrast gray or adding an opaque white pill.

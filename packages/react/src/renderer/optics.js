@@ -7,6 +7,8 @@ import { surfacePigment, windowPigment } from './surface-color.js';
 import { lightTemperature, moveReceiverField } from './lighting.js';
 import { DEFAULT_MATERIAL, JELLY_MATERIAL } from './material.js';
 import { DENSITY_GLSL, densityFieldProfile, densityClearing, densityPresentation, densityAttenuation, densityColorWeight, stepDensitySettle } from './density-field.js';
+import { createContrastSampler } from './contrast-sampler.js';
+import { activityPocket } from './activity.js';
 import { volumeCrown, volumeHeight, volumeFullness } from './volume-profile.js';
 import { primaryTabMerge } from './tab-transfer.js';
 import { POCKET, POCKET_GLSL, stepPocket, pocketShape } from './pocket.js';
@@ -844,7 +846,7 @@ function traceMeniscusCaustics(body, mobile, irradiance) {
   uploadFlux(field);
 }
 
-export function createOptics(canvas, { getScene, onError = () => {}, onAfterRender = () => {} }) {
+export function createOptics(canvas, { getScene, onError = () => {}, onAfterRender = () => {}, onContrast }) {
   let renderer;
   try {
     renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: false, powerPreference: 'high-performance' });
@@ -862,6 +864,7 @@ export function createOptics(canvas, { getScene, onError = () => {}, onAfterRend
   renderer.shadowMap.type = THREE.VSMShadowMap;
   renderer.transmissionResolutionScale = 0.68;
   const scrollEdge = createScrollEdge(renderer);
+  const contrastSampler = createContrastSampler(renderer, onContrast);
   const scene = new THREE.Scene();
   scene.background = new THREE.Color(0xf6f7f8);
   const camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0.1, 3000);
@@ -1047,8 +1050,8 @@ export function createOptics(canvas, { getScene, onError = () => {}, onAfterRend
       key.castShadow = !lighting;
       if (lighting) {
         const targets = (state.buttons || []).filter(Boolean);
-        const centerX = targets.length ? targets.reduce((sum, r) => sum + r.x + r.width / 2, 0) / targets.length : width / 2;
-        const centerY = targets.length ? targets.reduce((sum, r) => sum + r.y + r.height / 2, 0) / targets.length : height / 2;
+        const centerX = state.lightAnchor?.x ?? (targets.length ? targets.reduce((sum, r) => sum + r.x + r.width / 2, 0) / targets.length : width / 2);
+        const centerY = state.lightAnchor?.y ?? (targets.length ? targets.reduce((sum, r) => sum + r.y + r.height / 2, 0) / targets.length : height / 2);
         lightReference.copy(atScreen(centerX, centerY, 0, width, height));
         point.position.copy(atScreen(lighting.x, lighting.y, 0, width, height));
         point.position.z = clamp(lighting.height ?? 280, 120, 700);
@@ -1071,7 +1074,11 @@ export function createOptics(canvas, { getScene, onError = () => {}, onAfterRend
       const smooth = 1 - Math.exp(-delta / (state.reducedMotion ? 0.07 : MOTION.feedback / 1000));
       bodies.forEach((body, index) => {
         let button = buttonStates[index];
-        const wasLive = body.live;
+        const wasLive = body.live && (!body.panel || body.owner === button?.id);
+        if (body.panel) {
+          body.owner = button?.id;
+          if (!wasLive) { body.densityPrevious = null; body.densityPigment = null; }
+        }
         body.live = !!button && button.width > 0 && button.height > 0;
         body.mesh.visible = body.live;
         if (!body.live) {
@@ -1174,7 +1181,7 @@ export function createOptics(canvas, { getScene, onError = () => {}, onAfterRend
           const densityHeight = region.expandedHeight ?? region.height;
           body.density = { x: region.x + region.width / 2 - button.x - button.width / 2,
             y: button.y + button.height / 2 - region.y - densityHeight / 2,
-            width: region.width + (region.folder ? 0 : Math.abs(field.flow) * 10), height: densityHeight, edge: field.edge, fold: region.folder ? field.fold : 0, folder: !!region.folder, jiggle: body.densitySettle.strain * visibility, flow: field.flow * visibility, amount: (field.amount + hover) * visibility };
+            width: region.width + (region.folder ? 0 : Math.abs(field.flow) * 10), height: densityHeight, edge: field.edge, fold: region.folder ? field.fold : 0, folder: !!region.folder, jiggle: body.densitySettle.strain * visibility, flow: field.flow * visibility, amount: (field.amount + hover) * visibility * clamp(region.concentration ?? 1, .3, 1) };
           density.body.value.set(body.width, body.height, body.r);
           density.region.value.set(body.density.x, body.density.y, body.density.width, body.density.height);
           density.amount.value = body.density.amount;
@@ -1285,8 +1292,9 @@ export function createOptics(canvas, { getScene, onError = () => {}, onAfterRend
         targetTint.copy(colorFrom(body.pigmentRGB));
         setMaterialTone(body, targetTint, delta, !wasLive || !!state.reducedMotion || !!bubble.colorSampled);
         const flowUniforms = body.material.userData.flow;
-        if (bubble.flow) {
-          const target = bubble.flow;
+        const activity = bubble.activity === 'loading' ? activityPocket(bubble.width, bubble.height, time, bubble.progress) : null;
+        if (bubble.flow || activity) {
+          const target = bubble.flow || activity;
           body.pocket = stepPocket(body.pocket, target, delta, instant);
           body.flow = { ...pocketShape(body.pocket), strength: JELLY_MATERIAL.control.focusPigmentStrength };
           flowUniforms.region.value.set(body.flow.x, body.flow.y, body.flow.width, body.flow.height);
@@ -1310,10 +1318,11 @@ export function createOptics(canvas, { getScene, onError = () => {}, onAfterRend
         body.material.thickness = body.c * 2;
         updateGeometry(body, timestamp, moving && (!body.grouped || body.hover > 0.005));
         const attached = bubble.attached !== false;
-        const elevation = attached ? .65 + clamp(body.hover) * .35 - clamp(body.pressed) * .25 : 2 + body.c * .65 + body.hover * 3;
+        const contact = attached || bubble.contact === true;
+        const elevation = contact ? .65 + clamp(body.hover) * .35 - clamp(body.pressed) * .25 : 2 + body.c * .65 + body.hover * 3;
         let castX = -body.lightDirection.x / body.lightDirection.z * elevation;
         let castY = body.lightDirection.y / body.lightDirection.z * elevation;
-        if (attached) {
+        if (contact) {
           const limit = Math.min(1, JELLY_MATERIAL.contact.maxOffset / Math.max(.001, Math.hypot(castX, castY)));
           castX *= limit; castY *= limit;
         }
@@ -1324,11 +1333,11 @@ export function createOptics(canvas, { getScene, onError = () => {}, onAfterRend
         body.castUniforms.size.value.set(bubble.width, bubble.height);
         body.castUniforms.radius.value = body.r;
         body.castUniforms.pigment.value.copy(body.toneColor);
-        body.castUniforms.contact.value = attached ? 1 : 0;
-        body.castUniforms.density.value = attached
+        body.castUniforms.contact.value = contact ? 1 : 0;
+        body.castUniforms.density.value = contact
           ? body.kind === 'track' || body.kind === 'fill' ? 0 : body.kind === 'thumb' ? JELLY_MATERIAL.contact.thumbDensity : body.grouped ? JELLY_MATERIAL.contact.groupedDensity : JELLY_MATERIAL.contact.density
           : Math.min(.15, .04 + body.c / body.material.attenuationDistance * .15);
-        body.castUniforms.light.value = attached ? floorUniforms.uShadowStrength.value : .7 + illumination * .3;
+        body.castUniforms.light.value = contact ? floorUniforms.uShadowStrength.value : .7 + illumination * .3;
         // A zero-density receiver contributes no pixels. Do not submit its
         // transparent quad (tracks and fills otherwise cost two extra draws each).
         body.cast.visible = body.castUniforms.density.value > 0 && body.material.opacity > .001;
@@ -1413,6 +1422,7 @@ export function createOptics(canvas, { getScene, onError = () => {}, onAfterRend
       renderer.setScissor(0, height - visibleBottom, width, visibleBottom - visibleTop);
       renderer.setScissorTest(true);
       renderer.render(scene, camera);
+      contrastSampler.sample(state, timestamp);
       const edgeRendered = scrollEdge.render(state);
       if (import.meta.env.DEV) {
         canvas.dataset.scrollEdgePass = String(edgeRendered);
@@ -1506,6 +1516,7 @@ export function createOptics(canvas, { getScene, onError = () => {}, onAfterRend
       paper.color.dispose(); paper.relief.dispose();
       environment.dispose();
       scrollEdge.destroy();
+      contrastSampler.destroy();
       key.shadow.map?.dispose(); key.shadow.mapPass?.dispose();
       renderer.dispose();
       delete canvas.dataset.renderer;

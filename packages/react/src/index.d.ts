@@ -22,6 +22,12 @@ export interface JellyButtonProps extends React.ButtonHTMLAttributes<HTMLButtonE
   tone?: JellyTone; size?: JellySize; variant?: 'solid' | 'soft' | 'ghost' | 'quiet'; loading?: boolean; selected?: boolean; highlighted?: boolean; pigment?: string;
 }
 export const JellyButton: React.ForwardRefExoticComponent<JellyButtonProps & React.RefAttributes<HTMLButtonElement>>;
+export type JellyActivityStatus = 'idle' | 'loading' | 'success' | 'warning' | 'error';
+export interface JellyActivityButtonProps extends Omit<JellyButtonProps, 'tone' | 'loading' | 'selected'> { status?: JellyActivityStatus; progress?: number; }
+export const JellyActivityButton: React.ForwardRefExoticComponent<JellyActivityButtonProps & React.RefAttributes<HTMLButtonElement>>;
+export const JELLY_INK: Readonly<{ dark: string; light: string; minimum: number }>;
+export function contrastRatio(first: number, second: number): number;
+export function chooseJellyInk(samples: readonly (number | string)[], previous?: string): { ink: string; ratio: number; halo: boolean };
 export interface JellySurfaceProps extends React.HTMLAttributes<HTMLDivElement> { tone?: JellyTone; }
 export const JellySurface: React.ForwardRefExoticComponent<JellySurfaceProps & React.RefAttributes<HTMLDivElement>>;
 

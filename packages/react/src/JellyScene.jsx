@@ -4,6 +4,7 @@ import { DEFAULT_MATERIAL } from './renderer/material.js';
 import { SEMANTIC_COLORS } from './tokens.js';
 import { MOTION } from './renderer/motion.js';
 import { intersectRect, pickSurfaces } from './renderer/surface-layout.js';
+import { applyJellyInk, clearJellyInk, inkSampleRect } from './contrast.js';
 
 // One optional optical scene per visible workbench. Semantics remain native DOM.
 export function JellyScene({ children, params = DEFAULT_MATERIAL, tone = 'action', active = true, defer = false, className = '', style }) {
@@ -31,6 +32,7 @@ export function JellyScene({ children, params = DEFAULT_MATERIAL, tone = 'action
     let measuredPanel = null;
     let movingUntil = 0, nextId = 0;
     const identities = new WeakMap();
+    const inkNodes = new Map();
     const projections = new Map();
     const forced = matchMedia('(forced-colors: active)');
     const cleanProjections = () => { projections.forEach(({ canvas }) => canvas.remove()); projections.clear(); };
@@ -38,6 +40,7 @@ export function JellyScene({ children, params = DEFAULT_MATERIAL, tone = 'action
     const clearClaims = () => node.querySelectorAll('[data-gel-rendered], [data-gel-selection-rendered]').forEach(el => {
       if (el.closest('.jb-scene') !== node) return;
       delete el.dataset.gelRendered; delete el.dataset.gelSelectionRendered;
+      clearJellyInk(el);
     });
     const rgb = name => (SEMANTIC_COLORS[name] || SEMANTIC_COLORS.action).rgb;
     const visible = el => { const inert = el.closest('[inert]'); return !el.closest('[hidden]') && (!inert || inert.classList.contains('jb-window-content')) && el.getClientRects().length > 0; };
@@ -82,22 +85,25 @@ export function JellyScene({ children, params = DEFAULT_MATERIAL, tone = 'action
       });
       const chosen = pickSurfaces(candidates);
       const surfaces = chosen.map(item => item.el);
+      inkNodes.clear(); surfaces.forEach(el => inkNodes.set(idOf(el), el));
       const selectedSelector = '[data-gel-option][aria-checked="true"], [data-gel-option][aria-selected="true"], [data-gel-option][aria-pressed="true"]';
       const selectedOf = group => group.querySelector(group.dataset.gelSelectionMode === 'active' ? '[data-gel-option][data-active="true"]' : selectedSelector);
       const groups = [...node.querySelectorAll('[data-gel-group]')].filter(group => group.closest('.jb-scene') === node && visible(group) && selectedOf(group) && (surfaces.includes(selectedOf(group)) || group.dataset.gelConnected === 'true' && surfaces.includes(group.parentElement.querySelector('.jb-dropdown-shell')))).sort((a, b) => Number(b.classList.contains('jb-dropdown-list')) - Number(a.classList.contains('jb-dropdown-list'))).slice(0, 2);
       const claimed = new Set(forced.matches ? [] : [...surfaces, panel].filter(Boolean));
-      node.querySelectorAll('[data-gel-rendered]').forEach(el => { if (el.closest('.jb-scene') === node && !claimed.has(el)) delete el.dataset.gelRendered; });
+      node.querySelectorAll('[data-gel-rendered]').forEach(el => { if (el.closest('.jb-scene') === node && !claimed.has(el)) { delete el.dataset.gelRendered; clearJellyInk(el); } });
       claimed.forEach(el => { if (el.dataset.gelRendered !== 'true') el.dataset.gelRendered = 'true'; });
       node.querySelectorAll('[data-gel-selection-rendered]').forEach(el => { if (el.closest('.jb-scene') === node && !groups.includes(el)) delete el.dataset.gelSelectionRendered; });
       groups.forEach(el => { if (el.dataset.gelSelectionRendered !== 'true') el.dataset.gelSelectionRendered = 'true'; });
       bounds = {
         width: canvasBounds.width, height: canvasBounds.height,
+        contrastTargets: chosen.filter(({ kind }) => !['track', 'fill', 'thumb'].includes(kind)).map(({ el }) => ({ ...inkSampleRect(box(el)), id: idOf(el), guard: el.dataset.gelActivity === 'loading' })),
         panel: panel ? { ...box(panel), color: rgb(panel.dataset.gelTone || latest.current.tone) } : null,
         bubbles: chosen.map(({ el, kind, clip }) => ({ ...box(el), id: idOf(el), kind, attached: Boolean(panel?.contains(el)),
           clip: { ...clip, x: clip.x - canvasBounds.x, y: clip.y - canvasBounds.y },
           layer: kind === 'menu' ? 4 : el.closest('.jb-dropdown-list') ? 5 : el.closest('.jb-table-shell') ? (kind === 'table' ? 1 : kind === 'row' ? 2 : 3) : kind === 'thumb' || el.closest('.jb-alert') && kind !== 'alert' ? 2 : kind === 'fill' ? 1.5 : 1,
           hover: el.dataset.gelHover === 'true' || el.dataset.active === 'true' ? 1 : 0,
           pressed: el.dataset.gelPressed === 'true' ? 1 : 0,
+          activity: el.dataset.gelActivity, progress: el.dataset.gelProgress === undefined ? undefined : Number(el.dataset.gelProgress),
           grouped: el.hasAttribute('data-gel-option') && Boolean(el.closest('[data-gel-group]')),
           selected: !el.closest('[data-gel-group]') && (el.getAttribute('aria-pressed') === 'true' || el.getAttribute('aria-selected') === 'true' || el.dataset.selected === 'true' || el.querySelector('input:checked')) ? true : false,
           flow: kind === 'menu' ? (() => {
@@ -152,7 +158,7 @@ export function JellyScene({ children, params = DEFAULT_MATERIAL, tone = 'action
       if (records.some(record => !record.target.closest?.('.jb-selection-svg') && !record.target.matches?.('.jb-material-projection, .jb-optical-canvas') && !(record.type === 'childList' && [...record.addedNodes, ...record.removedNodes].every(child => child.classList?.contains('jb-material-projection'))) && !(record.type === 'attributes' && record.attributeName === 'style' && (record.target.hasAttribute('data-gel-window') || record.target.classList.contains('jb-window-content'))))) invalidate();
     });
     mutations.observe(node, { subtree: true, childList: true, attributes: true,
-      attributeFilter: ['aria-checked', 'aria-selected', 'aria-pressed', 'data-gel-hover', 'data-gel-pressed', 'style', 'data-gel-tone', 'disabled', 'hidden', 'inert', 'data-active', 'data-selected'] });
+      attributeFilter: ['aria-checked', 'aria-selected', 'aria-pressed', 'data-gel-hover', 'data-gel-pressed', 'style', 'data-gel-tone', 'disabled', 'hidden', 'inert', 'data-active', 'data-selected', 'data-gel-activity', 'data-gel-progress'] });
     window.addEventListener('resize', invalidate);
     window.addEventListener('scroll', invalidate, { passive: true, capture: true });
     media.addEventListener('change', invalidate);
@@ -179,6 +185,7 @@ export function JellyScene({ children, params = DEFAULT_MATERIAL, tone = 'action
     let renderer;
     try {
       renderer = createOptics(canvas.current, {
+        onContrast: readings => readings.forEach(result => applyJellyInk(inkNodes.get(result.id), result)),
         getScene: () => {
           if (!latest.current.active) return null;
           if (forced.matches) { clearClaims(); cleanProjections(); return null; }

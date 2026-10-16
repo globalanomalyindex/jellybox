@@ -11,9 +11,10 @@ const options = [
   { value: 'calm', label: 'Calm' }, { value: 'disabled', label: 'Unavailable', disabled: true }, { value: 'playful', label: 'Playful' },
 ];
 
-test('core exposes sixteen components and renders without the Three entry', async () => {
+test('core exposes native components and renders without the Three entry', async () => {
   const expected = ['JellyButton', 'JellySelectionGroup', 'JellySurface', 'JellySlider', 'JellySwitch', 'JellyInput', 'JellyBadge', 'JellyAlert', 'JellySkeleton', 'JellyTabs', 'JellyDropdown', 'JellyCheckbox', 'JellyDialog', 'JellyTable', 'JellyWindow', 'JellyLink'];
   expected.forEach((name) => assert.ok(library[name], name));
+  assert.ok(library.JellyActivityButton);
   assert.equal(library.JellyScene, undefined);
   const seen = new Set();
   const checkGraph = async (url) => {

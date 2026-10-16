@@ -1,10 +1,11 @@
 import { useEffect, useRef, useState } from 'react';
-import { ColorExample, MotionExample } from './StoryExamples.jsx';
+import { ColorExample, DensityExample, MotionExample } from './StoryExamples.jsx';
+import { LoadingExample, SpotlightExample } from './StoryStateExamples.jsx';
 
 const CHAPTERS = [
   ['story-abstract', 'Abstract'],
   ['story-introduction', 'Introduction'], ['story-density', 'Density'],
-  ['story-continuity', 'Continuity'], ['story-color', 'Color'],
+  ['story-continuity', 'Continuity'], ['story-feedback', 'States in motion'], ['story-color', 'Color'],
   ['story-light', 'Light'], ['story-interaction', 'Interaction'],
   ['story-study', 'One system'],
 ];
@@ -98,6 +99,7 @@ export function DesignStory({ motionEnabled = true }) {
             <p>More concentrated areas carry thickness, color and a defined edge. Thinner areas keep the content open and readable. A border is a denser part of the same material. An inner group can gather out of its parent window, with a clear boundary that still belongs to the whole. Structure can become firmer where a task needs precision and looser where it helps you move between things.</p>
             <p>Shape &amp; optics is a small example: the compact pill stretches into an inner folder, holds the extra controls, then gathers back. Its edge, depth and lighting change together. The text stays steady.</p>
           </div>
+          <DensityExample motionEnabled={motionEnabled} />
         </section>
 
         <section id="story-continuity" className="story-section" tabIndex={-1} aria-labelledby="story-continuity-title">
@@ -111,11 +113,22 @@ export function DesignStory({ motionEnabled = true }) {
           <MotionExample motionEnabled={motionEnabled} />
         </section>
 
+        <section id="story-feedback" className="story-section" tabIndex={-1} aria-labelledby="story-feedback-title">
+          <h3 id="story-feedback-title">States in motion</h3>
+          <div className="story-copy">
+            <p>Waiting is another place where the jelly can explain what’s happening. While a task is running, a dense blue pocket moves through the material. When progress is known, it gathers toward the reported value. When it isn’t, the pocket keeps circulating without pretending to know how far along the task is.</p>
+            <p>The same body carries the result: green for completion, amber when something needs review, red when the task fails. Color, density and motion share that transition, while the label and icon make the state explicit. Reduced motion keeps the words, progress and outcome. I’m exploring whether keeping those changes in one continuous material makes a task easier to follow.</p>
+          </div>
+          <LoadingExample />
+        </section>
+
         <section id="story-color" className="story-section" tabIndex={-1} aria-labelledby="story-color-title">
           <h3 id="story-color-title">Color</h3>
           <div className="story-copy">
             <p>I use <a href="https://github.com/rvanwijnen/spectral.js/" target="_blank" rel="noreferrer">Spectral.js</a> for pigment-inspired color mixing. Its Kubelka–Munk model gives me a shared mixing path for the material’s colors. Precomputed samples let the controls and window follow that path smoothly, including when a color changes halfway through a transition.</p>
             <p>Color also has a job. Clear blue is the resting material; a highlight invites interaction; a denser selection marks the committed choice. Save uses green and Delete uses red. Labels, checks and focus indicators carry those meanings too. Trying a palette shows a preview before applying it, so exploring a color doesn’t silently change the current choice.</p>
+            <p>Color can also carry a relationship. When two items join a working group, their pigments can mix into a shared identity, with a denser connection marking that they belong together. Separating them returns their individual colors. A pending edit can flow through that connection as a preview while the accepted grouping stays intact. This gives the jelly another job: showing what belongs together, what is changing, and what you’ve committed.</p>
+            <p>Legibility has to travel with the color. A shared ink rule samples the rendered jelly behind control labels and chooses dark or light text. It keeps a passing choice steady and adds a small glyph halo when a reflection spans both extremes. The material can stay expressive without asking you to read dark text through a dark pill.</p>
           </div>
           <ColorExample motionEnabled={motionEnabled} />
         </section>
@@ -125,7 +138,9 @@ export function DesignStory({ motionEnabled = true }) {
           <div className="story-copy">
             <p>The little bulb is a movable light in the rendered scene. Dragging it changes the direction of highlights, colored casts and transmitted light on the textured surface. Its brightness, height, softness and warmth can be adjusted together.</p>
             <p>I wanted light reactivity to belong to the material itself. It could help reveal depth and grouping, or give someone another way to tune the feel of a workspace. Reading areas keep the effects quieter so a shadow can’t pretend to be a control. Text and selected states still need to make sense with the light off.</p>
+            <p>That also opens up a useful possibility for apps: light can guide attention. A task spotlight could illuminate the next control, follow keyboard focus, or help someone find their place again. In this example the light follows a preview while a check keeps the selected step clear. It’s a shared material response, rather than a separate glowing outline. The idea is to help you find the next action without changing its location.</p>
           </div>
+          <SpotlightExample motionEnabled={motionEnabled} />
         </section>
 
         <section id="story-interaction" className="story-section" tabIndex={-1} aria-labelledby="story-interaction-title">

@@ -37,3 +37,10 @@ The cue is active only while the story is entering/occupying the viewport. It tu
 ## Limits
 
 One optional scene supports 32 visible registered surfaces and two selection groups. Geometry/flux updates are bounded and cached; overflow retains fallback. Raster transmission, analytic casts and sampled transport are approximate, single-scene techniques. Performance varies by device, browser, resolution and scene size. Verify rendered contrast across relevant light/color states; token contrast is not a universal accessibility result.
+
+
+## Activity and contrast
+
+A loading pocket circulates around the capsule rim when work is indeterminate, or gathers from one origin when a reported progress value is available. Its normals, pigment and receiver are the same field used for other moving pockets. Success, warning and failure keep the material body and change its semantic pigment; the host owns these states.
+
+Readable ink is a separate native layer. The optional renderer samples display-encoded material pixels into a bounded atlas, then a shared contrast policy chooses dark/light text against the least favorable sampled luminance. A thin opposing glyph halo protects mixed highlights and moving loading pockets. No HTML label image is rendered into WebGL, and a sampled result is not an exhaustive accessibility certification. Standalone story controls use contact casts so a remote light cannot send a decorative footprint through surrounding prose.

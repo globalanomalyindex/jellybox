@@ -2,6 +2,7 @@ import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { createJellyPalette, normalizeJellyColor } from './color.js';
 import { MOTION, sampleBezier } from './renderer/motion.js';
 import { controlPigment, toneStyle } from './tokens.js';
+import { inkStyle } from './contrast.js';
 
 const useBrowserLayoutEffect = typeof window === 'undefined' ? useEffect : useLayoutEffect;
 /** Animate only a surface pigment. Semantic labels, state, and focus stay immediate. */
@@ -58,6 +59,7 @@ export function useJellyToneStyle(tone = 'action', options) {
   const color = useJellyColor(target['--jb-color'], options);
   return {
     ...target,
+    ...inkStyle(color),
     '--jb-color': color,
     '--jb-rgb': [1, 3, 5].map((start) => parseInt(color.slice(start, start + 2), 16)).join(' '),
   };
@@ -66,6 +68,6 @@ export function useJellyToneStyle(tone = 'action', options) {
 /** Same sampled pigment feeds the optical body and fallback, with immediate semantic state. */
 export function useJellyControlStyle(tone, state, pigment) {
   const color = useJellyColor(controlPigment(tone, state, pigment));
-  return { ...toneStyle(tone), '--jb-color': color,
+  return { ...toneStyle(tone), ...inkStyle(color), '--jb-color': color,
     '--jb-rgb': [1, 3, 5].map(at => parseInt(color.slice(at, at + 2), 16)).join(' ') };
 }

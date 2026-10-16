@@ -4,7 +4,7 @@ Three buttons. A little light. A lot of jelly.
 
 A design-system study by [Christopher Robin Fiore](https://christopherfiore.net/), using density, connected movement, color and light to explain an interface. The working prototype is three jelly buttons that gather into shared workspaces. The reusable React foundation is included for experimentation; this is a research preview, not a finished production UI kit.
 
-**[Try the live study](https://globalanomalyindex.github.io/jellybox/)** · [Design story](https://globalanomalyindex.github.io/jellybox/#story-abstract) · [Download v0.4.2](https://github.com/globalanomalyindex/jellybox/releases/tag/v0.4.2)
+**[Try the live study](https://globalanomalyindex.github.io/jellybox/)** · [Design story](https://globalanomalyindex.github.io/jellybox/#story-abstract) · [Download v0.5.0](https://github.com/globalanomalyindex/jellybox/releases/tag/v0.5.0)
 
 ![JellyBox: three blue jelly controls and the project signature](docs/media/hero.jpg)
 
@@ -35,12 +35,12 @@ Defaults are Wobbly, 131% size, spacing 17, Glass blue, translucency 6% and surf
 
 ## Reuse the React foundation
 
-The repository contains `@jellybox/react`: sixteen core controls, scoped CSS, semantic tones and shared motion/color helpers. Its optional renderer uses Three.js. Core controls can render without WebGL or Three.
+The repository contains `@jellybox/react`: seventeen core controls, scoped CSS, semantic tones and shared motion/color helpers. Its optional renderer uses Three.js. Core controls can render without WebGL or Three.
 
 ```sh
 npm run pack:library
 # In another React project:
-npm install /path/to/jellybox/release/jellybox-react-0.4.2.tgz
+npm install /path/to/jellybox/release/jellybox-react-0.5.0.tgz
 ```
 
 Release archives are also attached to [GitHub Releases](https://github.com/globalanomalyindex/jellybox/releases). This release is not published on npm. Import `@jellybox/react/styles.css` once; see the [package guide](packages/react/README.md) and [component API](docs/COMPONENTS.md).

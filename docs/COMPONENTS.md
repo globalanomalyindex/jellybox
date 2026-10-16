@@ -1,6 +1,6 @@
 # JellyBox components
 
-The 0.4.0 foundation contains sixteen components. Core components work with React and the scoped stylesheet; the optional Three renderer supplies the liquid material. Forms, focus, text and selected state remain DOM behavior. This is an initial foundation, not a complete component suite or broad accessibility certification.
+The 0.5.0 foundation contains seventeen components. Core components work with React and the scoped stylesheet; the optional Three renderer supplies the liquid material. Forms, focus, text and selected state remain DOM behavior. This is an initial foundation, not a complete component suite or broad accessibility certification.
 
 ```jsx
 import {
@@ -9,7 +9,7 @@ import {
 import '@jellybox/react/styles.css';
 ```
 
-The core controls share six semantic `tone` roles and material/motion tokens. JellyWindow and JellyLink complete the sixteen exports; the expanded contracts below cover the larger controls. Labels and state update immediately, independently of decorative motion.
+The core controls share six semantic `tone` roles and material/motion tokens. JellyActivityButton adds application-owned activity/outcome states; the expanded contracts below cover the larger controls. Labels and state update immediately, independently of decorative motion.
 
 ## JellyTabs
 
@@ -193,3 +193,16 @@ Badge, Alert, Dropdown menu, Table, Skeleton and controls share material-skin.cs
 A scene retains up to 32 visible surfaces and two selection contours. Menu surfaces take priority; off-screen and fully clipped nodes do not consume slots. Stable DOM identities preserve pigment/depth history when sorting and filtering. Scroll clipping uses the original geometry and world-space clipping planes, so a partially hidden badge does not grow a new rounded end. Surfaces beyond the budget retain CSS. Passive badges breathe gently but never show actionable hover/press feedback.
 
 The same MeshPhysicalMaterial, directional light, environment, Spectral pigment palette and translucency/light parameters serve all these roles. Their proportions differ deliberately: a row is shallower than an action, a badge is compact, and a table/menu perimeter carries greater thickness. Child casts use bounded analytic transmitted-light footprints derived from tint, thickness, absorption and the shared light direction; they are not additional path-traced caustics. Popup projection has no HTML texture sampling/refraction. Core imports still work without Three or WebGL; forced colors disables the decorative canvas.
+
+
+## JellyActivityButton and ink
+
+```jsx
+<JellyActivityButton status={job.status} progress={job.percent} onClick={generateOrRetry} />
+```
+
+`status` is `idle | loading | success | warning | error`. `progress` is optional and bounded to 0–100; omit it for indeterminate work. Labels/icons and semantic tone follow the state, `loading` sets `aria-busy` and disables activation, and the application owns completion, cancellation and retry. The shared renderer supplies a circulating or gathering pigment pocket. Paused/reduced motion preserves state/progress without continuous travel. Children replace the default label; native button attributes and ref pass through.
+
+`chooseJellyInk(samples, previous?)` accepts display hex colors or relative luminances and returns `{ ink, ratio, halo }`. `JELLY_INK` defines dark/light ink and the 4.5:1 sampled target. `JellyScene` automatically uses the rendered-background sampling policy. It removes extra HTML reading faces on sampled surfaces so their contrast is evaluated against the actual visible material. Mixed samples that cannot support one ink receive a narrow opposing glyph halo. Custom compositions and assistive technology still need validation.
+
+The optional renderer accepts `OpticalBody.density.concentration` in the bounded .3–1 range, `contact` for compact reading-area casts, `activity`/`progress`, and an optional stable `lightAnchor` so culling does not change point-light normalization. `contrastTargets` and `onContrast` expose batched readings to custom hosts. These are experimental renderer contracts.

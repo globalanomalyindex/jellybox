@@ -38,6 +38,12 @@ One mount-only monotonic clock brings in header0–240 ms, identity80–500ms, t
 
 The bottom scroll cue uses the160ms effects fade; reduced motion makes it immediate. Blur progresses spatially toward the viewport edge, with no ambient attention animation. Native scrolling is unchanged.
 
+## Story explanations
+
+The curve chart loops while at least 35% visible, using compositor transform tracks sampled from the canonical curve. The forward response keeps its actual duration, then holds 800 ms, returns over 600 ms with the settle curve, and rests 400 ms. Hidden/offscreen, paused and reduced-motion states cancel playback. Curve choices remain immediate, with no replay button. Density/color controls retain their normal native input behavior and shared pigment clocks.
+
+Activity uses a 2500 ms circulating pigment path only while loading. Known progress gathers instead; actual progress/labels stay application-owned. The spotlight follows preview targets over the canonical 240 ms gather response. Dynamic ink changes immediately to retain contrast; pigment continues to follow its 480 ms path.
+
 ## Verification
 
 Test interruption, rapid retargeting, close/reopen, focus return, pause, keyboard and reduced motion in the affected composition. Model tests cover deterministic continuity; they do not replace browser/device testing. Avoid claims that these values are physical jelly constants or proven HCI improvements.

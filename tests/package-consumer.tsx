@@ -1,6 +1,6 @@
 import { createRef, useState } from 'react';
 import { JellyButton, JellySelectionGroup, JellySlider, JellySwitch, JellyDropdown,
-  JellyTabs, JellyCheckbox, JellyDialog, JellyTable, JellyWindow, MOTION } from '@jellybox/react';
+  JellyTabs, JellyCheckbox, JellyDialog, JellyTable, JellyWindow, JellyActivityButton, chooseJellyInk, MOTION } from '@jellybox/react';
 import { JellyScene, type OpticalScene } from '@jellybox/react/renderer';
 
 // A consumer composition: generic identities, native refs, inputs and optics.
@@ -10,8 +10,11 @@ export function Consumer() {
   const button = createRef<HTMLButtonElement>();
   const scene: OpticalScene = { width: 300, height: 200, light: { x: 100, y: 20, height: 152, intensity: 1, softness: .45, warmth: .5, enabled: true } };
   const settleDuration: number = MOTION.recoil + MOTION.arrival;
+  const ink: string = chooseJellyInk(['#085bb9']).ink;
+  void ink;
   void scene; void settleDuration;
   return <JellyScene>
+    <JellyActivityButton status="loading" progress={42} />
     <JellyWindow viewKey={choice}>{visible => <span>{visible}</span>}</JellyWindow>
     <JellySelectionGroup aria-label="Choice" value={choice} onValueChange={setChoice} options={[{ value: 1, label: 'One' }, { value: 2, label: 'Two' }]} />
     <JellySlider label="Density" defaultValue={50} animateTrack onValueChange={value => value.toFixed(0)} />
