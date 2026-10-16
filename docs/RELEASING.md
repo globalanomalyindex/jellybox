@@ -16,7 +16,7 @@ For a project subpath:
 
 ```sh
 VITE_BASE_PATH=/jellybox/ npm run build
-npm run preview
+VITE_BASE_PATH=/jellybox/ npm run preview
 ```
 
 Verify the `/jellybox/` page, logo, dynamic panel chunk, story fragments and optional story-font stylesheet before publishing. A different repository can set its own base path. Hash navigation needs no server rewrite.

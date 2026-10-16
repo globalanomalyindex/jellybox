@@ -16,9 +16,9 @@ One viewport-bounded document canvas follows scroll through `scrollFrame`; its s
 
 ## Color and motion
 
-`renderer/motion.js` is canonical for durations/curves. `useMaterialColor` and the Spectral helpers cache33 samples and carry one 480 ms pigment transition. The renderer consumes displayed samples directly when marked sampled, avoiding a second interpolation. Core native focus, selected checks and labels change independently of decorative pigment.
+`renderer/motion.js` is canonical for durations/curves. `useMaterialColor` and the Spectral helpers cache 33 samples and carry one 480 ms pigment transition. The renderer consumes displayed samples directly when marked sampled, avoiding a second interpolation. Core native focus, selected checks and labels change independently of decorative pigment.
 
-Slider track travel is opt-in. The study uses one240 ms accepted setting for callback, native value, number, fill and bulb after a deliberate click. Direct drag, value scrubbing and keys stay immediate. Escape cancels scrubbing; external controlled values remain authoritative.
+Slider track travel is opt-in. The study uses one 240 ms accepted setting for callback, native value, number, fill and bulb after a deliberate click. Direct drag, value scrubbing and keys stay immediate. Escape cancels scrubbing; external controlled values remain authoritative.
 
 `PagePresentation` supplies one initial arrival and a guarded bottom cue. The renderer filters its own bottom framebuffer strip; browser backdrop layers handle live DOM text. There is no screenshot/raster replacement of the article.
 

@@ -9,4 +9,7 @@ for (const file of files.filter(file => /\.(md|mjs|jsx?|json|css|html|ya?ml)$/.t
   const text = await readFile(file, 'utf8');
   if (/\/Users\/[a-z0-9_-]+\//i.test(text)) throw new Error(`Machine-specific path in ${file}`);
 }
+if (await readFile('THIRD_PARTY_NOTICES.md', 'utf8') !== await readFile('public/THIRD_PARTY_NOTICES.md', 'utf8')) {
+  throw new Error('Keep the deployed third-party notices in sync with the canonical root notices.');
+}
 console.log(`Release source checked: ${files.length} files; no font binaries, scratch trees or machine paths tracked.`);
