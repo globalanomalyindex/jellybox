@@ -1,0 +1,49 @@
+{
+  "name": "jellybox-workspace",
+  "version": "0.4.0",
+  "private": true,
+  "license": "MIT",
+  "workspaces": [
+    "packages/react"
+  ],
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build && node scripts/prepare-sites-build.mjs",
+    "build:library": "vite build --config vite.library.config.mjs",
+    "test:components": "npm run build:library && node --test tests/selection-motion.test.mjs packages/react/test/*.test.mjs",
+    "preview": "vite preview",
+    "test:sites": "node --test tests/sites-worker.test.mjs",
+    "pack:library": "npm run build:library && node scripts/pack-library.mjs",
+    "predev": "node scripts/prepare-font.mjs",
+    "prebuild": "node scripts/prepare-font.mjs",
+    "test": "npm run test:components",
+    "check": "npm test && npm run check:types && npm run build && npm run test:sites",
+    "check:release": "node scripts/check-release.mjs",
+    "check:package": "node scripts/check-package.mjs",
+    "check:types": "tsc --noEmit --strict --jsx react-jsx --module NodeNext --moduleResolution NodeNext --target ES2022 --lib ES2022,DOM tests/package-consumer.tsx"
+  },
+  "dependencies": {
+    "@phosphor-icons/react": "^2.1.10",
+    "react": "19.2.9",
+    "react-dom": "19.2.9",
+    "three": "^0.186.1"
+  },
+  "description": "A jelly-inspired interaction and density study, with a reusable React foundation.",
+  "author": "Christopher Robin Fiore",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/globalanomalyindex/jellybox.git"
+  },
+  "homepage": "https://globalanomalyindex.github.io/jellybox/",
+  "engines": {
+    "node": ">=24 <27"
+  },
+  "devDependencies": {
+    "@types/react": "19.2.14",
+    "@types/react-dom": "19.2.3",
+    "@vitejs/plugin-react": "5.2.0",
+    "typescript": "5.9.3",
+    "vite": "6.4.4"
+  }
+}

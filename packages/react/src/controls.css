@@ -1,0 +1,77 @@
+:where(.jb-tabs, .jb-dropdown, .jb-checkbox) {
+  --jb-color: #054af3; --jb-rgb: 5 74 243; --jb-ink: #102d43; --jb-control-ink: #03121e; --jb-focus: #125cf2;
+  --jb-frost: rgb(255 255 255 / .28); --jb-feedback: 120ms; --jb-fade: 160ms; --jb-material: 240ms;
+  --jb-compress: 65ms; --jb-recoil: 480ms; --jb-squeeze: cubic-bezier(.32, 0, .62, 1); --jb-recoil-curve: cubic-bezier(.18, 1.48, .32, 1);
+  --jb-settle: cubic-bezier(.22, 1, .36, 1); --jb-effects: cubic-bezier(.2, 0, 0, 1);
+  color: var(--jb-ink); font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-size: 14px; line-height: 1.5; box-sizing: border-box; min-width: 0;
+}
+.jb-tabs { display: flex; flex-direction: column; gap: 16px; }
+:where(.jb-tabs, .jb-dropdown, .jb-checkbox) * { box-sizing: border-box; }
+.jb-tabs-list { align-self: flex-start; }
+.jb-tab { font-weight: 650; }
+.jb-tab[aria-selected="true"] { background-color: rgb(var(--jb-rgb) / .13); }
+.jb-tabs-vertical { flex-direction: row; align-items: flex-start; }
+.jb-tabs-vertical .jb-tabs-list { flex: 0 0 auto; width: fit-content; max-width: 45%; }
+.jb-tab-panels { flex: 1; min-width: 0; }
+.jb-tab-panel { min-width: 0; animation: jb-tab-reveal var(--jb-fade) var(--jb-effects); }
+.jb-tab-panel[hidden] { display: none; }
+.jb-tab-panel:focus-visible { outline: 2px solid var(--jb-focus); outline-offset: 5px; border-radius: 14px; }
+/* One neutral body owns the trigger and popup; rows are regions within it. */
+.jb-dropdown { position: relative; display: grid; gap: 8px; }
+.jb-dropdown[data-open] { z-index: 30; }
+.jb-dropdown-control { position: relative; }
+.jb-dropdown-trigger { --jb-rgb: 143 167 186; position: relative; z-index: 2; width: 100%; border-radius: 22px; text-align: left; }
+.jb-dropdown-trigger .jb-button-face { width: 100%; justify-content: space-between; gap: 16px; border-radius: 16px; border-color: transparent; background: transparent; backdrop-filter: none; -webkit-backdrop-filter: none; }
+.jb-dropdown-trigger:hover:not(:disabled), .jb-dropdown-trigger:focus-visible { --jb-rgb: 99 184 247; }
+.jb-dropdown[data-open] .jb-dropdown-trigger { background: transparent; border-color: transparent; box-shadow: none; transform: none; }
+.jb-dropdown-value { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; min-width: 0; }
+.jb-dropdown-placeholder { font-weight: 500; }
+.jb-dropdown-chevron { flex: 0 0 auto; transition: transform var(--jb-recoil) var(--jb-recoil-curve); }
+.jb-dropdown-trigger[aria-expanded="true"] .jb-dropdown-chevron { transform: rotate(180deg); }
+.jb-dropdown-shell { position: absolute; z-index: 0; left: 0; right: 0; border: 1px solid rgb(255 255 255 / .8); border-radius: 22px; pointer-events: none; isolation: isolate;
+  background: linear-gradient(155deg, rgb(255 255 255 / .45), rgb(215 237 243 / .42)), #dce9ee;
+  box-shadow: inset 0 0 0 2px rgb(143 167 186 / .48), inset 0 2px 3px white, inset 0 -3px 5px rgb(143 167 186 / .25), 2px 6px 12px rgb(143 167 186 / .12);
+}
+.jb-dropdown-shell[hidden], .jb-dropdown-list[hidden] { display: none; }
+.jb-dropdown-list { position: absolute; z-index: 1; top: 100%; left: 0; right: 0; margin: 0; padding: 6px; overflow-y: auto; overscroll-behavior: contain; max-height: 260px; border: 0; border-radius: 18px; background: transparent; box-shadow: none; animation: jb-list-reveal var(--jb-fade) var(--jb-effects); }
+.jb-dropdown-list::before { content: ''; display: block; margin: 0 12px 4px; height: 1px; background: rgb(16 45 67 / .12); }
+.jb-dropdown-above { top: auto; bottom: 100%; }
+.jb-dropdown-above::before { display: none; }
+.jb-dropdown-option { position: relative; display: flex; justify-content: space-between; align-items: center; gap: 16px; min-height: 44px; margin: 0; padding: 10px 14px; border: 0; border-radius: 16px; background: transparent; box-shadow: none; color: var(--jb-control-ink); cursor: pointer; }
+.jb-dropdown-option[data-active="true"] { background: rgb(var(--jb-rgb) / .22); outline: none; }
+.jb-dropdown-option[aria-disabled="true"] { opacity: .45; cursor: not-allowed; }
+.jb-dropdown-option-copy { display: flex; flex: 1; flex-direction: column; min-width: 0; gap: 2px; font-weight: 600; }
+.jb-dropdown-option-copy small { font-size: 12px; line-height: 1.4; font-weight: 400; }
+.jb-dropdown-check { flex: 0 0 auto; opacity: 0; }
+.jb-dropdown-option[aria-selected="true"] .jb-dropdown-check { opacity: 1; }
+.jb-dropdown-list .jb-contour-body { fill: var(--jb-contour-color); fill-opacity: .14; }
+.jb-dropdown-empty { display: block; padding: 12px; font-size: 12px; }
+.jb-dropdown-native { position: absolute; width: 1px; height: 1px; margin: 0; padding: 0; opacity: 0; pointer-events: none; clip-path: inset(50%); }
+.jb-checkbox { display: inline-flex; align-items: center; gap: 10px; min-height: 44px; cursor: pointer; }
+.jb-checkbox-slot { position: relative; display: block; width: 44px; height: 44px; flex: 0 0 44px; }
+.jb-checkbox-box { position: absolute; inset: 8px; display: grid; place-items: center; border: 1px solid rgb(255 255 255 / .7); border-radius: 10px;
+  background: linear-gradient(158deg, rgb(255 255 255 / .74), rgb(var(--jb-rgb) / .2) 42%, rgb(var(--jb-rgb) / .52));
+  box-shadow: inset 0 0 0 2px rgb(var(--jb-rgb) / .78), inset 0 2px 2px rgb(255 255 255 / .8), inset 0 -3px 4px rgb(var(--jb-rgb) / .64), 1px 3px 6px rgb(var(--jb-rgb) / .14);
+}
+.jb-checkbox-box input { position: absolute; inset: -8px; width: 44px; height: 44px; margin: 0; opacity: 0; cursor: inherit; z-index: 2; }
+.jb-checkbox-face { display: grid; place-items: center; width: 20px; height: 20px; border: 1px solid rgb(255 255 255 / .8); border-radius: 6px; background: var(--jb-frost); color: var(--jb-control-ink); pointer-events: none; }
+.jb-checkbox-tick, .jb-checkbox-dash { opacity: 0; }
+.jb-checkbox-on .jb-checkbox-tick { opacity: 1; }
+.jb-checkbox-mixed .jb-checkbox-tick { opacity: 0; }
+.jb-checkbox-mixed .jb-checkbox-dash { opacity: 1; }
+.jb-checkbox-box:has(input:focus-visible) { outline: 2px solid var(--jb-focus); outline-offset: 4px; }
+.jb-checkbox-box:has(input:active:not(:disabled)) .jb-checkbox-face { transform: translateY(1px); }
+.jb-checkbox-copy { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+@keyframes jb-tab-reveal { from { opacity: .7; transform: translateY(3px); } to { opacity: 1; transform: none; } }
+@keyframes jb-list-reveal { from { opacity: .3; } to { opacity: 1; } }
+@media (prefers-reduced-motion: reduce) {
+  .jb-tab-panel, .jb-dropdown-list { animation: none; }
+  .jb-dropdown-chevron { transition: none; }
+}
+.jb-paused .jb-tab-panel, .jb-paused .jb-dropdown-list { animation: none; }
+@media (forced-colors: active) {
+  .jb-dropdown-list, .jb-dropdown-option[aria-selected="true"], .jb-checkbox-box { border: 1px solid ButtonText; }
+  .jb-dropdown-option[data-active="true"] { outline-color: Highlight; }
+  .jb-checkbox-face { background: ButtonFace; color: ButtonText; }
+}

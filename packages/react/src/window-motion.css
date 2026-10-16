@@ -1,0 +1,10 @@
+.jb-window { --jb-window-depth: 1; --jb-window-density: 1; }
+.jb-window-content { display: flex; flex-direction: column; gap: inherit; min-width: 0; }
+/* The CSS skin recedes into a retained film. Text only fades; it never scales. */
+.jb-window:not([data-gel-rendered="true"]) {
+  box-shadow: inset 0 0 0 calc(1px + 4px * var(--jb-window-density)) rgb(var(--jb-rgb) / .68),
+    inset 0 2px 4px rgb(255 255 255 / .9),
+    inset 0 calc(-2px - 4px * var(--jb-window-depth)) 8px rgb(var(--jb-rgb) / .38),
+    4px calc(3px + 7px * var(--jb-window-depth)) calc(8px + 11px * var(--jb-window-depth)) rgb(var(--jb-rgb) / .14);
+}
+@media (prefers-reduced-motion: reduce) { .jb-window-content { opacity: 1 !important; } }

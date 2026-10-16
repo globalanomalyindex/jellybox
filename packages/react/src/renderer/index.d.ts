@@ -1,0 +1,22 @@
+import * as React from 'react';
+import type { JellySceneProps, MaterialParams } from '../index.js';
+
+/** Browser-only optical adapter. Core components remain usable without Three. */
+export function JellyScene(props: JellySceneProps): React.ReactElement;
+export interface OpticalRect { x: number; y: number; width: number; height: number; cornerRadius?: number; }
+export interface OpticalBody extends OpticalRect {
+  id?: string; kind?: 'control' | 'badge' | 'table' | 'row' | 'menu' | 'option' | 'alert' | 'track' | 'thumb' | 'fill'; layer?: number; attached?: boolean; clip?: OpticalRect;
+  color?: readonly [number, number, number]; opacity?: number; hover?: number; pressed?: number; selected?: boolean; grouped?: boolean; stir?: number; windowDepth?: number; arrival?: number;
+}
+export interface OpticalSelection extends OpticalBody { id: string; key: string; }
+/** Position in scene pixels; height uses the renderer's authored scene units. */
+export interface OpticalLight { x: number; y: number; height: number; intensity: number; softness: number; warmth: number; enabled?: boolean; }
+export interface OpticalScene {
+  width: number; height: number; dpr?: number; reducedMotion?: boolean; params?: Partial<MaterialParams>;
+  viewportTop?: number; viewportHeight?: number; light?: OpticalLight | null;
+  scrollEdge?: { height: number; strength: number } | null;
+  panel?: OpticalBody | null; buttons?: readonly OpticalBody[]; bubbles?: readonly OpticalBody[]; selections?: readonly OpticalSelection[];
+  parallax?: { x?: number; y?: number }; pointer?: { x?: number; y?: number; visible?: boolean };
+}
+export interface OpticsController { renderOnce(timestamp?: number): void; destroy(): void; }
+export function createOptics(canvas: HTMLCanvasElement, options: { getScene: () => OpticalScene | null; onError?: (message: string) => void; onAfterRender?: () => void }): OpticsController;

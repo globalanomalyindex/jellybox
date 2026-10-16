@@ -1,0 +1,70 @@
+{
+  "name": "@jellybox/react",
+  "version": "0.4.0",
+  "description": "Dense liquid rims, calm reading planes, and accessible React controls.",
+  "type": "module",
+  "license": "MIT",
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE",
+    "THIRD_PARTY_NOTICES.md"
+  ],
+  "sideEffects": [
+    "**/*.css"
+  ],
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
+    },
+    "./styles.css": "./dist/styles.css",
+    "./renderer": {
+      "types": "./dist/renderer/index.d.ts",
+      "import": "./dist/renderer.js",
+      "default": "./dist/renderer.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "peerDependencies": {
+    "react": ">=18.0.0 <20",
+    "three": ">=0.186.0 <0.187.0",
+    "react-dom": ">=18.0.0 <20"
+  },
+  "peerDependenciesMeta": {
+    "three": {
+      "optional": true
+    }
+  },
+  "scripts": {
+    "test": "node --test test/*.test.mjs"
+  },
+  "keywords": [
+    "react",
+    "jellybox",
+    "components",
+    "accessible",
+    "liquid",
+    "design-system"
+  ],
+  "dependencies": {
+    "spectral.js": "3.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/globalanomalyindex/jellybox.git",
+    "directory": "packages/react"
+  },
+  "homepage": "https://globalanomalyindex.github.io/jellybox/",
+  "bugs": {
+    "url": "https://github.com/globalanomalyindex/jellybox/issues"
+  },
+  "author": "Christopher Robin Fiore",
+  "publishConfig": {
+    "access": "public"
+  }
+}

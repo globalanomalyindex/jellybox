@@ -1,0 +1,34 @@
+{
+  "project": "JellyBox",
+  "source": {
+    "file": "jellybox-logo-source.png",
+    "providedBy": "User",
+    "originalName": "JellyBoxLogo.png",
+    "width": 1275,
+    "height": 1234,
+    "sha256": "dbe3483f257ecc132a8fcbd5e2630cd8c34e5cad00cccd1f2abe0a5122e77dcc",
+    "sha256Note": "Hash of the original supplied file before provenance metadata was embedded in the project copy; original pixels are unchanged."
+  },
+  "master": {
+    "file": "jellybox-logo.svg",
+    "method": "Deterministic alpha silhouette trace using Potrace 2.1.8; eight connected letter components, four counters; cubic Bezier paths.",
+    "alphaThreshold": 128,
+    "sourceScaleSilhouetteIoU": 0.9958624398006093,
+    "letterCount": 8,
+    "counterCount": 4,
+    "fillRule": "evenodd",
+    "viewBox": [
+      0,
+      0,
+      1275,
+      1234
+    ],
+    "inkBounds": {
+      "x": 50,
+      "y": 60,
+      "width": 1185,
+      "height": 1120
+    }
+  },
+  "currentAppearance": "Solid black editable SVG, with no effects, animation or shadow, per the latest user direction."
+}

@@ -1,0 +1,75 @@
+.jb-dialog, .jb-table-shell {
+  --jb-focus: #125cf2;
+  color: #102d43;
+  font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-size: 14px;
+  line-height: 1.5;
+  box-sizing: border-box;
+}
+.jb-dialog *, .jb-table-shell * { box-sizing: border-box; }
+.jb-dialog {
+  width: min(600px, calc(100vw - 40px));
+  max-width: none;
+  max-height: calc(100dvh - 40px);
+  margin: auto;
+  padding: 0;
+  border: 1px solid rgb(255 255 255 / .85);
+  border-radius: 30px;
+  background: linear-gradient(145deg, #f5fbff, rgb(var(--jb-rgb) / .27));
+  box-shadow: inset 0 0 0 5px rgb(var(--jb-rgb) / .75), inset 0 2px 4px white, inset 0 -6px 8px rgb(var(--jb-rgb) / .4), 0 22px 70px rgb(23 50 72 / .22);
+  overflow: visible;
+}
+.jb-dialog::backdrop { background: rgb(25 46 66 / .25); backdrop-filter: blur(5px); transition: background-color 160ms ease, backdrop-filter 160ms ease; }
+.jb-dialog[data-state="closing"]::backdrop { background: rgb(25 46 66 / 0); backdrop-filter: blur(0); }
+.jb-dialog-optical { padding: 0; border: 0; background: transparent; box-shadow: 0 20px 52px rgb(23 50 72 / .24), 7px 9px 24px rgb(var(--jb-rgb) / .14); }
+/* The optical receiver is opaque paper; contain it to the floating window.
+   Its outer contact cast is composited in CSS, while inner lighting stays 3D. */
+.jb-dialog-optical .jb-optical-canvas { clip-path: inset(calc(32px + var(--jb-canvas-overflow-top, 0px)) 32px calc(32px + var(--jb-canvas-overflow, 0px)) round 30px); }
+.jb-dialog-frame { display: flex; flex-direction: column; gap: 20px; min-width: 0; max-height: calc(100dvh - 80px); padding: 24px; }
+.jb-dialog-optical .jb-dialog-frame { padding: 0; max-height: calc(100dvh - 112px); }
+.jb-dialog-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 18px; flex: 0 0 auto; }
+.jb-dialog-heading { min-width: 0; }
+.jb-dialog-heading h2 { margin: 0; color: #03121e; font-size: 23px; font-weight: 650; letter-spacing: -.025em; line-height: 1.25; }
+.jb-dialog-heading p { margin: 8px 0 0; color: #203b50; font-size: 14px; line-height: 1.6; }
+.jb-dialog-close { display: inline-grid; place-items: center; flex: 0 0 40px; width: 40px; height: 40px; margin: -5px -5px 0 0; padding: 0; border: 1px solid rgb(255 255 255 / .85); border-radius: 50%; background: rgb(248 253 255 / .78); box-shadow: inset 0 0 0 2px rgb(var(--jb-rgb) / .42), 0 2px 5px rgb(var(--jb-rgb) / .12); color: #03121e; font: inherit; font-size: 24px; cursor: pointer; }
+.jb-dialog-body { min-height: 0; min-width: 0; overflow: auto; overscroll-behavior: contain; scrollbar-gutter: stable; }
+.jb-dialog-footer { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: 10px; flex: 0 0 auto; }
+.jb-dialog-close:focus-visible, .jb-table-sort:focus-visible, .jb-table-scroll:focus-visible { outline: 2px solid var(--jb-focus); outline-offset: 3px; }
+.jb-table-shell { min-width: 0; max-width: 100%; padding: 5px; border: 1px solid rgb(255 255 255 / .86); border-radius: 24px; background: rgb(var(--jb-rgb) / .15); box-shadow: inset 0 0 0 3px rgb(var(--jb-rgb) / .66), inset 0 2px 3px white, 0 5px 14px rgb(var(--jb-rgb) / .1); }
+.jb-table-scroll { overflow: auto; border-radius: 19px; overscroll-behavior-inline: contain; }
+.jb-table { width: 100%; border-collapse: separate; border-spacing: 0; background: rgb(247 252 255 / .95); color: #102d43; font: inherit; }
+.jb-table caption { padding: 16px 18px; background: rgb(247 252 255 / .96); color: #03121e; text-align: left; font-weight: 650; }
+.jb-table th { padding: 6px 16px; background: rgb(var(--jb-rgb) / .08); color: #03121e; font-weight: 650; border-top: 1px solid rgb(var(--jb-rgb) / .12); border-bottom: 1px solid rgb(var(--jb-rgb) / .18); white-space: nowrap; }
+.jb-table td { padding: 13px 16px; border-bottom: 1px solid rgb(76 108 132 / .14); vertical-align: middle; }
+.jb-table tbody tr:last-child td { border-bottom: 0; }
+.jb-table tbody tr[data-selected="true"] { background: rgb(var(--jb-rgb) / .11); }
+.jb-table-row-disabled { color: #5a6a78; }
+.jb-table-sort { display: inline-flex; align-items: center; justify-content: inherit; gap: 10px; min-height: 44px; padding: 0; border: 0; background: transparent; color: inherit; font: inherit; text-align: inherit; cursor: pointer; }
+.jb-table-sort-mark { width: 13px; font-size: 15px; text-align: center; }
+.jb-table-sort:disabled { cursor: not-allowed; opacity: .55; }
+.jb-table .jb-table-selection-cell { width: 56px; padding: 2px 6px; text-align: center; }
+.jb-table-check { position: relative; display: inline-flex; justify-content: center; gap: 0; width: 44px; min-height: 44px; cursor: pointer; }
+.jb-table-check .jb-checkbox-copy { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+.jb-table-check:has(input:disabled) { cursor: not-allowed; opacity: .55; }
+.jb-table .jb-table-state { height: 144px; padding: 26px; text-align: center; color: #203b50; }
+.jb-table-loading-lines { display: grid; gap: 12px; width: min(420px, 100%); margin: auto; }
+.jb-table-loading-lines > span { display: block; height: 13px; border-radius: 99px; background: linear-gradient(110deg, rgb(var(--jb-rgb) / .13), rgb(255 255 255 / .9), rgb(var(--jb-rgb) / .13)); background-size: 200% 100%; box-shadow: inset 0 0 0 1px rgb(var(--jb-rgb) / .2); animation: jb-table-shimmer 1200ms ease-in-out infinite; }
+.jb-table-loading-lines > span:last-child { width: 68%; }
+.jb-table-loading-status { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+.jb-paused .jb-table-loading-lines > span { animation-play-state: paused; }
+@keyframes jb-table-shimmer { to { background-position: -200% 0; } }
+@media (max-width: 480px) {
+  .jb-dialog { width: calc(100vw - 28px); }
+  .jb-dialog-frame { padding: 20px; }
+  .jb-dialog-heading h2 { font-size: 21px; }
+  .jb-table th, .jb-table td { padding-inline: 12px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .jb-dialog::backdrop { transition: none; }
+  .jb-table-loading-lines > span { animation: none; }
+}
+@media (forced-colors: active) {
+  .jb-dialog, .jb-table-shell, .jb-dialog-close { border: 1px solid ButtonText; }
+  .jb-table th, .jb-table td { border-color: GrayText; }
+  .jb-table tbody tr[data-selected="true"] { outline: 1px solid Highlight; outline-offset: -1px; }
+}

@@ -1,0 +1,84 @@
+/* The scalable skin uses the same material anatomy as the optical volumes:
+   dense perimeter, transmitting center, rim light, then a restrained cast. */
+:where(.jb-button, .jb-surface, .jb-selection-group, .jb-slider, .jb-switch, .jb-input-field, .jb-badge, .jb-alert, .jb-skeleton, .jb-dropdown, .jb-table-shell) {
+  --jb-spring: cubic-bezier(.22,1.12,.36,1);
+  --jb-skin: linear-gradient(165deg, rgb(255 255 255 / .65), rgb(var(--jb-rgb) / .21) 32%, rgb(var(--jb-rgb) / .42) 75%, rgb(255 255 255 / .36));
+  --jb-meniscus: inset 0 0 0 2px rgb(var(--jb-rgb) / .7), inset 0 2px 2px rgb(255 255 255 / .95), inset 0 -3px 5px rgb(var(--jb-rgb) / .56);
+  --jb-cast: 2px 5px 9px rgb(var(--jb-rgb) / .14), 1px 1px 2px rgb(16 45 67 / .07);
+}
+.jb-link { text-decoration: none; }
+.jb-button:not([data-gel-rendered="true"]), .jb-input:not([data-gel-rendered="true"]) { background: var(--jb-skin); box-shadow: var(--jb-meniscus), var(--jb-cast); }
+.jb-button { transition: transform var(--jb-feedback) var(--jb-spring), box-shadow var(--jb-material) var(--jb-settle), opacity var(--jb-fade) var(--jb-effects); }
+.jb-link:focus-visible { outline: 2px solid var(--jb-focus); outline-offset: 3px; }
+.jb-button.jb-variant-soft { --jb-cast: 1px 3px 6px rgb(var(--jb-rgb) / .1); }
+.jb-button.jb-variant-ghost { --jb-cast: 0 2px 4px rgb(var(--jb-rgb) / .08); }
+.jb-badge { position: relative; isolation: isolate; min-height: 30px; padding: 4px 12px; background: var(--jb-skin); box-shadow: var(--jb-meniscus), 1px 3px 6px rgb(var(--jb-rgb) / .16); border-color: rgb(255 255 255 / .8); text-shadow: 0 1px 2px rgb(255 255 255 / .65); }
+.jb-badge::before { content: ''; position: absolute; z-index: -1; inset: 3px 5px; border-radius: inherit; background: rgb(248 253 255 / .24); box-shadow: inset 0 1px 1px rgb(255 255 255 / .8); }
+.jb-alert { background: var(--jb-skin); box-shadow: var(--jb-meniscus), var(--jb-cast); }
+.jb-alert-copy { border-radius: 14px; padding: 3px 7px; background: rgb(248 253 255 / .62); }
+.jb-alert-dot { margin-top: 10px; box-shadow: inset 0 1px 2px white, inset 0 -2px 2px rgb(16 45 67 / .18), 1px 3px 4px rgb(var(--jb-rgb) / .18); }
+.jb-table-shell { background: var(--jb-skin); box-shadow: inset 0 0 0 4px rgb(var(--jb-rgb) / .75), inset 0 3px 4px white, inset 0 -6px 8px rgb(var(--jb-rgb) / .5), var(--jb-cast); }
+.jb-table { background: rgb(var(--jb-rgb) / .08); }
+.jb-table caption { background: rgb(248 253 255 / .34); border-bottom: 1px solid rgb(255 255 255 / .7); }
+.jb-table th { background: rgb(var(--jb-rgb) / .22); border-top-color: rgb(255 255 255 / .6); box-shadow: inset 0 2px 3px rgb(255 255 255 / .52), inset 0 -2px 3px rgb(var(--jb-rgb) / .25); }
+.jb-table td { background: rgb(248 253 255 / .42); border-bottom-color: rgb(var(--jb-rgb) / .2); transition: background-color var(--jb-material) var(--jb-effects), box-shadow var(--jb-material) var(--jb-settle); }
+.jb-table tbody tr:hover td { background: rgb(248 253 255 / .62); }
+.jb-table tbody tr[data-selected="true"] td { background: rgb(var(--jb-rgb) / .2); box-shadow: inset 0 2px 0 rgb(var(--jb-rgb) / .6), inset 0 -2px 0 rgb(var(--jb-rgb) / .6); }
+.jb-table tbody tr[data-selected="true"] td:first-child { box-shadow: inset 2px 0 0 rgb(var(--jb-rgb) / .6), inset 0 2px 0 rgb(var(--jb-rgb) / .6), inset 0 -2px 0 rgb(var(--jb-rgb) / .6); }
+.jb-table-row-disabled td { background: rgb(248 253 255 / .5); }
+.jb-table-sort { border-radius: 14px; padding: 0 6px; margin-inline: -6px; }
+.jb-table-sort:hover { background: rgb(248 253 255 / .35); box-shadow: inset 0 1px 2px rgb(255 255 255 / .8); }
+.jb-skeleton-line { background: var(--jb-skin); box-shadow: var(--jb-meniscus), 1px 3px 5px rgb(var(--jb-rgb) / .1); }
+.jb-checkbox-face { background: rgb(248 253 255 / .58); }
+.jb-checkbox-box { transition: transform var(--jb-feedback) var(--jb-spring), box-shadow var(--jb-material) var(--jb-settle); }
+.jb-checkbox-box:has(input:active:not(:disabled)) { transform: scale(.94); }
+@media (prefers-reduced-motion: reduce) {
+  .jb-button, .jb-dropdown-option, .jb-checkbox-box { transition: none; }
+  .jb-dropdown-list { animation: none; }
+  .jb-button:hover:not(:disabled), .jb-button:active:not(:disabled), .jb-checkbox-box:has(input:active:not(:disabled)), .jb-dropdown-option:active:not([aria-disabled="true"]) { transform: none; }
+}
+@media (forced-colors: active) { .jb-badge, .jb-dropdown-list, .jb-table-shell { background: Canvas; border: 1px solid CanvasText; } .jb-table td { background: Canvas; } .jb-table tbody tr[data-selected="true"] { outline: 2px solid Highlight; } }
+
+/* Optics replaces only successfully claimed surfaces. Native content and its
+   small frosted reading face stay in the DOM above the shared material scene. */
+.jb-live .jb-badge[data-gel-rendered="true"],
+.jb-live .jb-table-shell[data-gel-rendered="true"],
+.jb-live .jb-dropdown-shell[data-gel-rendered="true"] {
+  background: transparent; border-color: transparent; box-shadow: none;
+}
+.jb-live .jb-badge[data-gel-rendered="true"]::before { inset: 4px 6px; background: rgb(248 253 255 / .24); }
+.jb-live .jb-table-shell[data-gel-rendered="true"] :is(.jb-table, caption, th, td, tbody tr) { background: transparent; box-shadow: none; }
+.jb-live .jb-table-shell[data-gel-rendered="true"] :is(th, td) { color: var(--jb-control-ink, #03121e); }
+.jb-live .jb-table-shell[data-gel-rendered="true"] tr[data-selected="true"] td { border-bottom-color: rgb(var(--jb-rgb) / .65); }
+.jb-live .jb-dropdown-shell[data-gel-rendered="true"] { isolation: isolate; backdrop-filter: none; -webkit-backdrop-filter: none; }
+.jb-live .jb-dropdown-list[data-gel-selection-rendered="true"] .jb-dropdown-option[data-active="true"] { background: transparent; }
+.jb-material-projection { position: absolute; left: -1px; top: -1px; z-index: -1; pointer-events: none; border-radius: inherit; }
+.jb-scene:has(.jb-dropdown-list:not([hidden])) { z-index: 10; }
+.jb-optical-canvas { clip-path: inset(var(--jb-canvas-overflow-top, 0px) 0 var(--jb-canvas-overflow, 0px)); }
+@media (forced-colors: active) {
+  .jb-optical-canvas, .jb-material-projection { display: none; }
+  .jb-live :is(.jb-badge, .jb-table-shell, .jb-dropdown-list, .jb-dropdown-option)[data-gel-rendered="true"] { background: Canvas; border-color: CanvasText; }
+}
+
+.jb-live .jb-table-shell[data-gel-rendered="true"] .jb-table-cell-content:not(:has([data-gel-surface])) { display: inline-block; padding: 3px 7px; margin: -3px -7px; border-radius: 10px; background: rgb(248 253 255 / .16); }
+.jb-live .jb-button[data-gel-rendered="true"] { background: transparent; border-color: transparent; box-shadow: none; }
+
+/* Clear structure gives semantic pigment room to collect at the active edge. */
+.jb-table-shell { --jb-structure: 215 237 243; background: linear-gradient(155deg, rgb(255 255 255 / .7), rgb(var(--jb-structure) / .55)); box-shadow: inset 0 0 0 2px rgb(143 167 186 / .48), inset 0 2px 3px white, inset 0 -3px 5px rgb(143 167 186 / .25), 2px 6px 12px rgb(143 167 186 / .12); }
+.jb-table, .jb-table th { background: rgb(215 237 243 / .22); }
+.jb-table td { background: rgb(248 253 255 / .22); border-bottom-color: rgb(16 45 67 / .1); }
+.jb-table tbody tr[data-selected="true"] td { background: rgb(var(--jb-rgb) / .12); }
+.jb-dropdown-option-copy { flex: 1; }
+.jb-dropdown-option-copy, .jb-dropdown-check { position: relative; z-index: 2; }
+.jb-live .jb-alert[data-gel-rendered="true"] { background: transparent; box-shadow: none; border-color: transparent; }
+.jb-alert-copy { background: rgb(248 253 255 / .32); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); }
+.jb-button, .jb-checkbox-box { transition: transform var(--jb-recoil) var(--jb-recoil-curve), box-shadow var(--jb-material) var(--jb-settle), opacity var(--jb-fade) var(--jb-effects); }
+.jb-button:active:not(:disabled), .jb-checkbox-box:has(input:active:not(:disabled)) { transition-duration: var(--jb-compress); transition-timing-function: var(--jb-squeeze); }
+@media (prefers-reduced-motion: reduce) { .jb-button, .jb-checkbox-box { transition: none; } }
+@media (forced-colors: active) {
+  .jb-table-shell, .jb-dropdown-list, .jb-live .jb-alert[data-gel-rendered="true"] { background: Canvas; border: 1px solid CanvasText; box-shadow: none; }
+  .jb-dropdown-option[data-active="true"] { outline: 2px solid Highlight; outline-offset: -2px; }
+  .jb-range-thumb { background: Highlight; border: 1px solid CanvasText; box-shadow: none; }
+  .jb-range-fill, .jb-live .jb-range-fill[data-gel-rendered="true"] { background: Highlight !important; }
+  .jb-live .jb-range-thumb[data-gel-rendered="true"] { background: Highlight !important; border: 1px solid CanvasText !important; }
+}
