@@ -30,37 +30,52 @@ const RESPONSES = [
 function MotionTrace({ response, motionEnabled }) {
   const ref = useRef(null);
   const running = useVisibleLoop(ref, motionEnabled);
-  const path = useMemo(() => Array.from({ length: 81 }, (_, i) => {
-    const t = i / 80;
-    return (i ? 'L' : 'M') + (40 + t * 480).toFixed(2) + ',' + (140 - sampleBezier(response.curve, t) * 96).toFixed(2);
-  }).join(' '), [response.curve]);
+  const trace = useMemo(() => {
+    const points = Array.from({ length: 81 }, (_, i) => [40 + i / 80 * 480, 140 - sampleBezier(response.curve, i / 80) * 96]);
+    const lengths = [0];
+    points.slice(1).forEach(([x, y], i) => lengths.push(lengths[i] + Math.hypot(x - points[i][0], y - points[i][1])));
+    return { path: points.map(([x, y], i) => `${i ? 'L' : 'M'}${x.toFixed(2)},${y.toFixed(2)}`).join(' '), lengths };
+  }, [response.curve]);
   useEffect(() => {
     if (!running) return;
     const { frames, duration } = motionLoopFrames(response);
+    const start = document.timeline.currentTime;
+    const progress = time => {
+      const at = Math.max(0, Math.min(80, time * 80)), i = Math.min(79, Math.floor(at));
+      return (trace.lengths[i] + (trace.lengths[i + 1] - trace.lengths[i]) * (at - i)) / trace.lengths[80];
+    };
     const animations = [
-      ['.chart-playhead', frame => `translateX(${frame.time * 480}px)`],
-      ['.chart-dot', frame => `translate(${frame.time * 480}px, ${-frame.value * 96}px)`],
-      ['.chart-material', frame => `translateX(${frame.value * 410}px)`],
-    ].map(([selector, transform]) => ref.current.querySelector(selector).animate(frames.map(frame => ({ offset: frame.offset, transform: transform(frame) })), { duration, iterations: Infinity, easing: 'linear' }));
+      ['.chart-playhead', frame => ({ transform: `translateX(${frame.time * 480}px)` })],
+      ['.chart-dot', frame => ({ transform: `translate(${frame.time * 480}px, ${-frame.value * 96}px)` })],
+      ['.chart-progress', frame => ({ strokeDashoffset: 1 - progress(frame.time) })],
+      ['.chart-material-carrier', frame => ({ transform: `translateX(${frame.value * 100}%)` })],
+      ['.chart-jelly', frame => ({ transform: `scale(${1 + frame.strain}, ${1 - frame.strain})` })],
+    ].map(([selector, properties]) => {
+      const animation = ref.current.querySelector(selector).animate(frames.map(frame => ({ offset: frame.offset, ...properties(frame) })), { duration, iterations: Infinity, easing: 'linear' });
+      // Sequential animate() calls otherwise establish independent origins.
+      animation.startTime = start;
+      return animation;
+    });
     return () => animations.forEach(animation => animation.cancel());
-  }, [running, response]);
+  }, [running, response, trace]);
   return <div ref={ref} data-motion-loop={running ? 'running' : 'paused'}>
     <div className="story-demo-readout"><span>{response.duration} ms</span><code>{response.curve}</code></div>
-    <svg className="motion-chart" viewBox="0 0 560 204" role="img" aria-label={response.name + ' response over ' + response.duration + ' milliseconds'}>
+    <div className="motion-diagram"><svg className="motion-chart" viewBox="0 0 560 204" role="img" aria-label={response.name + ' response over ' + response.duration + ' milliseconds'}>
       <path className="chart-guide" d="M40 20V140H520 M40 44H520" />
       <text x="30" y="48" textAnchor="end">100%</text><text x="30" y="144" textAnchor="end">0</text>
       <text x="40" y="162">0 ms</text><text x="520" y="162" textAnchor="end">{response.duration} ms</text>
-      <path className="chart-response" d={path} />
+      <path className="chart-response" d={trace.path} />
+      <path className="chart-progress" d={trace.path} pathLength="1" />
       <path className="chart-playhead" d="M40 20V140" />
       <circle className="chart-dot" cx="40" cy="140" r="5" />
-      <path className="chart-rail" d="M40 188H520" />
-      <rect className="chart-material" x="40" y="179" width="40" height="18" rx="9" />
+      <path className="chart-rail" d="M40 182V194 M450 182V194" />
     </svg>
+    <span className="chart-material-carrier" aria-hidden="true"><span className="chart-jelly" data-gel-surface="thumb" data-gel-motion-preview="" data-gel-assist="false" /></span></div>
   </div>;
 }
 
 export function MotionExample({ motionEnabled }) {
-  const [selected, setSelected] = useState(0);
+  const [selected, setSelected] = useState(3);
   return <figure className="story-demo" aria-labelledby="motion-example-title">
     <figcaption><strong id="motion-example-title">A curve has a job</strong></figcaption>
     <div className="story-demo-choices" role="group" aria-label="Motion response">

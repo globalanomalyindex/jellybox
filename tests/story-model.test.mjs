@@ -25,15 +25,18 @@ test('the reading cue protects content, preferences and the end of the document'
 test('explanatory loops preserve the real response duration, hold, and close their seam', () => {
   for (const response of [{ duration: MOTION.windowOpen, curve: MOTION.gather }, { duration: MOTION.recoil, curve: MOTION.recoilCurve }]) {
     const loop = motionLoopFrames(response);
-    assert.deepEqual(loop.frames[0], { offset: 0, time: 0, value: 0 });
-    const end = loop.frames[80], hold = loop.frames[81];
+    assert.deepEqual(loop.frames[0], { offset: 0, time: 0, value: 0, strain: 0 });
+    const end = loop.frames[80], hold = loop.frames[120];
     assert.equal(end.offset * loop.duration, response.duration);
     assert.equal(end.time, 1);
-    assert.equal(hold.offset * loop.duration - response.duration, 800);
+    assert.equal(hold.offset * loop.duration - response.duration, MOTION.recoil);
     for (let i = 0; i <= 80; i++) assert.equal(loop.frames[i].value, sampleBezier(response.curve, i / 80));
-    assert.deepEqual(loop.frames.at(-1), { offset: 1, time: 0, value: 0 });
+    assert.deepEqual(loop.frames.at(-1), { offset: 1, time: 0, value: 0, strain: 0 });
     assert.ok(loop.frames.every((frame, index, frames) => !index || frame.offset >= frames[index - 1].offset));
-    assert.ok(loop.frames.slice(82).every((frame, index, frames) => !index || frame.time <= frames[index - 1].time));
+    assert.ok(loop.frames.slice(121).every((frame, index, frames) => !index || frame.time <= frames[index - 1].time));
+    assert.ok(loop.frames.some(frame => frame.strain > .03) && loop.frames.some(frame => frame.strain < -.02), 'material stretches and settles around its steady path');
+    assert.ok(loop.frames.every(frame => Math.abs(frame.strain) <= .16));
+    if (response.curve === MOTION.recoilCurve) assert.ok(loop.frames.some(frame => frame.value > 1.05), 'recoil keeps its actual overshoot');
   }
 });
 

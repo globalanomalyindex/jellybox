@@ -50,10 +50,10 @@ export function createContrastSampler(renderer, publish) {
             });
             const result = chooseJellyInk(samples, history.get(item.id));
             history.set(item.id, result.ink);
-            return { id: item.id, ...result, halo: result.halo || Boolean(item.guard) };
+            return { id: item.id, ...result };
           }));
         }).catch(() => {
-          if (!disposed) publish(items.map(item => ({ id: item.id, ink: history.get(item.id) || '#03121e', ratio: 0, halo: true })));
+          if (!disposed) publish(items.map(item => ({ id: item.id, ink: history.get(item.id) || '#03121e', ratio: 0, halo: false })));
         }).finally(() => { pending = false; });
       } finally {
         renderer.setRenderTarget(previousTarget); renderer.autoClear = autoClear; renderer.info.autoReset = autoReset;

@@ -40,9 +40,9 @@ The bottom scroll cue uses the160ms effects fade; reduced motion makes it immedi
 
 ## Story explanations
 
-The curve chart loops while at least 35% visible, using compositor transform tracks sampled from the canonical curve. The forward response keeps its actual duration, then holds 800 ms, returns over 600 ms with the settle curve, and rests 400 ms. Hidden/offscreen, paused and reduced-motion states cancel playback. Curve choices remain immediate, with no replay button. Density/color controls retain their normal native input behavior and shared pigment clocks.
+The curve chart loops while at least 35% visible, using compositor transform tracks sampled from the canonical curve. The forward response keeps its actual duration, then settles for 480 ms, returns over 480 ms with the settle curve, and rests 160 ms. The revealed curve, marker, travel and bounded material strain use the same keyframe samples and explicit Web Animations start time. The preview is a real shared optical surface; only that moving surface is remeasured during playback. Recoil is the initial response so the authored overshoot is visible immediately. Hidden/offscreen, paused and reduced-motion states cancel playback. Curve choices remain immediate, with no replay button. Density/color controls retain their normal native input behavior and shared pigment clocks.
 
-Activity uses a 2500 ms circulating pigment path only while loading. Known progress gathers instead; actual progress/labels stay application-owned. The spotlight follows preview targets over the canonical 240 ms gather response. Dynamic ink changes immediately to retain contrast; pigment continues to follow its 480 ms path.
+Activity twists a broad internal density field over 2500 ms, with a 5300 ms breath, while loading. Its normals and absorption share that field. Entering/leaving activity uses the canonical 240 ms material response. Known and unknown progress share the circulation; actual progress/labels stay application-owned. The spotlight follows preview targets over the canonical 240 ms gather response. Dynamic ink changes immediately to retain contrast; pigment continues to follow its 480 ms path.
 
 ## Verification
 

@@ -11,18 +11,19 @@ export function chooseJellyInk(samples, previous) {
     if (!Number.isFinite(value)) throw new TypeError('A contrast sample must be a finite luminance or hex color.');
     return Math.max(0, Math.min(1, value));
   });
-  if (!luminances.length) return { ink: JELLY_INK.dark, ratio: 0, halo: true };
+  if (!luminances.length) return { ink: JELLY_INK.dark, ratio: 0, halo: false };
   const score = ink => Math.min(...luminances.map(l => contrastRatio(l, colorLuminance(ink))));
   const dark = score(JELLY_INK.dark), light = score(JELLY_INK.light);
   const preferred = dark >= light ? JELLY_INK.dark : JELLY_INK.light;
   const hasPrevious = previous && [JELLY_INK.dark, JELLY_INK.light].includes(previous);
   const priorScore = hasPrevious ? score(previous) : 0;
-  // Mixed moving highlights can put both inks below the target. Let the glyph
-  // guard handle small variations instead of flickering between two poor inks.
+  // Mixed moving highlights can put both inks below the target. Small score
+  // changes must not make otherwise steady lettering flicker between inks.
   const keep = hasPrevious && (priorScore >= JELLY_INK.minimum || Math.max(dark, light) < JELLY_INK.minimum && Math.max(dark, light) - priorScore < .75);
   const ink = keep ? previous : preferred;
   const ratio = score(ink);
-  return { ink, ratio, halo: ratio < JELLY_INK.minimum };
+  // Retained for compatibility with 0.5.0 consumers; never outline the glyphs.
+  return { ink, ratio, halo: false };
 }
 
 export function inkStyle(pigment) {
@@ -35,14 +36,11 @@ export function inkStyle(pigment) {
 
 export function applyJellyInk(element, result) {
   if (!element?.isConnected) return;
-  const opposite = result.ink === JELLY_INK.dark ? '#fff' : '#03121e';
-  const halo = result.halo ? `0 1px 0 ${opposite}, 0 -1px 0 ${opposite}, 1px 0 0 ${opposite}, -1px 0 0 ${opposite}` : 'none';
   if (element.style.getPropertyValue('--jb-rendered-ink') !== result.ink) element.style.setProperty('--jb-rendered-ink', result.ink);
-  if (element.style.getPropertyValue('--jb-ink-halo') !== halo) element.style.setProperty('--jb-ink-halo', halo);
-  if (element.style.getPropertyValue('--jb-ink-edge') !== opposite) element.style.setProperty('--jb-ink-edge', opposite);
+  element.style.removeProperty('--jb-ink-halo'); element.style.removeProperty('--jb-ink-edge');
   element.dataset.gelInk = result.ink === JELLY_INK.dark ? 'dark' : 'light';
   element.dataset.gelContrast = result.ratio.toFixed(2);
-  element.dataset.gelInkGuard = String(result.halo);
+  delete element.dataset.gelInkGuard;
 }
 
 export function clearJellyInk(element) {
@@ -54,4 +52,15 @@ export function clearJellyInk(element) {
 
 export function inkSampleRect(rect) {
   return { x: rect.x + rect.width * .05, y: rect.y + rect.height * .3, width: rect.width * .9, height: rect.height * .4 };
+}
+
+// Measure live lettering, not the padded capsule and its bright rim. This stays
+// in the DOM host; no text is rasterized or copied into the optical canvas.
+export function inkElementRect(element) {
+  const label = element.matches('.jb-activity') ? element.querySelector('.jb-button-face > span:last-child')
+    : element.querySelector('.jb-button-face, .jb-range-value, .jb-dropdown-value, .jb-selection-label, .jb-field-label, .jb-alert-copy, .jb-table-cell-content');
+  const range = element.ownerDocument.createRange();
+  range.selectNodeContents(label || element);
+  const rect = range.getBoundingClientRect();
+  return inkSampleRect(rect.width > 0 && rect.height > 0 ? rect : element.getBoundingClientRect());
 }

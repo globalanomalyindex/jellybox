@@ -20,11 +20,11 @@ export interface OpticalScene {
   width: number; height: number; dpr?: number; reducedMotion?: boolean; params?: Partial<MaterialParams>;
   viewportTop?: number; viewportHeight?: number; documentTop?: number; light?: OpticalLight | null;
   lightAnchor?: { x: number; y: number };
-  contrastTargets?: readonly (OpticalRect & { id: string; guard?: boolean })[];
+  contrastTargets?: readonly (OpticalRect & { id: string; /** @deprecated Ignored; lettering has no outline. */ guard?: boolean })[];
   scrollEdge?: { height: number; strength: number } | null;
   panel?: OpticalBody | null; buttons?: readonly (OpticalBody | null)[]; bubbles?: readonly OpticalBody[]; selections?: readonly OpticalSelection[];
   parallax?: { x?: number; y?: number }; pointer?: { x?: number; y?: number; visible?: boolean };
 }
 export interface OpticsController { renderOnce(timestamp?: number): void; destroy(): void; }
-export interface OpticalInk { id: string; ink: string; ratio: number; halo: boolean; }
+export interface OpticalInk { id: string; ink: string; ratio: number; /** @deprecated Lettering has no outline; always false. */ halo: boolean; }
 export function createOptics(canvas: HTMLCanvasElement, options: { getScene: () => OpticalScene | null; onError?: (message: string) => void; onAfterRender?: () => void; onContrast?: (readings: readonly OpticalInk[]) => void }): OpticsController;

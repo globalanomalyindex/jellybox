@@ -12,7 +12,7 @@
 .jb-link:focus-visible { outline: 2px solid var(--jb-focus); outline-offset: 3px; }
 .jb-button.jb-variant-soft { --jb-cast: 1px 3px 6px rgb(var(--jb-rgb) / .1); }
 .jb-button.jb-variant-ghost { --jb-cast: 0 2px 4px rgb(var(--jb-rgb) / .08); }
-.jb-badge { position: relative; isolation: isolate; min-height: 30px; padding: 4px 12px; background: var(--jb-skin); box-shadow: var(--jb-meniscus), 1px 3px 6px rgb(var(--jb-rgb) / .16); border-color: rgb(255 255 255 / .8); text-shadow: 0 1px 2px rgb(255 255 255 / .65); }
+.jb-badge { position: relative; isolation: isolate; min-height: 30px; padding: 4px 12px; background: var(--jb-skin); box-shadow: var(--jb-meniscus), 1px 3px 6px rgb(var(--jb-rgb) / .16); border-color: rgb(255 255 255 / .8); text-shadow: none; }
 .jb-badge::before { content: ''; position: absolute; z-index: -1; inset: 3px 5px; border-radius: inherit; background: rgb(248 253 255 / .24); box-shadow: inset 0 1px 1px rgb(255 255 255 / .8); }
 .jb-alert { background: var(--jb-skin); box-shadow: var(--jb-meniscus), var(--jb-cast); }
 .jb-alert-copy { border-radius: 14px; padding: 3px 7px; background: rgb(248 253 255 / .62); }

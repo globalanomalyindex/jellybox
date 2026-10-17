@@ -15,7 +15,7 @@ import { DesignStory } from './DesignStory.jsx';
 import { ProgressiveScrollEdge, usePagePresentation } from './PagePresentation.jsx';
 import { defaultLightForViewport } from './lighting.js';
 import { tabOutlinePath } from '../packages/react/src/renderer/tab-surface.js';
-import { applyJellyInk, clearJellyInk, inkSampleRect } from '../packages/react/src/contrast.js';
+import { applyJellyInk, clearJellyInk, inkElementRect } from '../packages/react/src/contrast.js';
 import { stepJellyResponse } from '../packages/react/src/renderer/motion.js';
 import { JellyButton, JellySwitch, useJellyWindow, SEMANTIC_COLORS } from '../packages/react/src/index.js';
 
@@ -184,14 +184,17 @@ export function App({ active = true }) {
       s.spotlight = spotTarget && intersectRect(rectOf(spotlight), viewport).height > 1 ? { ...rectOf(spotTarget), spread: Number(spotlight.dataset.spotSpread) } : null;
       const parentElement = storyMass || (mainInView ? panelInnerRef.current : null);
       const allSurfaces = [...bubbleElements.current, ...(storyScopeRef.current?.querySelectorAll('[data-gel-surface]') || [])].filter(el => el.isConnected && !el.closest('[hidden]'));
+      s.storyTrace = storyScopeRef.current?.querySelector('[data-motion-loop="running"] [data-gel-motion-preview]') || null;
       const chosen = pickSurfaces(allSurfaces.map(el => ({ el, kind: el.dataset.gelSurface || 'control', visibleRect: intersectRect(rectOf(el), viewport) })));
       const claims = new Set(s.fallback ? [] : chosen.map(item => item.el));
       inkNodes.clear();
       buttonRefs.current.forEach((el, i) => { if (el) inkNodes.set(`primary-${i}`, el); });
+      s.primaryInk = buttonRefs.current.map(el => el ? inkElementRect(el) : null);
       allSurfaces.forEach(el => { if (claims.has(el)) { el.dataset.gelRendered = 'true'; inkNodes.set(surfaceId(el), el); } else { delete el.dataset.gelRendered; clearJellyInk(el); } });
       s.controlsDragging = Boolean(appRef.current?.querySelector('[data-gel-dragging="true"]'));
       s.bubbles = chosen.map(({ el }) => ({ ...rectOf(el),
         id: surfaceId(el),
+        inkRect: ['track', 'fill', 'thumb'].includes(el.dataset.gelSurface) ? null : inkElementRect(el),
         attached: Boolean(parentElement?.contains(el)),
         contact: Boolean(el.closest('.story-demo')),
         layer: el.dataset.gelSurface === 'thumb' ? 2 : el.dataset.gelSurface === 'fill' ? 1.5 : 1,
@@ -278,6 +281,12 @@ export function App({ active = true }) {
           const project = rect => rect && ({ ...rect, y: rect.y + canvasY, ...(rect.clip ? { clip: { ...rect.clip, y: rect.clip.y + canvasY } } : {}) });
           // Measure transformed shell only while a container transition runs.
           if (storyDirty.current || now < movingUntil.current) measure();
+          // Only the one explanatory moving surface needs fresh transformed
+          // bounds; do not remeasure every story control on every chart frame.
+          if (s.storyTrace) {
+            const trace = s.bubbles.find(surface => surface.id === surfaceId(s.storyTrace));
+            if (trace) Object.assign(trace, rectOf(s.storyTrace));
+          }
           const colors = s.colors.map((color, i) => rgb(controlPigment('action', s.selected === i ? 'selected' : s.pressed[i] ? 'pressed' : s.hovers[i] ? 'highlighted' : 'rest', color)));
           const transfer = toolbarFrame.current;
           const shell = transfer?.shell;
@@ -298,7 +307,7 @@ export function App({ active = true }) {
             bubbles: s.bubbles.map((r, i) => project({ ...r, ...assist(i + s.rects.length), opacity: r.headerControl && s.closing ? 0 : r.opacity })), selections: s.selections?.map(project), assistanceBlocked, params: s.params, reducedMotion: s.reducedMotion,
             light: spotlight || (lightField ? project({ ...s.light, x: lightField.x + lightField.width * s.light.x, y: lightField.y + lightField.height * s.light.y }) : null),
             lightAnchor: spotlight ? { x: spotlight.x + 30, y: spotlight.y + 60 } : s.rects.length ? project({ x: s.rects.reduce((sum, r) => sum + r.x + r.width / 2, 0) / s.rects.length, y: s.rects.reduce((sum, r) => sum + r.y + r.height / 2, 0) / s.rects.length }) : undefined,
-            contrastTargets: [...s.rects.map((r, i) => r && ({ ...inkSampleRect(r), id: `primary-${i}` })), ...s.bubbles.filter(r => !['track', 'fill', 'thumb'].includes(r.kind)).map(r => ({ ...inkSampleRect(r), id: r.id, guard: r.activity === 'loading' }))].filter(Boolean).map(project),
+            contrastTargets: [...(s.primaryInk || []).map((r, i) => r && ({ ...r, id: `primary-${i}` })), ...s.bubbles.filter(r => r.inkRect).map(r => ({ ...r.inkRect, id: r.id }))].filter(Boolean).map(project),
             scrollEdge: edgeRef.current ? { height: presentation.current.edgeHeight, strength: Number(getComputedStyle(edgeRef.current).opacity) } : null };
         },
         onError: error => { console.warn('Optical renderer:', error); inkNodes.forEach(clearJellyInk); document.documentElement.classList.remove('gel-bubbles-ready'); setFallback(true); },
@@ -349,7 +358,7 @@ export function App({ active = true }) {
     const resize = new ResizeObserver(invalidate);
     resize.observe(node);
     const mutations = new MutationObserver(invalidate);
-    mutations.observe(node, { childList: true, subtree: true, attributes: true, attributeFilter: ['style', 'aria-pressed', 'aria-expanded', 'data-open', 'data-density-hover', 'data-gel-hover', 'data-gel-pressed', 'data-gel-dragging', 'data-story-concentration', 'data-gel-activity', 'data-gel-progress', 'data-spotlight', 'data-spot-target', 'data-spot-spread'] });
+    mutations.observe(node, { childList: true, subtree: true, attributes: true, attributeFilter: ['style', 'aria-pressed', 'aria-expanded', 'data-open', 'data-density-hover', 'data-gel-hover', 'data-gel-pressed', 'data-gel-dragging', 'data-story-concentration', 'data-gel-activity', 'data-gel-progress', 'data-motion-loop', 'data-spotlight', 'data-spot-target', 'data-spot-spread'] });
     const transition = () => { movingUntil.current = Math.max(movingUntil.current, performance.now() + MOTION.densityGather + 80); invalidate(); };
     node.addEventListener('transitionrun', transition);
     node.addEventListener('jellybox:motion', transition);

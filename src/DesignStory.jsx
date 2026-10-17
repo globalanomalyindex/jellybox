@@ -116,7 +116,7 @@ export function DesignStory({ motionEnabled = true }) {
         <section id="story-feedback" className="story-section" tabIndex={-1} aria-labelledby="story-feedback-title">
           <h3 id="story-feedback-title">States in motion</h3>
           <div className="story-copy">
-            <p>Waiting is another place where the jelly can explain what’s happening. While a task is running, a dense blue pocket moves through the material. When progress is known, it gathers toward the reported value. When it isn’t, the pocket keeps circulating without pretending to know how far along the task is.</p>
+            <p>Waiting is another place where the jelly can explain what’s happening. While a task is running, dense blue jelly swirls through the button and breathes gently, with the light following it. A percentage and progress rail show how far along the task is when that information is available. Without it, the circulation communicates that work is continuing without inventing a completion value.</p>
             <p>The same body carries the result: green for completion, amber when something needs review, red when the task fails. Color, density and motion share that transition, while the label and icon make the state explicit. Reduced motion keeps the words, progress and outcome. I’m exploring whether keeping those changes in one continuous material makes a task easier to follow.</p>
           </div>
           <LoadingExample />
@@ -128,7 +128,7 @@ export function DesignStory({ motionEnabled = true }) {
             <p>I use <a href="https://github.com/rvanwijnen/spectral.js/" target="_blank" rel="noreferrer">Spectral.js</a> for pigment-inspired color mixing. Its Kubelka–Munk model gives me a shared mixing path for the material’s colors. Precomputed samples let the controls and window follow that path smoothly, including when a color changes halfway through a transition.</p>
             <p>Color also has a job. Clear blue is the resting material; a highlight invites interaction; a denser selection marks the committed choice. Save uses green and Delete uses red. Labels, checks and focus indicators carry those meanings too. Trying a palette shows a preview before applying it, so exploring a color doesn’t silently change the current choice.</p>
             <p>Color can also carry a relationship. When two items join a working group, their pigments can mix into a shared identity, with a denser connection marking that they belong together. Separating them returns their individual colors. A pending edit can flow through that connection as a preview while the accepted grouping stays intact. This gives the jelly another job: showing what belongs together, what is changing, and what you’ve committed.</p>
-            <p>Legibility has to travel with the color. A shared ink rule samples the rendered jelly behind control labels and chooses dark or light text. It keeps a passing choice steady and adds a small glyph halo when a reflection spans both extremes. The material can stay expressive without asking you to read dark text through a dark pill.</p>
+            <p>Legibility has to travel with the color. A shared ink rule samples the rendered jelly behind control labels and chooses dark or light text. It keeps a passing choice steady and colors the letters themselves, without an outline or a backing over the material. The material can stay expressive without asking you to read dark text through a dark pill.</p>
           </div>
           <ColorExample motionEnabled={motionEnabled} />
         </section>

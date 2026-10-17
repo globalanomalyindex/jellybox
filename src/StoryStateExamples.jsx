@@ -3,6 +3,7 @@ import { Check } from '@phosphor-icons/react';
 import { JellyActivityButton, JellyBadge, JellyButton, JellySlider, JellySwitch } from '../packages/react/src/index.js';
 import { useJellyToneStyle } from '../packages/react/src/useMaterialColor.js';
 import { taskSample } from './story-examples.js';
+import { MOTION } from '../packages/react/src/renderer/motion.js';
 
 const OUTCOMES = [{ value: 'success', name: 'Success', tone: 'success' }, { value: 'warning', name: 'Warning', tone: 'warning' }, { value: 'error', name: 'Failure', tone: 'danger' }];
 const MESSAGES = { idle: 'Ready', loading: 'Generating a study', success: 'Study ready', warning: 'Needs your review', error: 'Generation interrupted' };
@@ -19,7 +20,9 @@ export function LoadingExample() {
     const began = performance.now();
     setStatus('loading'); setProgress(0);
     const tick = () => {
-      const next = taskSample(performance.now() - began, outcome);
+      // One full breath for this labeled demonstration. Real hosts own their
+      // task duration; JellyActivityButton never delays application completion.
+      const next = taskSample(performance.now() - began, outcome, MOTION.breathe);
       setProgress(next.progress); setStatus(next.status);
       if (next.status === 'loading') timer.current = setTimeout(tick, 80);
     };
