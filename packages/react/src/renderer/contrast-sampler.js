@@ -36,10 +36,13 @@ export function createContrastSampler(renderer, publish) {
       renderer.copyFramebufferToTexture(texture);
       items.forEach((r, i) => rects[i].set(r.x / state.width, r.y / state.height, r.width / state.width, r.height / state.height));
       uniforms.count.value = items.length;
+      // Render-target viewports are already in physical atlas pixels. Calling
+      // renderer.setViewport here would multiply this tiny grid by page DPR.
+      target.viewport.set(0, 0, 9, items.length);
       const previousTarget = renderer.getRenderTarget(), autoClear = renderer.autoClear, scissorTest = renderer.getScissorTest(), autoReset = renderer.info.autoReset;
       renderer.getViewport(viewport); renderer.getScissor(scissor);
       try {
-        renderer.info.autoReset = false; renderer.setRenderTarget(target); renderer.setViewport(0, 0, 9, items.length); renderer.setScissorTest(false); renderer.autoClear = true;
+        renderer.info.autoReset = false; renderer.setRenderTarget(target); renderer.setScissorTest(false); renderer.autoClear = true;
         renderer.render(scene, camera);
         const buffer = new Uint8Array(items.length * 9 * 4);
         pending = true;
