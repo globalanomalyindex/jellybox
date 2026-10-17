@@ -11,6 +11,8 @@ export interface OpticalBody extends OpticalRect {
   activity?: 'idle' | 'loading' | 'success' | 'warning' | 'error'; progress?: number;
   /** Already-eased shared pigment phase, 0–1. Omit for a local 480 ms response. */
   activityPhase?: number;
+  /** Opaque destination pigment; the current joins it on activityPhase. */
+  activityColor?: string;
 }
 export interface OpticalDensity extends OpticalRect {
   pigment: string; opacity: number; concentration?: number; folder?: boolean; expandedHeight?: number; phase?: number; open?: boolean; hover?: boolean;

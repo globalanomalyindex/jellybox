@@ -78,8 +78,8 @@ test('tone hook supplies material channels and a legible fallback ink while pres
   const html = renderToStaticMarkup(h(Status));
   assert.match(html, /--jb-color:#f18787/);
   assert.match(html, /--jb-rgb:241 135 135/);
-  assert.match(html, /--jb-ink:#03121e/);
-  assert.match(html, /--jb-control-ink:#03121e/);
+  assert.match(html, /--jb-ink:#000000/);
+  assert.match(html, /--jb-control-ink:#000000/);
   assert.match(html, />Failed<\/span>/);
 });
 

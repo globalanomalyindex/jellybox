@@ -2,7 +2,9 @@
 // See MOTION.md for the primary research and accessibility rationale.
 export const MOTION = Object.freeze({
   expand: 460, collapse: 320, flow: 420, material: 240, feedback: 120, compress: 65, fade: 160, follow: 180,
-  breathe: 5300, activityOrbit: 2500, skeleton: 1200, loadingPreview: 1800, recoil: 480, pigment: 480, tabTransfer: 760, windowOpen: 760, windowClose: 700, densityGather: 620, densityMelt: 560, sliderGather: 280, sliderMelt: 420, sliderGrace: 120, sliderTravel: 240, magnetRise: 140,
+  breathe: 5300, activityOrbit: 2500,
+  activityResponse: Object.freeze({ frequency: 18, damping: .48 }),
+  activityStrain: Object.freeze({ frequency: 14, damping: .45 }), skeleton: 1200, loadingPreview: 1800, recoil: 480, pigment: 480, tabTransfer: 760, windowOpen: 760, windowClose: 700, densityGather: 620, densityMelt: 560, sliderGather: 280, sliderMelt: 420, sliderGrace: 120, sliderTravel: 240, magnetRise: 140,
   arrival: 480, arrivalStagger: 55,
   sliderTravelCurve: 'cubic-bezier(.32,0,.2,1)',
   gather: 'cubic-bezier(.32,0,.2,1)',

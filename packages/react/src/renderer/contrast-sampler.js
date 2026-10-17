@@ -19,10 +19,10 @@ export function createContrastSampler(renderer, publish) {
   const history = new Map();
   let texture, pending = false, last = -Infinity, lastFull = -Infinity, disposed = false;
   return {
-    sample(state, timestamp) {
+    sample(state, timestamp, materialReactive) {
       if (!publish || pending) return;
       const visible = (state.contrastTargets || []).filter(item => item.width > 0 && item.height > 0 && item.y >= (state.viewportTop ?? 0) && item.y + item.height <= (state.viewportTop ?? 0) + (state.viewportHeight ?? state.height)).slice(0, 40);
-      const reactive = visible.filter(item => item.reactive).slice(0, 8);
+      const reactive = visible.filter(item => item.reactive || materialReactive?.has(item.id)).slice(0, 8);
       if (timestamp - last < (reactive.length ? 1000 / 30 : 100)) return;
       const full = timestamp - lastFull >= 100;
       const items = full ? visible : reactive;
@@ -60,7 +60,7 @@ export function createContrastSampler(renderer, publish) {
             return { id: item.id, ...result };
           }));
         }).catch(() => {
-          if (!disposed) publish(items.map(item => ({ id: item.id, ink: history.get(item.id) || '#03121e', ratio: 0, halo: false })));
+          if (!disposed) publish(items.map(item => ({ id: item.id, ink: history.get(item.id) || '#000000', ratio: 0, halo: false })));
         }).finally(() => { pending = false; });
       } finally {
         renderer.setRenderTarget(previousTarget); renderer.autoClear = autoClear; renderer.info.autoReset = autoReset;

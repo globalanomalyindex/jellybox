@@ -1,7 +1,7 @@
 import { colorLuminance } from './tokens.js';
 import { normalizeJellyColor } from './color.js';
 
-export const JELLY_INK = Object.freeze({ dark: '#03121e', light: '#ffffff', minimum: 4.5 });
+export const JELLY_INK = Object.freeze({ dark: '#000000', light: '#ffffff', minimum: 4.5 });
 export const contrastRatio = (a, b) => (Math.max(a, b) + .05) / (Math.min(a, b) + .05);
 // Choose against the dimmest/brightest sampled parts, rather than an average
 // that can hide an unreadable patch. Keep a passing ink to avoid shimmer.
@@ -17,9 +17,9 @@ export function chooseJellyInk(samples, previous) {
   const preferred = dark >= light ? JELLY_INK.dark : JELLY_INK.light;
   const hasPrevious = previous && [JELLY_INK.dark, JELLY_INK.light].includes(previous);
   const priorScore = hasPrevious ? score(previous) : 0;
-  // Mixed moving highlights can put both inks below the target. Small score
-  // changes must not make otherwise steady lettering flicker between inks.
-  const keep = hasPrevious && (priorScore >= JELLY_INK.minimum || Math.max(dark, light) < JELLY_INK.minimum && Math.max(dark, light) - priorScore < .75);
+  // Stability is earned by passing. Never retain a weaker failing ink merely
+  // to hide a mixed-highlight problem in the underlying reading material.
+  const keep = hasPrevious && priorScore >= JELLY_INK.minimum;
   const ink = keep ? previous : preferred;
   const ratio = score(ink);
   // Retained for compatibility with 0.5.0 consumers; never outline the glyphs.

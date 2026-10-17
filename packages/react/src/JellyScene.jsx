@@ -103,7 +103,7 @@ export function JellyScene({ children, params = DEFAULT_MATERIAL, tone = 'action
           layer: kind === 'menu' ? 4 : el.closest('.jb-dropdown-list') ? 5 : el.closest('.jb-table-shell') ? (kind === 'table' ? 1 : kind === 'row' ? 2 : 3) : kind === 'thumb' || el.closest('.jb-alert') && kind !== 'alert' ? 2 : kind === 'fill' ? 1.5 : 1,
           hover: el.dataset.gelHover === 'true' || el.dataset.active === 'true' ? 1 : 0,
           pressed: el.dataset.gelPressed === 'true' ? 1 : 0,
-          activity: el.dataset.gelActivity, progress: el.dataset.gelProgress === undefined ? undefined : Number(el.dataset.gelProgress),
+          activity: el.dataset.gelActivity, activityColor: el.style.getPropertyValue('--jb-target-color').trim() || undefined, progress: el.dataset.gelProgress === undefined ? undefined : Number(el.dataset.gelProgress),
           activityPhase: el.dataset.gelMaterialPhase === undefined ? undefined : Number(el.dataset.gelMaterialPhase),
           grouped: el.hasAttribute('data-gel-option') && Boolean(el.closest('[data-gel-group]')),
           selected: !el.closest('[data-gel-group]') && (el.getAttribute('aria-pressed') === 'true' || el.getAttribute('aria-selected') === 'true' || el.dataset.selected === 'true' || el.querySelector('input:checked')) ? true : false,

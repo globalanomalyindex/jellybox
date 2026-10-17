@@ -203,6 +203,7 @@ export function App({ active = true }) {
         headerControl: el.classList.contains('dock-close'),
         feedback: el.dataset.gelFeedback,
         activity: el.dataset.gelActivity,
+        activityColor: el.style.getPropertyValue('--jb-target-color').trim() || undefined,
         activityPhase: el.dataset.gelMaterialPhase === undefined ? undefined : Number(el.dataset.gelMaterialPhase),
         progress: el.dataset.gelProgress === undefined ? undefined : Number(el.dataset.gelProgress),
         kind: el.dataset.gelSurface || 'control',

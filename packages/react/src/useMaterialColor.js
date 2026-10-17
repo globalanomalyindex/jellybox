@@ -76,7 +76,8 @@ export function useJellyToneStyle(tone = 'action', options) {
 
 /** Same sampled pigment feeds the optical body and fallback, with immediate semantic state. */
 export function useJellyControlStyle(tone, state, pigment, options) {
-  const color = useJellyColor(controlPigment(tone, state, pigment), options);
-  return { ...toneStyle(tone), ...inkStyle(color), '--jb-color': color,
+  const target = controlPigment(tone, state, pigment);
+  const color = useJellyColor(target, options);
+  return { ...toneStyle(tone), ...inkStyle(color), '--jb-color': color, '--jb-target-color': target,
     '--jb-rgb': [1, 3, 5].map(at => parseInt(color.slice(at, at + 2), 16)).join(' ') };
 }
