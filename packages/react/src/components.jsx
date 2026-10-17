@@ -1,6 +1,6 @@
 import { advanceScrub } from './interaction.js';
 import { useSliderTravel } from './useSliderTravel.js';
-import { forwardRef, useEffect, useId, useLayoutEffect, useRef, useState } from 'react';
+import { forwardRef, useCallback, useEffect, useId, useLayoutEffect, useRef, useState } from 'react';
 import { MOTION } from './renderer/motion.js';
 import { toneStyle } from './tokens.js';
 import { useJellyToneStyle, useJellyControlStyle } from './useMaterialColor.js';
@@ -18,11 +18,20 @@ export const JellyButton = forwardRef(function JellyButton({
   selected, highlighted, pigment, type = 'button', className, style, ...props
 }, ref) {
   const [hovered, setHovered] = useState(false), [focused, setFocused] = useState(false), [pressed, setPressed] = useState(false);
+  const node = useRef(null);
+  const activity = props['data-gel-activity'];
+  const setRef = useCallback(element => { node.current = element; assignRef(ref, element); }, [ref]);
+  const sample = progress => {
+    if (activity && node.current) {
+      const value = String(progress);
+      if (node.current.dataset.gelMaterialPhase !== value) node.current.dataset.gelMaterialPhase = value;
+    }
+  };
   const chosenValue = selected ?? props['aria-pressed'] ?? props['aria-expanded'];
   const chosen = chosenValue === true || chosenValue === 'true';
-  const state = disabled || loading ? 'disabled' : chosen ? 'selected' : pressed ? 'pressed' : (highlighted ?? (hovered || focused)) ? 'highlighted' : 'rest';
-  const material = useJellyControlStyle(variant === 'quiet' && state === 'rest' ? 'neutral' : tone, state, pigment);
-  return <button {...props} ref={ref} type={type} disabled={disabled || loading}
+  const state = loading ? 'loading' : disabled ? 'disabled' : chosen || ['success', 'warning', 'error'].includes(activity) ? 'selected' : pressed ? 'pressed' : (highlighted ?? (hovered || focused)) ? 'highlighted' : 'rest';
+  const material = useJellyControlStyle(variant === 'quiet' && state === 'rest' ? 'neutral' : tone, state, pigment, { onSample: sample });
+  return <button {...props} ref={setRef} type={type} disabled={disabled || loading}
     aria-busy={loading || undefined} aria-pressed={selected ?? props['aria-pressed']}
     data-gel-surface="" data-gel-tone={tone} data-gel-state={state} data-gel-sampled="true"
     data-gel-hover={hovered || focused || undefined} data-gel-pressed={pressed || undefined}

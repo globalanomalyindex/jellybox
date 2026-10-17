@@ -96,7 +96,7 @@ export function JellyScene({ children, params = DEFAULT_MATERIAL, tone = 'action
       groups.forEach(el => { if (el.dataset.gelSelectionRendered !== 'true') el.dataset.gelSelectionRendered = 'true'; });
       bounds = {
         width: canvasBounds.width, height: canvasBounds.height,
-        contrastTargets: chosen.filter(({ kind }) => !['track', 'fill', 'thumb'].includes(kind)).map(({ el }) => { const ink = inkElementRect(el); return { ...ink, x: ink.x - canvasBounds.x, y: ink.y - canvasBounds.y, id: idOf(el) }; }),
+        contrastTargets: chosen.filter(({ kind }) => !['track', 'fill', 'thumb'].includes(kind)).map(({ el }) => { const ink = inkElementRect(el); return { ...ink, x: ink.x - canvasBounds.x, y: ink.y - canvasBounds.y, id: idOf(el), reactive: Boolean(el.dataset.gelActivity && Number(el.dataset.gelMaterialPhase) < 1) }; }),
         panel: panel ? { ...box(panel), color: rgb(panel.dataset.gelTone || latest.current.tone) } : null,
         bubbles: chosen.map(({ el, kind, clip }) => ({ ...box(el), id: idOf(el), kind, attached: Boolean(panel?.contains(el)),
           clip: { ...clip, x: clip.x - canvasBounds.x, y: clip.y - canvasBounds.y },
@@ -104,6 +104,7 @@ export function JellyScene({ children, params = DEFAULT_MATERIAL, tone = 'action
           hover: el.dataset.gelHover === 'true' || el.dataset.active === 'true' ? 1 : 0,
           pressed: el.dataset.gelPressed === 'true' ? 1 : 0,
           activity: el.dataset.gelActivity, progress: el.dataset.gelProgress === undefined ? undefined : Number(el.dataset.gelProgress),
+          activityPhase: el.dataset.gelMaterialPhase === undefined ? undefined : Number(el.dataset.gelMaterialPhase),
           grouped: el.hasAttribute('data-gel-option') && Boolean(el.closest('[data-gel-group]')),
           selected: !el.closest('[data-gel-group]') && (el.getAttribute('aria-pressed') === 'true' || el.getAttribute('aria-selected') === 'true' || el.dataset.selected === 'true' || el.querySelector('input:checked')) ? true : false,
           flow: kind === 'menu' ? (() => {
@@ -158,7 +159,7 @@ export function JellyScene({ children, params = DEFAULT_MATERIAL, tone = 'action
       if (records.some(record => !record.target.closest?.('.jb-selection-svg') && !record.target.matches?.('.jb-material-projection, .jb-optical-canvas') && !(record.type === 'childList' && [...record.addedNodes, ...record.removedNodes].every(child => child.classList?.contains('jb-material-projection'))) && !(record.type === 'attributes' && record.attributeName === 'style' && (record.target.hasAttribute('data-gel-window') || record.target.classList.contains('jb-window-content'))))) invalidate();
     });
     mutations.observe(node, { subtree: true, childList: true, attributes: true,
-      attributeFilter: ['aria-checked', 'aria-selected', 'aria-pressed', 'data-gel-hover', 'data-gel-pressed', 'style', 'data-gel-tone', 'disabled', 'hidden', 'inert', 'data-active', 'data-selected', 'data-gel-activity', 'data-gel-progress'] });
+      attributeFilter: ['aria-checked', 'aria-selected', 'aria-pressed', 'data-gel-hover', 'data-gel-pressed', 'style', 'data-gel-tone', 'disabled', 'hidden', 'inert', 'data-active', 'data-selected', 'data-gel-activity', 'data-gel-progress', 'data-gel-material-phase'] });
     window.addEventListener('resize', invalidate);
     window.addEventListener('scroll', invalidate, { passive: true, capture: true });
     media.addEventListener('change', invalidate);

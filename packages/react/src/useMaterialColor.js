@@ -6,11 +6,14 @@ import { inkStyle } from './contrast.js';
 
 const useBrowserLayoutEffect = typeof window === 'undefined' ? useEffect : useLayoutEffect;
 /** Animate only a surface pigment. Semantic labels, state, and focus stay immediate. */
-export function useJellyColor(target, { duration = MOTION.pigment, disabled = false, origin } = {}) {
+export function useJellyColor(target, { duration = MOTION.pigment, disabled = false, origin, onSample } = {}) {
   const destination = normalizeJellyColor(target);
   const milliseconds = Number.isFinite(duration) ? Math.max(0, duration) : MOTION.pigment;
-  const [color, setColor] = useState(() => origin ? normalizeJellyColor(origin.color) : destination);
+  const [frameSample, setFrameSample] = useState(() => ({ color: origin ? normalizeJellyColor(origin.color) : destination, progress: 1 }));
+  const color = frameSample.color;
   const current = useRef(color), previousOrigin = useRef(origin);
+  const sample = useRef(onSample);
+  sample.current = onSample;
   // A new captured origin transfers ownership from another visible surface.
   // Keep this object stable until the next handoff; ordinary retargets retain
   // the current sample rather than starting again from the captured origin.
@@ -22,7 +25,7 @@ export function useJellyColor(target, { duration = MOTION.pigment, disabled = fa
     let frame = null;
     let stopped = false;
     const cancel = () => { if (frame !== null) window.cancelAnimationFrame(frame); frame = null; };
-    const publish = (next) => { current.current = next; setColor(next); };
+    const publish = (next, progress = 1) => { current.current = next; setFrameSample({ color: next, progress }); };
     if (origin !== previousOrigin.current) {
       previousOrigin.current = origin;
       if (origin) publish(normalizeJellyColor(origin.color));
@@ -35,10 +38,12 @@ export function useJellyColor(target, { duration = MOTION.pigment, disabled = fa
     else {
       const palette = createJellyPalette(current.current, destination);
       const started = performance.now();
+      publish(current.current, 0);
       const tick = (time) => {
         if (stopped) return;
         const progress = Math.min(1, Math.max(0, (time - started) / milliseconds));
-        publish(progress === 1 ? destination : palette.sample(sampleBezier(MOTION.pigmentCurve, progress)));
+        const displayed = sampleBezier(MOTION.pigmentCurve, progress);
+        publish(progress === 1 ? destination : palette.sample(displayed), displayed);
         frame = progress < 1 ? window.requestAnimationFrame(tick) : null;
       };
       frame = window.requestAnimationFrame(tick);
@@ -49,6 +54,10 @@ export function useJellyColor(target, { duration = MOTION.pigment, disabled = fa
       media?.removeEventListener?.('change', motionChange);
     };
   }, [destination, milliseconds, disabled, origin]);
+
+  // Publish gathering only after the same pigment sample has reached the DOM.
+  // A renderer frame must never see a new phase with the previous color.
+  useBrowserLayoutEffect(() => { sample.current?.(frameSample.progress); }, [frameSample]);
 
   return disabled || milliseconds === 0 ? destination : firstColor;
 }
@@ -66,8 +75,8 @@ export function useJellyToneStyle(tone = 'action', options) {
 }
 
 /** Same sampled pigment feeds the optical body and fallback, with immediate semantic state. */
-export function useJellyControlStyle(tone, state, pigment) {
-  const color = useJellyColor(controlPigment(tone, state, pigment));
+export function useJellyControlStyle(tone, state, pigment, options) {
+  const color = useJellyColor(controlPigment(tone, state, pigment), options);
   return { ...toneStyle(tone), ...inkStyle(color), '--jb-color': color,
     '--jb-rgb': [1, 3, 5].map(at => parseInt(color.slice(at, at + 2), 16)).join(' ') };
 }

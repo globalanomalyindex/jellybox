@@ -116,8 +116,8 @@ export function DesignStory({ motionEnabled = true }) {
         <section id="story-feedback" className="story-section" tabIndex={-1} aria-labelledby="story-feedback-title">
           <h3 id="story-feedback-title">States in motion</h3>
           <div className="story-copy">
-            <p>Waiting is another place where the jelly can explain what’s happening. While a task is running, dense blue jelly swirls through the button and breathes gently, with the light following it. A percentage and progress rail show how far along the task is when that information is available. Without it, the circulation communicates that work is continuing without inventing a completion value.</p>
-            <p>The same body carries the result: green for completion, amber when something needs review, red when the task fails. Color, density and motion share that transition, while the label and icon make the state explicit. Reduced motion keeps the words, progress and outcome. I’m exploring whether keeping those changes in one continuous material makes a task easier to follow.</p>
+            <p>Waiting is another place where the jelly can explain what’s happening. While a task is running, dense blue jelly moves through the whole button and breathes gently. Its shape, highlights and refraction follow the same current. A percentage and progress rail show how far along the task is when that information is available. Without it, the circulation communicates that work is continuing without inventing a completion value.</p>
+            <p>When work finishes, that moving mass gathers into the result: green for completion, amber when something needs review, red when the task fails. Color, density and motion share that transition, while the label and icon make the state explicit. Reduced motion keeps the words, progress and outcome. I’m exploring whether keeping those changes in one continuous material makes a task easier to follow.</p>
           </div>
           <LoadingExample />
         </section>

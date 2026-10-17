@@ -9,6 +9,8 @@ export interface OpticalBody extends OpticalRect {
   color?: readonly [number, number, number]; opacity?: number; hover?: number; pressed?: number; selected?: boolean; grouped?: boolean; stir?: number; windowDepth?: number; arrival?: number;
   density?: OpticalDensity | null;
   activity?: 'idle' | 'loading' | 'success' | 'warning' | 'error'; progress?: number;
+  /** Already-eased shared pigment phase, 0–1. Omit for a local 480 ms response. */
+  activityPhase?: number;
 }
 export interface OpticalDensity extends OpticalRect {
   pigment: string; opacity: number; concentration?: number; folder?: boolean; expandedHeight?: number; phase?: number; open?: boolean; hover?: boolean;
@@ -20,7 +22,7 @@ export interface OpticalScene {
   width: number; height: number; dpr?: number; reducedMotion?: boolean; params?: Partial<MaterialParams>;
   viewportTop?: number; viewportHeight?: number; documentTop?: number; light?: OpticalLight | null;
   lightAnchor?: { x: number; y: number };
-  contrastTargets?: readonly (OpticalRect & { id: string; /** @deprecated Ignored; lettering has no outline. */ guard?: boolean })[];
+  contrastTargets?: readonly (OpticalRect & { id: string; reactive?: boolean; /** @deprecated Ignored; lettering has no outline. */ guard?: boolean })[];
   scrollEdge?: { height: number; strength: number } | null;
   panel?: OpticalBody | null; buttons?: readonly (OpticalBody | null)[]; bubbles?: readonly OpticalBody[]; selections?: readonly OpticalSelection[];
   parallax?: { x?: number; y?: number }; pointer?: { x?: number; y?: number; visible?: boolean };

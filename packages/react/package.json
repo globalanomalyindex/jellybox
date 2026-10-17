@@ -1,6 +1,6 @@
 {
   "name": "@jellybox/react",
-  "version": "0.5.1",
+  "version": "0.5.2",
   "description": "Dense liquid rims, calm reading planes, and accessible React controls.",
   "type": "module",
   "license": "MIT",

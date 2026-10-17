@@ -17,7 +17,7 @@ export function controlPigment(tone = 'action', state = 'rest', pigment) {
   const accent = pigment || (SEMANTIC_COLORS[tone] || SEMANTIC_COLORS.action).hex;
   const neutral = SEMANTIC_COLORS.neutral.hex;
   if (state === 'disabled') return neutral;
-  if (state === 'selected' || state === 'pressed') return accent;
+  if (state === 'selected' || state === 'pressed' || state === 'loading') return accent;
   const semanticAction = ['success', 'danger', 'warning'].includes(tone);
   if (state === 'highlighted') return createJellyPalette(neutral, accent).sample(semanticAction ? .88 : .58);
   return semanticAction ? createJellyPalette(neutral, accent).sample(.68) : neutral;

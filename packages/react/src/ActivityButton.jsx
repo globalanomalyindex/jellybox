@@ -3,7 +3,7 @@ import { JellyButton } from './components.jsx';
 
 const STATES = {
   idle: { label: 'Generate', tone: 'action', path: 'm8 2 1.5 4.5L14 8l-4.5 1.5L8 14 6.5 9.5 2 8l4.5-1.5Z' },
-  loading: { label: 'Generating', tone: 'info', path: 'M8 2a6 6 0 1 1-6 6 M8 5v3l2 2' },
+  loading: { label: 'Generating', tone: 'action', path: 'M8 2a6 6 0 1 1-6 6 M8 5v3l2 2' },
   success: { label: 'Generated', tone: 'success', path: 'm3 8 3 3 7-7' },
   error: { label: 'Try again', tone: 'danger', path: 'm4 4 8 8 M12 4l-8 8' },
   warning: { label: 'Review required', tone: 'warning', path: 'M8 2 1 14h14Z M8 6v3 M8 11v.5' },

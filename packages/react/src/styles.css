@@ -121,7 +121,9 @@
 [data-gel-ink] :is(.jb-button-face, .jb-alert-copy, .jb-checkbox-face, .jb-table-cell-content) { background: transparent !important; backdrop-filter: none !important; -webkit-backdrop-filter: none !important; box-shadow: none !important; border-color: transparent; }
 .jb-badge[data-gel-ink]::before { display: none; }
 [data-gel-ink] svg { filter: none; }
-.jb-activity { min-width: 180px; }
+.jb-activity { min-width: 208px; }
+.jb-activity .jb-button-face { display: grid; grid-template-columns: 16px minmax(0, 1fr); width: 100%; gap: 8px; }
+.jb-activity .jb-button-face > span:last-child { text-align: left; font-variant-numeric: tabular-nums; white-space: nowrap; }
 .jb-activity .jb-spinner { display: none; }
 .jb-activity[aria-busy="true"] { opacity: 1; }
 .jb-activity[data-gel-activity="loading"]:not([data-gel-rendered="true"]) { background: radial-gradient(ellipse at 25% 50%, rgb(91 175 243 / .78), transparent 65%), var(--jb-skin); }

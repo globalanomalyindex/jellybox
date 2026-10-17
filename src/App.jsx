@@ -203,6 +203,7 @@ export function App({ active = true }) {
         headerControl: el.classList.contains('dock-close'),
         feedback: el.dataset.gelFeedback,
         activity: el.dataset.gelActivity,
+        activityPhase: el.dataset.gelMaterialPhase === undefined ? undefined : Number(el.dataset.gelMaterialPhase),
         progress: el.dataset.gelProgress === undefined ? undefined : Number(el.dataset.gelProgress),
         kind: el.dataset.gelSurface || 'control',
         emphasis: el.closest('.jb-slider-compact') ? Number(getComputedStyle(el).getPropertyValue('--jb-slider-emphasis')) : 1,
@@ -307,7 +308,7 @@ export function App({ active = true }) {
             bubbles: s.bubbles.map((r, i) => project({ ...r, ...assist(i + s.rects.length), opacity: r.headerControl && s.closing ? 0 : r.opacity })), selections: s.selections?.map(project), assistanceBlocked, params: s.params, reducedMotion: s.reducedMotion,
             light: spotlight || (lightField ? project({ ...s.light, x: lightField.x + lightField.width * s.light.x, y: lightField.y + lightField.height * s.light.y }) : null),
             lightAnchor: spotlight ? { x: spotlight.x + 30, y: spotlight.y + 60 } : s.rects.length ? project({ x: s.rects.reduce((sum, r) => sum + r.x + r.width / 2, 0) / s.rects.length, y: s.rects.reduce((sum, r) => sum + r.y + r.height / 2, 0) / s.rects.length }) : undefined,
-            contrastTargets: [...(s.primaryInk || []).map((r, i) => r && ({ ...r, id: `primary-${i}` })), ...s.bubbles.filter(r => r.inkRect).map(r => ({ ...r.inkRect, id: r.id }))].filter(Boolean).map(project),
+            contrastTargets: [...(s.primaryInk || []).map((r, i) => r && ({ ...r, id: `primary-${i}` })), ...s.bubbles.filter(r => r.inkRect).map(r => ({ ...r.inkRect, id: r.id, reactive: Boolean(r.activity && r.activityPhase < 1) }))].filter(Boolean).map(project),
             scrollEdge: edgeRef.current ? { height: presentation.current.edgeHeight, strength: Number(getComputedStyle(edgeRef.current).opacity) } : null };
         },
         onError: error => { console.warn('Optical renderer:', error); inkNodes.forEach(clearJellyInk); document.documentElement.classList.remove('gel-bubbles-ready'); setFallback(true); },
@@ -358,7 +359,7 @@ export function App({ active = true }) {
     const resize = new ResizeObserver(invalidate);
     resize.observe(node);
     const mutations = new MutationObserver(invalidate);
-    mutations.observe(node, { childList: true, subtree: true, attributes: true, attributeFilter: ['style', 'aria-pressed', 'aria-expanded', 'data-open', 'data-density-hover', 'data-gel-hover', 'data-gel-pressed', 'data-gel-dragging', 'data-story-concentration', 'data-gel-activity', 'data-gel-progress', 'data-motion-loop', 'data-spotlight', 'data-spot-target', 'data-spot-spread'] });
+    mutations.observe(node, { childList: true, subtree: true, attributes: true, attributeFilter: ['style', 'aria-pressed', 'aria-expanded', 'data-open', 'data-density-hover', 'data-gel-hover', 'data-gel-pressed', 'data-gel-dragging', 'data-story-concentration', 'data-gel-activity', 'data-gel-progress', 'data-gel-material-phase', 'data-motion-loop', 'data-spotlight', 'data-spot-target', 'data-spot-spread'] });
     const transition = () => { movingUntil.current = Math.max(movingUntil.current, performance.now() + MOTION.densityGather + 80); invalidate(); };
     node.addEventListener('transitionrun', transition);
     node.addEventListener('jellybox:motion', transition);

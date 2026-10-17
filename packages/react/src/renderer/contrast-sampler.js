@@ -17,13 +17,18 @@ export function createContrastSampler(renderer, publish) {
   const target = new THREE.WebGLRenderTarget(9, 40, { depthBuffer: false, minFilter: THREE.NearestFilter, magFilter: THREE.NearestFilter });
   const size = new THREE.Vector2(), viewport = new THREE.Vector4(), scissor = new THREE.Vector4();
   const history = new Map();
-  let texture, pending = false, last = -Infinity, disposed = false;
+  let texture, pending = false, last = -Infinity, lastFull = -Infinity, disposed = false;
   return {
     sample(state, timestamp) {
-      if (!publish || pending || timestamp - last < 100) return;
-      const items = (state.contrastTargets || []).filter(item => item.width > 0 && item.height > 0 && item.y >= (state.viewportTop ?? 0) && item.y + item.height <= (state.viewportTop ?? 0) + (state.viewportHeight ?? state.height)).slice(0, 40);
+      if (!publish || pending) return;
+      const visible = (state.contrastTargets || []).filter(item => item.width > 0 && item.height > 0 && item.y >= (state.viewportTop ?? 0) && item.y + item.height <= (state.viewportTop ?? 0) + (state.viewportHeight ?? state.height)).slice(0, 40);
+      const reactive = visible.filter(item => item.reactive).slice(0, 8);
+      if (timestamp - last < (reactive.length ? 1000 / 30 : 100)) return;
+      const full = timestamp - lastFull >= 100;
+      const items = full ? visible : reactive;
       if (!items.length) return;
       last = timestamp;
+      if (full) lastFull = timestamp;
       renderer.getDrawingBufferSize(size);
       if (!texture || texture.image.width !== size.x || texture.image.height !== size.y) {
         texture?.dispose(); texture = new THREE.FramebufferTexture(size.x, size.y); uniforms.source.value = texture;
@@ -31,17 +36,16 @@ export function createContrastSampler(renderer, publish) {
       renderer.copyFramebufferToTexture(texture);
       items.forEach((r, i) => rects[i].set(r.x / state.width, r.y / state.height, r.width / state.width, r.height / state.height));
       uniforms.count.value = items.length;
-      target.setSize(9, items.length);
       const previousTarget = renderer.getRenderTarget(), autoClear = renderer.autoClear, scissorTest = renderer.getScissorTest(), autoReset = renderer.info.autoReset;
       renderer.getViewport(viewport); renderer.getScissor(scissor);
       try {
-        renderer.info.autoReset = false; renderer.setRenderTarget(target); renderer.setScissorTest(false); renderer.autoClear = true;
+        renderer.info.autoReset = false; renderer.setRenderTarget(target); renderer.setViewport(0, 0, 9, items.length); renderer.setScissorTest(false); renderer.autoClear = true;
         renderer.render(scene, camera);
         const buffer = new Uint8Array(items.length * 9 * 4);
         pending = true;
         renderer.readRenderTargetPixelsAsync(target, 0, 0, 9, items.length, buffer).then(() => {
           if (disposed) return;
-          const ids = new Set(items.map(item => item.id));
+          const ids = new Set(visible.map(item => item.id));
           for (const id of history.keys()) if (!ids.has(id)) history.delete(id);
           publish(items.map((item, index) => {
             const samples = Array.from({ length: 9 }, (_, tap) => {
