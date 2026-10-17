@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { createElement as h } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { chooseJellyInk, contrastRatio } from '../src/contrast.js';
-import { activityPocket, activityRelief, activityDisplacement, stepActivity, activityPigment } from '../src/renderer/activity.js';
+import { activityPocket, activityRelief, activityDisplacement, stepActivity, activityPigment, activityContour, ACTIVITY_VOLUME } from '../src/renderer/activity.js';
 import { MOTION, sampleBezier } from '../src/renderer/motion.js';
 import { JellyActivityButton } from '../dist/index.js';
 
@@ -57,11 +57,11 @@ test('the activity relief reaches both capsule ends, moves across its whole body
   assert.equal(activityRelief(0, 26, shape), 0);
   for (let x = -104; x <= 104; x += 8) for (let y = -22; y <= 22; y += 4) {
     const shift = activityDisplacement(x, y, shape);
-    assert.ok(Math.abs(shift.x) <= .45 && Math.abs(shift.y) <= 1.15 && shift.z >= 0 && shift.z <= 1.8);
+    assert.ok(Math.abs(shift.x) <= .45 && Math.abs(shift.y) <= 1.15 && shift.z >= 0 && shift.z <= ACTIVITY_VOLUME.depth * ACTIVITY_VOLUME.strength);
   }
 });
 
-const finishActivity = (state, status, duration = 2, fps = 60) => {
+const finishActivity = (state, status, duration = 2.5, fps = 60) => {
   const frames = Math.ceil(duration * fps), strains = [];
   for (let frame = 1; frame <= frames; frame++) {
     stepActivity(state, status, sampleBezier(MOTION.pigmentCurve, Math.min(1, frame / fps / (MOTION.pigment / 1000))), 1 / fps);
@@ -77,7 +77,7 @@ test('outcomes concentrate, recoil and settle without resetting the displayed cu
     const strains = finishActivity(state, status);
     assert.ok(Math.max(...strains) > .4, 'a perceptible inward compression');
     assert.ok(Math.min(...strains) < -.04, 'bounded release after the compression');
-    assert.equal(state.gain, 0); assert.equal(state.gather, 1); assert.equal(state.density, 1);
+    assert.equal(state.gain, 1); assert.equal(state.gather, 1); assert.equal(state.density, 1);
     assert.equal(state.strain, 0); assert.equal(state.settling, false);
   }
 });
@@ -102,9 +102,9 @@ test('the same handoff stays bounded across frame rates', () => {
   for (const fps of [30, 60, 120]) {
     const state = stepActivity(null, 'loading', 1, 0);
     stepActivity(state, 'success', 0, 0);
-    const strains = finishActivity(state, 'success', 2, fps);
+    const strains = finishActivity(state, 'success', 2.5, fps);
     assert.ok(strains.every(value => value >= -.24 && value <= .85));
-    assert.equal(state.energy, 0); assert.equal(state.settling, false);
+    assert.equal(state.energy, 1); assert.equal(state.settling, false);
   }
 });
 test('pause freezes ambient circulation; reduced motion removes strain immediately', () => {
@@ -112,7 +112,7 @@ test('pause freezes ambient circulation; reduced motion removes strain immediate
   stepActivity(state, 'loading', 1, .1, { moving: false });
   assert.equal(state.clock, clock); assert.equal(state.phase, phase);
   stepActivity(state, 'success', 0, .016, { instant: true });
-  assert.equal(state.gather, 1); assert.equal(state.gain, 0); assert.equal(state.strain, 0); assert.equal(state.phase, phase);
+  assert.equal(state.gather, 1); assert.equal(state.gain, 1); assert.equal(state.strain, 0); assert.equal(state.phase, phase);
   assert.equal(state.settling, false);
 });
 
@@ -139,4 +139,49 @@ test('the current pigment joins its semantic result on the host sample and retar
   activityPigment(state, 'loading', '#5baff3', 1);
   activityPigment(state, 'error', '#f18787', 1);
   assert.equal(state.color, '#f18787', 'a settling recoil cannot reintroduce blue pigment');
+});
+
+test('completion retains a visibly thicker material body instead of retiring the current', () => {
+  const state = stepActivity(null, 'loading', 1, 0);
+  const flowing = activityDisplacement(0, 0, activityPocket(208, 48, 0, state)).z;
+  stepActivity(state, 'success', 0, 0);
+  finishActivity(state, 'success');
+  assert.ok(state.energy > .9, 'the outcome still owns a rendered volume');
+  const result = activityDisplacement(0, 0, activityPocket(208, 48, state.clock, state)).z;
+  assert.ok(result > flowing + 1, 'density remains thicker after the current has gathered');
+});
+
+test('gathering has a visible inward contour, swelling and a bounded release', () => {
+  const state = stepActivity(null, 'loading', 1, 0), contours = [];
+  stepActivity(state, 'error', 0, 0);
+  for (let frame=1;frame<=150;frame++) {
+    stepActivity(state,'error',sampleBezier(MOTION.pigmentCurve,Math.min(1,frame/60/.48)),1/60);
+    contours.push(activityContour(activityPocket(208,48,state.clock,state)));
+  }
+  assert.ok(Math.max(...contours.map(c=>c.inset)) > 5, 'both ends pull inward by a visible amount');
+  assert.ok(Math.max(...contours.map(c=>c.bulge)) > 3, 'the shoulders visibly swell');
+  assert.ok(contours.some(c=>c.inset < ACTIVITY_VOLUME.inset-.25), 'release travels past the resting contour');
+  assert.equal(contours.at(-1).inset, ACTIVITY_VOLUME.inset);
+});
+test('a pair of density ridges travels inward instead of fading at a fixed position', () => {
+  const peak = gather => {
+    const shape = activityPocket(208,48,0,{gather, phase:.6, energy:1, strain:0});
+    let best={x:0,z:-Infinity};
+    for(let x=0;x<=85;x+=1) { const z=activityRelief(x,12,shape); if(z>best.z)best={x,z}; }
+    return best;
+  };
+  const early=peak(.2), late=peak(.65);
+  assert.ok(early.x-late.x>15, `ridge advances ${early.x} → ${late.x}`);
+});
+
+test('the settled crown stops circulating and breathing while retaining its volume', () => {
+  const state = stepActivity(null,'loading',1,0);
+  stepActivity(state,'success',0,0);
+  finishActivity(state,'success');
+  const first = activityPocket(208,48,0,state), later = activityPocket(208,48,15,state);
+  assert.equal(first.breath,1); assert.equal(later.breath,1);
+  for(const x of [-90,-45,0,45,90]) for(const y of [-16,0,16]) {
+    assert.equal(activityRelief(x,y,first),activityRelief(x,y,later));
+    assert.ok(Number.isFinite(activityDisplacement(x,y,later).z));
+  }
 });

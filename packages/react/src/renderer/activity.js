@@ -2,6 +2,7 @@ import { createJellyPalette } from '../color.js';
 import { MOTION, sampleBezier } from './motion.js';
 const clamp = value => Math.max(0, Math.min(1, value));
 const smooth = (low, high, value) => { const t = clamp((value - low) / (high - low)); return t * t * (3 - 2 * t); };
+export const ACTIVITY_VOLUME = Object.freeze({ depth: 4.8, strength: .86, inset: 1.8, pull: 12, bulge: 1.2, recoil: 6.5 });
 const outcome = status => ['success', 'warning', 'error'].includes(status);
 
 // Pigment remains on the host's 480 ms sample. One damped material response
@@ -17,12 +18,12 @@ function settle(state, key, target, dt, instant, response = RESPONSE) {
       - 2 * response.damping * response.frequency * state[velocity]) * h;
     state[key] += state[velocity] * h;
   }
-  if (Math.abs(state[key] - target) < .0003 && Math.abs(state[velocity]) < .003) {
+  if (Math.abs(state[key] - target) < .001 && Math.abs(state[velocity]) < .01) {
     state[key] = target; state[velocity] = 0;
   }
 }
 export function stepActivity(previous, status = 'idle', materialPhase, seconds, { instant = false, moving = true } = {}) {
-  const targetGain = status === 'loading' ? 1 : 0;
+  const targetGain = status === 'loading' || outcome(status) ? 1 : 0;
   const targetGather = outcome(status) ? 1 : 0;
   const targetDensity = outcome(status) ? 1 : status === 'loading' ? .4 : 0;
   const state = previous || { status, gain: targetGain, gather: targetGather, density: targetDensity,
@@ -42,7 +43,7 @@ export function stepActivity(previous, status = 'idle', materialPhase, seconds, 
   state.sample = progress;
   settle(state, 'strain', state.gatherVelocity * .12, dt, instant, MOTION.activityStrain);
   state.strain = Math.max(-.24, Math.min(.85, state.strain));
-  state.energy = Math.max(clamp(state.gain), Math.abs(state.strain) * .45);
+  state.energy = clamp(state.gain);
   state.settling = Math.abs(state.gather - targetGather) > .0003 || Math.abs(state.gatherVelocity) > .003
     || Math.abs(state.gain - targetGain) > .0003 || Math.abs(state.gainVelocity) > .003 || Math.abs(state.strain) > .0003 || Math.abs(state.strainVelocity) > .003;
   if (moving && !instant) {
@@ -59,7 +60,7 @@ export function stepActivity(previous, status = 'idle', materialPhase, seconds, 
 export function activityPocket(width, height, seconds, options = {}) {
   return { x: 0, y: 0, width, height, color: [.08, .35, .82],
     phase: options.phase ?? seconds * Math.PI * 2 / (MOTION.activityOrbit / 1000), gather: clamp(options.gather ?? 0), gain: options.energy ?? options.gain ?? 1, strain: options.strain ?? 0,
-    breath: .88 + .12 * Math.sin(seconds * Math.PI * 2 / (MOTION.breathe / 1000)) };
+    breath: (.88 + .12 * Math.sin(seconds * Math.PI * 2 / (MOTION.breathe / 1000))) * (1 - clamp(options.gather ?? 0)) + clamp(options.gather ?? 0) };
 }
 
 // Same capsule support/current field in the mesh and fragment material. A quiet
@@ -75,17 +76,30 @@ export function activityRelief(x, y, shape) {
   const returning = Math.cos(inward * 2.6 + shape.phase - ny * 3.2);
   const fold = current * .72 + returning * .28;
   const reading = 1 - smooth(.12, .55, Math.abs(ny));
-  const bulk = (.5 + fold * (.24 - reading * .17) * (1 - shape.gather * .4)) * shape.breath;
-  return (bulk + shape.strain * .14) * support;
+  const bulk = (.5 + fold * (.24 - reading * .17)) * shape.breath;
+  const q = shape.gather, squeeze = 4 * q * (1 - q);
+  // Opposed density lobes sweep in from the ends and collect at the shoulders.
+  // Their slopes bend light; the broad crown retains the gathered volume.
+  const travel = .76 * (1 - q), arc = .42 + Math.sin(shape.phase) * .12 * (1 - q);
+  const top = Math.exp(-(((nx - travel) / .38) ** 2) - ((ny - arc) / .28) ** 2);
+  const bottom = Math.exp(-(((nx + travel) / .38) ** 2) - ((ny + arc) / .28) ** 2);
+  const crown = .84 - .10 * nx * nx;
+  return (bulk * (1 - q) + crown * q + (top + bottom) * squeeze * .58 + shape.strain * .20) * support;
 }
 
+export function activityContour(shape) {
+  return { inset: ACTIVITY_VOLUME.inset * shape.gather + ACTIVITY_VOLUME.pull * shape.strain,
+    bulge: ACTIVITY_VOLUME.bulge * shape.gather + ACTIVITY_VOLUME.recoil * shape.strain };
+}
 export function activityDisplacement(x, y, shape, output = {}) {
   const nx = x / Math.max(1, shape.width * .5), ny = y / Math.max(1, shape.height * .5);
-  const movement = shape.gain;
+  const movement = shape.gain * (1 - shape.gather);
   const shoulder = smooth(.18, .85, Math.abs(nx));
-  output.x = Math.cos(shape.phase + ny * 1.8) * .45 * nx * movement - nx * shoulder * shape.strain * 3.2;
-  output.y = Math.sin(shape.phase - nx * 3.1) * 1.15 * ny * movement + ny * shape.strain * .85;
-  output.z = activityRelief(x, y, shape) * shape.gain * 1.8;
+  const inset = ACTIVITY_VOLUME.inset * shape.gather + ACTIVITY_VOLUME.pull * shape.strain;
+  const bulge = ACTIVITY_VOLUME.bulge * shape.gather + ACTIVITY_VOLUME.recoil * shape.strain;
+  output.x = Math.cos(shape.phase + ny * 1.8) * .45 * nx * movement - nx * shoulder * inset;
+  output.y = Math.sin(shape.phase - nx * 3.1) * 1.15 * ny * movement + ny * (1 - Math.abs(nx) * .35) * bulge;
+  output.z = activityRelief(x, y, shape) * shape.gain * ACTIVITY_VOLUME.depth * ACTIVITY_VOLUME.strength;
   return output;
 }
 
@@ -102,8 +116,15 @@ float jellyActivityHeight(vec2 point, vec4 shape, float gather) {
   float returning = cos(inward * 2.6 + shape.z - p.y * 3.2);
   float fold = current * .72 + returning * .28;
   float reading = 1.0 - smoothstep(.12, .55, abs(p.y));
-  float bulk = (.5 + fold * (.24 - reading * .17) * (1.0 - gather * .4)) * shape.w;
-  return (bulk + uActivityStrain * .14) * support;
+  float bulk = (.5 + fold * (.24 - reading * .17)) * shape.w;
+  float squeeze = 4.0 * gather * (1.0 - gather);
+  float travel = .76 * (1.0 - gather), arc = .42 + sin(shape.z) * .12 * (1.0 - gather);
+  vec2 topQ = (p-vec2(travel,arc))/vec2(.38,.28);
+  vec2 bottomQ = (p+vec2(travel,arc))/vec2(.38,.28);
+  float top = exp(-dot(topQ,topQ));
+  float bottom = exp(-dot(bottomQ,bottomQ));
+  float crown = .84 - .10 * p.x * p.x;
+  return (mix(bulk,crown,gather) + (top+bottom)*squeeze*.58 + uActivityStrain*.20) * support;
 }
 vec4 jellyActivity(vec2 point, vec4 shape, float gather) {
   float h = jellyActivityHeight(point, shape, gather);

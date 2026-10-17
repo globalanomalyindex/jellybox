@@ -1,11 +1,11 @@
 # JellyBox React foundation
 
-Experimental React controls and a shared jelly material, used by the [JellyBox study](https://globalanomalyindex.github.io/jellybox/). Seventeen core components work with CSS/SVG alone; optional Three.js rendering supplies depth, transmitted light and connected density. This 0.5.3 preview is distributed on GitHub Releases, not npm.
+Experimental React controls and a shared jelly material, used by the [JellyBox study](https://globalanomalyindex.github.io/jellybox/). Seventeen core components work with CSS/SVG alone; optional Three.js rendering supplies depth, transmitted light and connected density. This 0.5.4 preview is distributed on GitHub Releases, not npm.
 
 ## Install
 
 ```sh
-npm install https://github.com/globalanomalyindex/jellybox/releases/download/v0.5.3/jellybox-react-0.5.3.tgz
+npm install https://github.com/globalanomalyindex/jellybox/releases/download/v0.5.4/jellybox-react-0.5.4.tgz
 ```
 
 React and React DOM 18/19 are peers. Import CSS once. For the optical entry, also install the supported Three 0.186 peer.
@@ -60,6 +60,6 @@ MIT. Spectral.js 3.0.0 attribution is in THIRD_PARTY_NOTICES.md. The package con
 
 ### Activity and readable ink
 
-`JellyActivityButton` accepts an application-owned `status` (`idle`, `loading`, `success`, `warning`, `error`) and optional `progress` from 0–100. Loading uses native busy/disabled semantics. Both modes circulate through the whole material; supplied progress remains explicit in the label and the host’s progress rail. Completion gathers and releases the current into its semantic color, with a small material recoil. The component never starts a timer or invents success. Give failures a working retry callback. The story's timed task is explicitly a simulation.
+`JellyActivityButton` accepts an application-owned `status` (`idle`, `loading`, `success`, `warning`, `error`) and optional `progress` from 0–100. Loading uses native busy/disabled semantics. Both modes circulate through the whole material; supplied progress remains explicit in the label and the host’s progress rail. Completion gathers the current into a lasting thicker result crown, with moving density ridges and a small material recoil. Highlights, refraction and the contact cast follow the gathered contour while native text and target stay anchored. The component never starts a timer or invents success. Give failures a working retry callback. The story's timed task is explicitly a simulation.
 
 `JellyScene` samples nine background points within each visible label’s actual lettering bounds in one bounded asynchronous GPU batch, at most ten times per second for ordinary labels. During activity color handoffs, up to eight labels receive 30 Hz priority in the same fixed atlas with one readback pending. Shared `chooseJellyInk` selects dark/light ink against the least favorable sample, keeps a passing choice stable, and keeps the lettering solid without a glyph outline or text shadow. The returned ratio remains the actual sampled result, including mixed highlights below the target. The CSS fallback estimates its translucent skin over the neutral receiver. Forced colors use system ink. Sampling improves the supported composition; it is not an exhaustive pixel or WCAG certification. Low-level `createOptics` consumers provide `contrastTargets` and `onContrast` to connect the policy to their own DOM.

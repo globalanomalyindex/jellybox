@@ -8,7 +8,7 @@ import { lightTemperature, moveReceiverField } from './lighting.js';
 import { DEFAULT_MATERIAL, JELLY_MATERIAL } from './material.js';
 import { DENSITY_GLSL, densityFieldProfile, densityClearing, densityPresentation, densityAttenuation, densityColorWeight, stepDensitySettle } from './density-field.js';
 import { createContrastSampler } from './contrast-sampler.js';
-import { activityPocket, activityDisplacement, stepActivity, activityPigment, ACTIVITY_GLSL } from './activity.js';
+import { ACTIVITY_VOLUME, activityPocket, activityDisplacement, activityContour, stepActivity, activityPigment, ACTIVITY_GLSL } from './activity.js';
 import { volumeCrown, volumeHeight, volumeFullness } from './volume-profile.js';
 import { primaryTabMerge } from './tab-transfer.js';
 import { POCKET, POCKET_GLSL, stepPocket, pocketShape } from './pocket.js';
@@ -243,7 +243,7 @@ function installVolumeThickness(material) {
     shader.fragmentShader = shader.fragmentShader.replace('#include <color_fragment>', `
       #include <color_fragment>
       vec2 readingPoint = vJellyPosition / max(vec2(1.0), uActivityReading * .5);
-      float activityReading = uActivityReading.x > .5 ? (1.0-smoothstep(.48,.86,abs(readingPoint.y))) * (1.0-smoothstep(.84,.97,abs(readingPoint.x))) : 0.0;
+      float activityReading = uActivityReading.x > .5 ? (1.0-smoothstep(.20,.54,abs(readingPoint.y))) * (1.0-smoothstep(.84,.97,abs(readingPoint.x))) : 0.0;
       vec4 densityField = uDensityAmount > .001 ? jellyDensity(vJellyPosition, uDensityRegion, uDensityAmount, uDensityShape, uDensityJiggle) : vec4(0.0);
     `).replace('#include <roughnessmap_fragment>', `
       #include <roughnessmap_fragment>
@@ -284,9 +284,9 @@ function installVolumeThickness(material) {
     `);
     const transmission = THREE.ShaderChunk.transmission_fragment
       .replace('material.thickness = thickness;', 'material.thickness = max(vVolumeDepth + densityField.z * 2.0 + pocket.z * pocketDepth * 2.0, 0.15);')
-      // The full concentration absorbs more light throughout its body. A small
-      // Spectral clearing correction retains readable pigment, not a white hole.
-      .replace('material.attenuationDistance = attenuationDistance;', 'material.attenuationDistance = attenuationDistance * (1.0 + pocket.z * uPigmentStrength * .8) * jellyDensityAttenuation(densityField.w, uDensityAmount);')
+      // The collected activity keeps its absorption as thickness gathers.
+      // Ordinary selection pockets retain their existing clearing correction.
+      .replace('material.attenuationDistance = attenuationDistance;', 'material.attenuationDistance = attenuationDistance * (uActivityShape.w > .001 ? 1.0 / (1.0 + pocket.z * uPigmentStrength * uActivityGather * .2) : (1.0 + pocket.z * uPigmentStrength * .8)) * jellyDensityAttenuation(densityField.w, uDensityAmount);')
       .replace('material.attenuationColor = attenuationColor;', `
         material.attenuationColor = attenuationColor;
         if (densityField.w > .00001) {
@@ -302,7 +302,7 @@ function installVolumeThickness(material) {
       `);
     shader.fragmentShader = shader.fragmentShader.replace('#include <transmission_fragment>', transmission);
   };
-  material.customProgramCacheKey = () => 'shared-liquid-gather-folder-v23';
+  material.customProgramCacheKey = () => 'shared-liquid-gather-folder-v24';
 }
 
 function makeMeniscusGeometry(joinedTab = false) {
@@ -1283,11 +1283,11 @@ export function createOptics(canvas, { getScene, onError = () => {}, onAfterRend
         fitSurfaceGeometry(body, body.r >= bubble.height / 2 - .5 && bubble.width >= bubble.height && (!body.grouped || body.bulb));
         body.h = Math.max(0, bubble.width / 2 - body.r);
         body.hY = Math.max(0, bubble.height / 2 - body.r);
-        const rest = moving && !body.grouped ? Math.sin(time * Math.PI * 2 / (MOTION.breathe / 1000) + index * .41) * .002 : 0;
+        const rest = moving && !body.grouped && !(activityState?.gather > .999) ? Math.sin(time * Math.PI * 2 / (MOTION.breathe / 1000) + index * .41) * .002 : 0;
         body.scaleXY = 1 + body.hover * 0.016 - body.pressed * .012 + rest;
         body.c = (body.grouped && !body.bulb ? JELLY_MATERIAL.control.filmHalfDepth + 1.1 : bubble.kind === 'menu' ? JELLY_MATERIAL.control.menuHalfDepth : Math.min(JELLY_MATERIAL.control.maxHalfDepth, Math.max(JELLY_MATERIAL.control.rimHalfDepth, bubble.height * JELLY_MATERIAL.control.heightDepthRatio)) * role.depth)
           * (['thumb', 'track', 'fill'].includes(bubble.kind) ? .74 + .26 * clamp(bubble.emphasis ?? 1, 0, 1.12) : 1)
-          + acknowledgement * .65 + body.hover * (body.grouped && !body.bulb ? 0.42 : 1.1) + body.selection * JELLY_MATERIAL.control.selectedLift - body.pressed * (body.grouped ? 0.25 : 0.8) + (activityState?.density || 0) * .9 + (activityState?.strain || 0) * .85;
+          + acknowledgement * .65 + body.hover * (body.grouped && !body.bulb ? 0.42 : 1.1) + body.selection * JELLY_MATERIAL.control.selectedLift - body.pressed * (body.grouped ? 0.25 : 0.8) + (activityState?.density || 0) * 1.5 + (activityState?.strain || 0) * 1.6;
         const localDensity = bubble.attached !== false && parent.density
           ? densityFieldProfile(bubble.x + bubble.width / 2 - parent.mesh.position.x - width / 2 - parent.density.x,
             height / 2 - bubble.y - bubble.height / 2 - parent.mesh.position.y - parent.density.y, parent.density).height : 0;
@@ -1301,7 +1301,7 @@ export function createOptics(canvas, { getScene, onError = () => {}, onAfterRend
         body.mesh.position.z = body.centerZ;
         illuminate(body);
         body.time = moving ? time + index * 0.41 : 0;
-        body.waveAmplitude = moving && (!body.grouped || body.bulb && body.hover > .005) ? ((bubble.kind === 'row' || bubble.kind === 'table' ? .07 : .26) + body.hover * 1.6) * (.45 + motion * .70) : 0;
+        body.waveAmplitude = moving && (!body.grouped || body.bulb && body.hover > .005) ? ((bubble.kind === 'row' || bubble.kind === 'table' ? .07 : .26) + body.hover * 1.6) * (.45 + motion * .70) * (1 - clamp(activityState?.gather || 0)) : 0;
         const pigmentKey = `${bubble.kind}:${bubble.color}:${Boolean(bubble.selected)}:${body.grouped}`;
         if (body.pigmentKey !== pigmentKey) {
           body.pigmentKey = pigmentKey;
@@ -1315,15 +1315,20 @@ export function createOptics(canvas, { getScene, onError = () => {}, onAfterRend
         if (bubble.activity && bubble.activityColor) {
           body.activityPigment = activityPigment(body.activityPigment, bubble.activity, bubble.activityColor, activityState.sample);
           if (activity) activity.color = [1,3,5].map(at => parseInt(body.activityPigment.color.slice(at,at+2),16)/255);
+        } else if (activity && bubble.activity !== 'loading') {
+          // Custom optical hosts can omit the destination; their displayed
+          // surface pigment still owns the retained outcome volume.
+          activity.color = body.pigmentRGB;
         }
         flowUniforms.activity.value.set(activity?.width || 0, activity?.height || 0, activity?.phase || 0, activity?.breath || 0);
         flowUniforms.gather.value = activity?.gather || 0;
         flowUniforms.strain.value = activity?.strain || 0;
+        flowUniforms.depth.value = activity ? ACTIVITY_VOLUME.depth : POCKET.depth;
         flowUniforms.reading.value.set(bubble.activity ? bubble.width : 0, bubble.activity ? bubble.height : 0);
         if (bubble.flow || activity) {
           const target = bubble.flow || activity;
           body.pocket = stepPocket(body.pocket, target, delta, instant);
-          body.flow = { ...pocketShape(body.pocket), strength: JELLY_MATERIAL.control.focusPigmentStrength * (bubble.flow ? 1 : activityGain) };
+          body.flow = { ...pocketShape(body.pocket), strength: (activity ? ACTIVITY_VOLUME.strength : JELLY_MATERIAL.control.focusPigmentStrength) * (bubble.flow ? 1 : activityGain) };
           flowUniforms.region.value.set(body.flow.x, body.flow.y, body.flow.width, body.flow.height);
           flowUniforms.strength.value = body.flow.strength;
           const from = `#${targetTint.getHexString(THREE.SRGBColorSpace)}`;
@@ -1344,7 +1349,7 @@ export function createOptics(canvas, { getScene, onError = () => {}, onAfterRend
         body.material.roughness = activityState ? roughness : lerp(body.material.roughness, roughness, materialEase);
         body.material.opacity = clamp(bubble.opacity ?? 1) * (bubble.attached === false ? 1 : parent.window?.contentOpacity ?? 1);
         body.material.thickness = body.c * 2;
-        updateGeometry(body, timestamp, moving && (!body.grouped || body.hover > 0.005));
+        updateGeometry(body, timestamp, moving && (!body.grouped || body.hover > 0.005) && (!activityState || activityState.settling || activityState.gather < .999));
         const attached = bubble.attached !== false;
         const contact = attached || bubble.contact === true;
         const elevation = contact ? .65 + clamp(body.hover) * .35 - clamp(body.pressed) * .25 : 2 + body.c * .65 + body.hover * 3;
@@ -1355,10 +1360,12 @@ export function createOptics(canvas, { getScene, onError = () => {}, onAfterRend
           castX *= limit; castY *= limit;
         }
         body.cast.position.copy(atScreen(bubble.x + bubble.width / 2 + castX, bubble.y + bubble.height / 2 + castY, body.centerZ - body.c - .2, width, height));
-        body.cast.scale.set(bubble.width + 24, bubble.height + 24, 1);
+        const contour = activity ? activityContour(activity) : { inset: 0, bulge: 0 };
+        const castWidth = bubble.width - contour.inset * 2, castHeight = bubble.height + contour.bulge * 2;
+        body.cast.scale.set(castWidth + 24, castHeight + 24, 1);
         body.cast.renderOrder = (bubble.layer ?? role.layer) * 2 + 1;
         body.cast.material.opacity = body.material.opacity;
-        body.castUniforms.size.value.set(bubble.width, bubble.height);
+        body.castUniforms.size.value.set(castWidth, castHeight);
         body.castUniforms.radius.value = body.r;
         body.castUniforms.pigment.value.copy(body.toneColor);
         body.castUniforms.contact.value = contact ? 1 : 0;
