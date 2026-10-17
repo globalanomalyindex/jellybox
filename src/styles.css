@@ -171,10 +171,10 @@ html { scrollbar-color: #a4bdcf var(--surface); scrollbar-width: thin; }
 /* Surface bubbles: the liquid lens deforms independently of its readable label. */
 .color-chip > svg { opacity: 0; transition: opacity var(--motion-fade) var(--ease-effects); }
 /* Live inner lenses use the same 3D material as their parent sheet. */
-.gel-bubbles-ready .app:not(.fallback) .panel-inner [data-gel-rendered="true"] { background: transparent; box-shadow: none; }
-.gel-bubbles-ready .app:not(.fallback) .panel-inner [data-gel-rendered="true"]::before,
-.gel-bubbles-ready .app:not(.fallback) .panel-inner [data-gel-rendered="true"]::after { display: none; }
-.gel-bubbles-ready .app:not(.fallback) .panel-inner [data-gel-rendered="true"]:focus-visible { outline: 2px solid #002bc1; outline-offset: 4px; }
+.gel-bubbles-ready .app:not(.fallback) :is(.panel-inner, .story-demo) [data-gel-rendered="true"] { background: transparent; box-shadow: none; }
+.gel-bubbles-ready .app:not(.fallback) :is(.panel-inner, .story-demo) [data-gel-rendered="true"]::before,
+.gel-bubbles-ready .app:not(.fallback) :is(.panel-inner, .story-demo) [data-gel-rendered="true"]::after { display: none; }
+.gel-bubbles-ready .app:not(.fallback) :is(.panel-inner, .story-demo) [data-gel-rendered="true"]:focus-visible { outline: 2px solid #002bc1; outline-offset: 4px; }
 .fallback .jelly-primary { background: #0651e0; box-shadow: 5px 16px 24px #058bf030, inset 0 2px 5px #b7efff; }
 .fallback .jelly-clear { background: #c8e6f9; box-shadow: 4px 12px 20px #3879a120, inset 0 2px 5px #fff; }
 .fallback .jelly-lime { background: #bcf33a; box-shadow: 5px 15px 22px #a5e31e30, inset 0 2px 5px #f5ffd2; }

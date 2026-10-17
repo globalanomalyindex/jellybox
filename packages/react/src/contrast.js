@@ -15,7 +15,12 @@ export function chooseJellyInk(samples, previous) {
   const score = ink => Math.min(...luminances.map(l => contrastRatio(l, colorLuminance(ink))));
   const dark = score(JELLY_INK.dark), light = score(JELLY_INK.light);
   const preferred = dark >= light ? JELLY_INK.dark : JELLY_INK.light;
-  const ink = previous && [JELLY_INK.dark, JELLY_INK.light].includes(previous) && score(previous) >= 4.8 ? previous : preferred;
+  const hasPrevious = previous && [JELLY_INK.dark, JELLY_INK.light].includes(previous);
+  const priorScore = hasPrevious ? score(previous) : 0;
+  // Mixed moving highlights can put both inks below the target. Let the glyph
+  // guard handle small variations instead of flickering between two poor inks.
+  const keep = hasPrevious && (priorScore >= JELLY_INK.minimum || Math.max(dark, light) < JELLY_INK.minimum && Math.max(dark, light) - priorScore < .75);
+  const ink = keep ? previous : preferred;
   const ratio = score(ink);
   return { ink, ratio, halo: ratio < JELLY_INK.minimum };
 }

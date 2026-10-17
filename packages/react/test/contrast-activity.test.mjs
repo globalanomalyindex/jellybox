@@ -24,6 +24,9 @@ test('a passing ink is stable, and a failing ink yields to a legible alternative
   assert.equal(chooseJellyInk(['#234a68'], '#ffffff').ink, '#ffffff');
   assert.equal(chooseJellyInk(['#f1f6fa'], '#ffffff').ink, '#03121e');
   assert.ok(chooseJellyInk(['#f1f6fa'], '#ffffff').ratio > 10);
+  const mixed = chooseJellyInk([.06, .5], '#ffffff');
+  assert.equal(mixed.ink, '#ffffff', 'small mixed-highlight changes use the guard instead of flickering');
+  assert.equal(mixed.halo, true);
 });
 
 test('activity is native busy/disabled, accepts reported progress, and preserves failure retry', () => {
