@@ -9,7 +9,6 @@ test('the same density shoulder distinguishes rest, approach and commitment', ()
   const approachedSelection = densityShoulderAmount({ hover: 1, selected: 1 });
   assert.ok(rest > 0, 'a rest control keeps a discoverable material boundary');
   assert.ok(rest < hover && hover < selected && selected < approachedSelection, 'approach and commitment remain ordered');
-  assert.equal(densityShoulderAmount({ disabled: true, hover: 1, selected: 1 }), rest, 'unavailable controls retain their rest affordance without implying interaction');
 });
 
 test('existing boolean state and overshooting spatial responses keep one bounded concentration', () => {

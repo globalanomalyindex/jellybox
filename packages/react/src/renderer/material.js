@@ -25,10 +25,9 @@ export const JELLY_MATERIAL = Object.freeze({
 });
 
 // Consume the owner's existing sampled state. This introduces no response clock
-// or pigment solve; disabled controls retain the lamp-independent rest cue.
-export function densityShoulderAmount({ hover = 0, selected = 0, disabled = false } = {}) {
+// or pigment solve. Native availability remains with the existing event owner.
+export function densityShoulderAmount({ hover = 0, selected = 0 } = {}) {
   const { rest, hover: approach, selected: commitment, maximum } = JELLY_MATERIAL.control.densityShoulder;
-  if (disabled) return rest;
   const bounded = value => Math.max(0, Math.min(1, typeof value === 'boolean' ? Number(value) : Number.isFinite(value) ? value : 0));
   return Math.min(maximum, rest + approach * bounded(hover) + commitment * bounded(selected));
 }
