@@ -47,6 +47,15 @@
         ],
         "createdAt": "2026-10-18T16:49:15.982Z",
         "reason": "user confirmed intentional jelly recoil; canonical spatial demonstration and material response, never semantic value or opacity overshoot"
+      },
+      {
+        "rule": "bounce-easing",
+        "value": "cubic-bezier(.22, 1.12, .36, 1)",
+        "files": [
+          "packages/react/src/material-skin.css"
+        ],
+        "createdAt": "2026-10-18T17:35:05.464Z",
+        "reason": "user confirmed bounded jelly bounce throughout the shared material; existing spatial fallback curve is intentional, with fixed native targets and reduced-motion support"
       }
     ]
   }

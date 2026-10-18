@@ -10,6 +10,14 @@ The study defaults to 6% translucency and 25% surface light. It uses Wobbly 95% 
 
 A native control has steady text, semantics and bounds. Actual jelly can swell, compress or lean toward a nearby pointer. The target never follows it. Selected checks, focus and labels stay usable without the light.
 
+## Compact control boundaries
+
+Slider bulbs, values and inner choices use a filled3–7px shoulder inside their existing closed volume. The same finite concentration supplies mesh relief, optical slope, local thickness and a longer absorption path through the displayed pigment. Rest remains defined, and existing approach/selection responses gather more density. No gray DOM stroke, separate ring mesh or extra color clock supplies the boundary. The reading center and silhouette remain unchanged.
+
+Small label-free thumbs receive an additional bounded absorption-path floor that fades out between22 and40px. This restores separation on the22px thumb without changing the larger text-bearing pills. These display-space values are authored for this composition, not measured physical density or a universal non-text contrast guarantee. Grouped choices keep their existing connected selection carrier as the commitment owner; their base shoulders carry rest and approach only.
+
+The reusable CSS fallback approximates the shoulder with broad tinted inset shading and rim light. Value buttons reset browser chrome; claimed thumbs do not retain the white pseudo-face over the optical material. Native color wells retain their picker semantics with a compatible fallback skin. Checks, blue keyboard focus and forced-color system boundaries stay explicit. Activity, the main trio and structural surfaces keep their established profiles.
+
 ## Parent density
 
 `density-field.js` and `volume-profile.js` supply a filled, continuous field. Thickness, optical normals, concentration, roughness and background receiver filtering share that field. The inner neutral clear-water area has a broad crown, a quiet reading plateau and a defined shoulder. Absorption grows through the whole area, not just a bright annulus. Zero concentration preserves the displayed parent pigment exactly.

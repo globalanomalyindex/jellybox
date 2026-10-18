@@ -12,6 +12,31 @@
 .jb-link:focus-visible { outline: 2px solid var(--jb-focus); outline-offset: 3px; }
 .jb-button.jb-variant-soft { --jb-cast: 1px 3px 6px rgb(var(--jb-rgb) / .1); }
 .jb-button.jb-variant-ghost { --jb-cast: 0 2px 4px rgb(var(--jb-rgb) / .08); }
+
+/* Fallback for compact material: a broad concentration shoulder inside the
+   same fill, rather than a perimeter stroke. Optics supplies its real depth
+   when claimed. This authored CSS mix is not pigment/light transport. */
+:is(.jb-range-thumb, .jb-range-value, .jb-selection-option) {
+  --jb-density-color: color-mix(in srgb, rgb(var(--jb-rgb)) 38%, #32546c);
+  --jb-density-strength: 78%;
+  --jb-density-shoulder: inset 0 1px 2px rgb(255 255 255 / .86), inset 0 -3px 4px color-mix(in srgb, var(--jb-density-color) var(--jb-density-strength), transparent), inset 2px 0 5px rgb(var(--jb-rgb) / .34);
+}
+:is(.jb-range-value, .jb-selection-option):is(:hover, :focus-visible):not(:disabled),
+.jb-slider[data-gel-engaged="true"] :is(.jb-range-thumb, .jb-range-value) { --jb-density-strength: 90%; }
+.jb-selection-option:is([aria-checked="true"], [aria-pressed="true"], [aria-selected="true"]) { --jb-density-strength: 98%; }
+:is(.jb-range-thumb, .jb-range-value, .jb-selection-option):not([data-gel-rendered="true"]) {
+  border-color: transparent;
+  background: var(--jb-skin);
+  box-shadow: var(--jb-density-shoulder), var(--jb-cast);
+}
+.jb-range-value { transition: box-shadow var(--jb-material) var(--jb-settle); }
+.jb-range-value:disabled { cursor: not-allowed; }
+@media (prefers-reduced-motion: reduce) { .jb-range-value { transition: none; } }
+@media (forced-colors: active) {
+  :is(.jb-range-thumb, .jb-range-value, .jb-selection-option),
+  .jb-live :is(.jb-range-thumb, .jb-range-value, .jb-selection-option)[data-gel-rendered="true"] { border: 1px solid ButtonText !important; background: ButtonFace !important; box-shadow: none; }
+  .jb-range-thumb::after { display: none; }
+}
 .jb-badge { position: relative; isolation: isolate; min-height: 30px; padding: 4px 12px; background: var(--jb-skin); box-shadow: var(--jb-meniscus), 1px 3px 6px rgb(var(--jb-rgb) / .16); border-color: rgb(255 255 255 / .8); text-shadow: none; }
 .jb-badge::before { content: ''; position: absolute; z-index: -1; inset: 3px 5px; border-radius: inherit; background: rgb(248 253 255 / .24); box-shadow: inset 0 1px 1px rgb(255 255 255 / .8); }
 .jb-alert { background: var(--jb-skin); box-shadow: var(--jb-meniscus), var(--jb-cast); }

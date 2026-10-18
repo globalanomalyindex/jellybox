@@ -83,11 +83,12 @@
 .jb-range-control input::-moz-range-thumb { width: 28px; height: 28px; border: 0; background: transparent; }
 .jb-range-travel { position: absolute; top: 8px; left: 14px; width: 0; height: 28px; pointer-events: none; transform: translateX(calc((100cqw - 28px) * var(--jb-fraction))); }
 .jb-range-thumb { position: absolute; left: 0; top: 0; width: 28px; height: 28px; border-radius: 50%; transform: translateX(-50%); background: var(--jb-skin); box-shadow: var(--jb-meniscus), var(--jb-cast); transition: transform var(--jb-recoil) var(--jb-recoil-curve); }
-.jb-range-thumb::after { content: ''; position: absolute; inset: 6px; border-radius: inherit; background: rgb(255 255 255 / .68); box-shadow: inset 0 1px 2px white; }
+.jb-range-thumb::after { content: ''; position: absolute; inset: 3px 5px auto; height: 5px; border-radius: 50%; background: linear-gradient(rgb(255 255 255 / .64), transparent); }
 .jb-slider[data-gel-dragging="true"] .jb-range-thumb { transform: translateX(-50%) scale(1.18, .84); transition-duration: var(--jb-compress); transition-timing-function: var(--jb-squeeze); }
 .jb-range-fill { position: absolute; inset-block: 16px; inset-inline-start: 14px; width: calc((100% - 28px) * var(--jb-fraction)); pointer-events: none; border-radius: 999px; background: rgb(var(--jb-rgb) / .64); box-shadow: inset 0 1px 2px rgb(255 255 255 / .8), inset 0 -2px 3px rgb(var(--jb-rgb) / .3); }
 .jb-slider:dir(rtl) .jb-range-travel { transform: translateX(calc((100cqw - 28px) * (1 - var(--jb-fraction)))); }
 .jb-live .jb-range-thumb[data-gel-rendered="true"], .jb-live .jb-range-lens[data-gel-rendered="true"], .jb-live .jb-range-fill[data-gel-rendered="true"] { background: transparent; box-shadow: none; border-color: transparent; }
+.jb-live .jb-range-thumb[data-gel-rendered="true"]::after { display: none; }
 .jb-range-control input:disabled { cursor: not-allowed; }
 .jb-switch { display: inline-flex; align-items: center; gap: 12px; cursor: pointer; }
 .jb-switch-track { position: relative; display: inline-flex; align-items: center; flex: 0 0 54px; width: 54px; height: 32px; border-radius: 999px; }
@@ -154,7 +155,7 @@
 }
 
 /* A value is a small, directly manipulable mass; the native range stays primary. */
-.jb-range-value { position: relative; display: inline-flex; align-items: center; justify-content: center; flex: 0 0 auto; min-width: 58px; min-height: 44px; padding: 6px 12px; border-radius: 999px; color: var(--jb-control-ink); background: var(--jb-skin); box-shadow: var(--jb-meniscus), var(--jb-cast); cursor: ew-resize; touch-action: none; user-select: none; }
+.jb-range-value { position: relative; display: inline-flex; align-items: center; justify-content: center; flex: 0 0 auto; min-width: 58px; min-height: 44px; padding: 6px 12px; border: 0; appearance: none; -webkit-appearance: none; border-radius: 999px; color: var(--jb-control-ink); background: var(--jb-skin); box-shadow: var(--jb-meniscus), var(--jb-cast); cursor: ew-resize; touch-action: none; user-select: none; }
 .jb-field-heading { align-items: center; }
 .jb-range-value:focus-visible { outline: 2px solid var(--jb-focus); outline-offset: 3px; }
 @media (forced-colors: active) { .jb-range-value { border: 1px solid ButtonText; background: ButtonFace !important; } }

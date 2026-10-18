@@ -5,7 +5,8 @@ import * as THREE from 'three';
 import { MOTION, sampleBezier, stepJellyResponse, stepAttraction } from './motion.js';
 import { surfacePigment, windowPigment } from './surface-color.js';
 import { lightTemperature, moveReceiverField } from './lighting.js';
-import { DEFAULT_MATERIAL, JELLY_MATERIAL } from './material.js';
+import { DEFAULT_MATERIAL, JELLY_MATERIAL, densityShoulderAmount } from './material.js';
+import { controlDensityRole, controlDensityField, CONTROL_DENSITY_GLSL } from './control-density.js';
 import { DENSITY_GLSL, densityFieldProfile, densityClearing, densityPresentation, densityAttenuation, densityColorWeight, stepDensitySettle, densityHoverResponse } from './density-field.js';
 import { createContrastSampler } from './contrast-sampler.js';
 import { installReadingFilm, updateReadingFilm } from './reading-film.js';
@@ -233,29 +234,32 @@ function installVolumeThickness(material) {
   activityPalette.needsUpdate = true;
   const flow = { activityPalette: { value: activityPalette }, pigmentPhase: { value: -1 }, fallbackDense: { value: new THREE.Color() }, region: { value: new THREE.Vector4(0, 0, 1, 1) }, activity: { value: new THREE.Vector4() }, gather: { value: 0 }, strain: { value: 0 }, reading: { value: new THREE.Vector2() }, depth: { value: POCKET.depth }, strength: { value: 0 }, palette: { value: palette } };
   material.userData.flow = flow;
+  const controlDensity = { value: new THREE.Vector4(), thumb: { value: 0 } };
+  material.userData.controlDensity = controlDensity;
   const densityPalette = new THREE.DataTexture(new Float32Array(33 * 4), 33, 1, THREE.RGBAFormat, THREE.FloatType);
   densityPalette.minFilter = densityPalette.magFilter = THREE.LinearFilter;
   densityPalette.needsUpdate = true;
   const density = { body: { value: new THREE.Vector3(1, 1, .5) }, shape: { value: new THREE.Vector4(24, 0, 0, 0) }, region: { value: new THREE.Vector4(0, 0, 1, 1) }, amount: { value: 0 }, jiggle: { value: 0 }, palette: { value: densityPalette } };
   material.userData.density = density;
   material.onBeforeCompile = shader => {
-    Object.assign(shader.uniforms, { uPigmentRegion: flow.region, uActivityShape: flow.activity, uActivityGather: flow.gather, uActivityStrain: flow.strain, uActivityReading: flow.reading, uPocketDepth: flow.depth, uPigmentStrength: flow.strength, uPigmentPalette: flow.palette, uActivityPalette: flow.activityPalette, uActivityPigmentPhase: flow.pigmentPhase, uActivityFallbackDense: flow.fallbackDense, uDensityBody: density.body, uDensityRegion: density.region, uDensityShape: density.shape, uDensityAmount: density.amount, uDensityJiggle: density.jiggle, uDensityPalette: density.palette });
+    Object.assign(shader.uniforms, { uPigmentRegion: flow.region, uActivityShape: flow.activity, uActivityGather: flow.gather, uActivityStrain: flow.strain, uActivityReading: flow.reading, uPocketDepth: flow.depth, uPigmentStrength: flow.strength, uPigmentPalette: flow.palette, uActivityPalette: flow.activityPalette, uActivityPigmentPhase: flow.pigmentPhase, uActivityFallbackDense: flow.fallbackDense, uDensityBody: density.body, uDensityRegion: density.region, uDensityShape: density.shape, uDensityAmount: density.amount, uDensityJiggle: density.jiggle, uDensityPalette: density.palette, uControlDensity: controlDensity, uControlDensityThumb: controlDensity.thumb });
     shader.vertexShader = `attribute float aVolumeDepth; varying float vVolumeDepth; varying vec2 vJellyPosition; varying vec3 vPocketX; varying vec3 vPocketY; varying vec3 vPocketZ;\n${shader.vertexShader}`;
     shader.vertexShader = shader.vertexShader.replace('#include <begin_vertex>', '#include <begin_vertex>\nvVolumeDepth = aVolumeDepth; vJellyPosition = position.xy; vPocketX = normalMatrix * vec3(1.0, 0.0, 0.0); vPocketY = normalMatrix * vec3(0.0, 1.0, 0.0); vPocketZ = normalMatrix * vec3(0.0, 0.0, 1.0);');
     shader.fragmentShader = `varying float vVolumeDepth; varying vec2 vJellyPosition;
       varying vec3 vPocketX; varying vec3 vPocketY; varying vec3 vPocketZ;
       uniform vec4 uPigmentRegion; uniform vec4 uActivityShape; uniform float uActivityGather; uniform vec2 uActivityReading; uniform float uPocketDepth; uniform float uPigmentStrength; uniform sampler2D uPigmentPalette;
       uniform vec3 uDensityBody; uniform vec4 uDensityRegion; uniform vec4 uDensityShape; uniform float uDensityAmount; uniform float uDensityJiggle; uniform sampler2D uDensityPalette;
-      ${POCKET_GLSL}\n${ACTIVITY_GLSL}\n${ACTIVITY_PIGMENT_GLSL}\n${DENSITY_GLSL}\n${shader.fragmentShader}`;
+      ${POCKET_GLSL}\n${ACTIVITY_GLSL}\n${ACTIVITY_PIGMENT_GLSL}\n${DENSITY_GLSL}\n${CONTROL_DENSITY_GLSL}\n${shader.fragmentShader}`;
     // One field drives the whole interior before PBR lighting and transmission.
     shader.fragmentShader = shader.fragmentShader.replace('#include <color_fragment>', `
       #include <color_fragment>
       vec2 readingPoint = vJellyPosition / max(vec2(1.0), uActivityReading * .5);
       float activityReading = uActivityReading.x > .5 ? (1.0-smoothstep(.20,.54,abs(readingPoint.y))) * (1.0-smoothstep(.84,.97,abs(readingPoint.x))) : 0.0;
+      vec4 controlShoulder = jellyControlDensity(vJellyPosition);
       vec4 densityField = uDensityAmount > .001 ? jellyDensity(vJellyPosition, uDensityRegion, uDensityAmount, uDensityShape, uDensityJiggle) : vec4(0.0);
     `).replace('#include <roughnessmap_fragment>', `
       #include <roughnessmap_fragment>
-      roughnessFactor = min(1.0, roughnessFactor + .065 * densityField.w / .12 + activityReading * .11);
+      roughnessFactor = min(1.0, roughnessFactor + .065 * densityField.w / .12 + activityReading * .11 + controlShoulder.w * .035);
     `);
     // Change the optical normal before PBR lighting, clearcoat and transmission.
     // Pigment alone cannot bend a highlight or refract the receiving surface.
@@ -276,6 +280,13 @@ function installVolumeThickness(material) {
         normal = normalize(mix(normal, densityNormal, densityFront * max(smoothstep(.1,1.1,densityField.z),support*readingFilm)));
         nonPerturbedNormal = normal;
       }
+      if (controlShoulder.w > .00001) {
+        float shoulderFront = smoothstep(.2,.85,dot(normal,normalize(vPocketZ)));
+        // The broad shoulder is in the mesh; this analytic slope resolves its
+        // refraction smoothly between vertices on the smallest controls.
+        normal = normalize(normal - shoulderFront * .55 * (controlShoulder.x * normalize(vPocketX) + controlShoulder.y * normalize(vPocketY)));
+        nonPerturbedNormal = normal;
+      }
       // A broad, shallow reading plane belongs to the same volume. Quiet the
       // high-contrast moving reflection here; keep the shoulders expressive.
       float readingFront = smoothstep(.3,.86,dot(normal,normalize(vPocketZ)));
@@ -291,10 +302,12 @@ function installVolumeThickness(material) {
       }
     `);
     const transmission = THREE.ShaderChunk.transmission_fragment
-      .replace('material.thickness = thickness;', 'material.thickness = max(vVolumeDepth + densityField.z * 2.0 + pocket.z * pocketDepth * 2.0, 0.15);')
+      .replace('material.thickness = thickness;', 'material.thickness = max(vVolumeDepth + densityField.z * 2.0 + controlShoulder.z * 2.0 + pocket.z * pocketDepth * 2.0, 0.15);')
       // The collected activity keeps its absorption as thickness gathers.
       // Ordinary selection pockets retain their existing clearing correction.
-      .replace('material.attenuationDistance = attenuationDistance;', 'material.attenuationDistance = attenuationDistance * (uActivityShape.w > .001 ? 1.0 / (1.0 + pocket.z * uPigmentStrength * uActivityGather * .2) : (1.0 + pocket.z * uPigmentStrength * .8)) * jellyDensityAttenuation(densityField.w, uDensityAmount);')
+      .replace('material.attenuationDistance = attenuationDistance;', `material.attenuationDistance = attenuationDistance * (uActivityShape.w > .001 ? 1.0 / (1.0 + pocket.z * uPigmentStrength * uActivityGather * .2) : (1.0 + pocket.z * uPigmentStrength * .8)) * jellyDensityAttenuation(densityField.w, uDensityAmount) / (1.0 + controlShoulder.w * ${JELLY_MATERIAL.control.densityShoulder.absorption.toFixed(2)});
+        float controlPathFloor = jellyControlDensityPath(controlShoulder.w);
+        if (controlPathFloor > .00001) material.attenuationDistance = min(material.attenuationDistance, material.thickness / controlPathFloor);`)
       .replace('material.attenuationColor = attenuationColor;', `
         material.attenuationColor = attenuationColor;
         if (densityField.w > .00001) {
@@ -312,7 +325,7 @@ function installVolumeThickness(material) {
       `);
     shader.fragmentShader = shader.fragmentShader.replace('#include <transmission_fragment>', transmission);
   };
-  material.customProgramCacheKey = () => 'shared-liquid-current-pigment-v26';
+  material.customProgramCacheKey = () => 'shared-liquid-density-shoulder-v27';
 }
 
 function makeMeniscusGeometry(joinedTab = false) {
@@ -523,6 +536,7 @@ function deformJelly(body) {
   const positions = body.geometry.attributes.position.array;
   const depths = body.geometry.attributes.aVolumeDepth.array;
   const activityOffset = { x: 0, y: 0, z: 0 };
+  const shoulderOffset = { height: 0, dx: 0, dy: 0, concentration: 0 };
   const cacheKey = body.panel ? geometrySampleKey([body.width, body.height, body.r, body.h, body.hY]) : '';
   if (body.panel && cacheKey !== body.profileCacheKey) {
     body.profileCacheKey = cacheKey;
@@ -589,6 +603,8 @@ function deformJelly(body) {
       }
       shift = Math.sin(phase * 0.63) * body.waveAmplitude * rim * 0.14;
     } else [halfZ, shift] = liquidProfile(body, x, y);
+    const shoulderHeight = body.controlDensity ? controlDensityField(x, y, body.controlDensity, shoulderOffset).height : 0;
+    halfZ += shoulderHeight;
     if (body.activityShape) {
       activityDisplacement(x, y, body.activityShape, activityOffset);
       halfZ += activityOffset.z;
@@ -601,7 +617,7 @@ function deformJelly(body) {
     positions[i + 2] = z;
     // Density thickness is analytic per fragment; interpolating it across
     // large triangles would leak a star-shaped dark fringe outside the region.
-    depths[vertex] = Math.max(0.2, Math.abs(profileZ) * (halfZ - localDensity - activityOffset.z) * 2);
+    depths[vertex] = Math.max(0.2, Math.abs(profileZ) * (halfZ - localDensity - shoulderHeight - activityOffset.z) * 2);
   }
   body.geometry.attributes.position.needsUpdate = true;
   body.geometry.attributes.aVolumeDepth.needsUpdate = true;
@@ -614,7 +630,7 @@ function updateGeometry(body, timestamp, moving) {
   // lower cadence; paused geometry is reused without rebuilding normals.
   const key = geometrySampleKey([body.width, body.height, body.r, Math.round(body.hover * 10000),
     Math.round(body.pressed * 10000), body.stir, body.joinStrain, body.fullness, Math.round(body.c * 100),
-    body.pointerX, body.pointerY, body.activityShape?.phase, body.activityShape?.gain, body.activityShape?.gather, body.activityShape?.breath, body.activityShape?.strain,
+    body.pointerX, body.pointerY, body.controlDensity?.amount, body.activityShape?.phase, body.activityShape?.gain, body.activityShape?.gather, body.activityShape?.breath, body.activityShape?.strain,
     body.density?.x, body.density?.y, body.density?.width, body.density?.height, body.density?.amount, body.density?.edge, body.density?.flow, body.density?.fold, body.density?.folder, body.density?.jiggle, body.tab?.width, body.tab?.lift, body.tab?.amount, body.tab?.neck?.pull, body.tab?.neck?.pinch, body.tab?.neck?.wobble]);
   if ((!body.panel && !body.isBubble && body.docked < .001) || key !== body.geometryKey || (moving && timestamp - (body.lastGeometry || -1000) >= 1000 / (body.isBubble ? 24 : 30))) {
     deformJelly(body);
@@ -1321,6 +1337,15 @@ export function createOptics(canvas, { getScene, onError = () => {}, onAfterRend
         body.c = (body.grouped && !body.bulb ? JELLY_MATERIAL.control.filmHalfDepth + 1.1 : bubble.kind === 'menu' ? JELLY_MATERIAL.control.menuHalfDepth : Math.min(JELLY_MATERIAL.control.maxHalfDepth, Math.max(JELLY_MATERIAL.control.rimHalfDepth, bubble.height * JELLY_MATERIAL.control.heightDepthRatio)) * role.depth)
           * (['thumb', 'track', 'fill'].includes(bubble.kind) ? .74 + .26 * clamp(bubble.emphasis ?? 1, 0, 1.12) : 1)
           + acknowledgement * .65 + body.hover * (body.grouped && !body.bulb ? 0.42 : 1.1) + body.selection * JELLY_MATERIAL.control.selectedLift - body.pressed * (body.grouped ? 0.25 : 0.8) + (activityState?.density || 0) * 1.5;
+        const controlDensity = body.material.userData.controlDensity;
+        controlDensity.thumb.value = body.kind === 'thumb' ? 1 : 0;
+        if (controlDensityRole(body.kind, bubble)) {
+          const shoulder = body.controlDensity ||= {};
+          shoulder.width = body.width * body.scaleXY; shoulder.height = body.height * body.scaleXY;
+          shoulder.radius = body.r * body.scaleXY;
+          shoulder.amount = densityShoulderAmount({ hover: body.hover, selected: body.selection });
+          controlDensity.value.set(shoulder.width, shoulder.height, shoulder.radius, shoulder.amount);
+        } else { body.controlDensity = null; controlDensity.value.set(0,0,0,0); }
         const localDensity = bubble.attached !== false && parent.density
           ? densityFieldProfile(bubble.x + bubble.width / 2 - parent.mesh.position.x - width / 2 - parent.density.x,
             height / 2 - bubble.y - bubble.height / 2 - parent.mesh.position.y - parent.density.y, parent.density).height : 0;

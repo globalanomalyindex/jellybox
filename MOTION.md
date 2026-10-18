@@ -33,6 +33,8 @@ Only deliberate track clicks use the opt-in240 ms accepted-value travel. Thumb d
 
 Material assistance is bounded to 3 px, or 5 px for slider bulbs, toward one nearby pointer. Touch, active press/drag, window morphing, motion-off and reduced motion clear it. The actual clickable area never moves or activates automatically.
 
+Compact density shoulders consume the existing optical hover response (420ms flow with bounded spatial settling) and selected carrier. The CSS approximation keeps the240ms material response; displayed pigment follows the480ms cached Spectral path. There is no independent shoulder timer. Native targets and lettering do not follow the relief.
+
 ## Page arrival
 
 One mount-only monotonic clock brings in header0–240 ms, identity80–500ms, tools200/255/310–680/735/790ms, credits320–800ms and story420–900ms. Identity and text only fade; rendered tools settle from 4 px extra elevation, with the same opacity/cast sample as their DOM faces. Input, restored/story scroll, hidden document or reduced motion completes the arrival immediately. Panel changes and normal scrolling do not replay it.

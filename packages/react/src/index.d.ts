@@ -7,7 +7,7 @@ export const SEMANTIC_COLORS: Readonly<Record<JellyTone, SemanticColor>>;
 export const JELLY_TOKENS: Readonly<{ font: string; ink: string; controlInk: string; focus: string; frostedFace: string; frostBlur: string; radius: Readonly<{ control: string; surface: string; input: string }>; spacing: readonly number[] }>;
 export interface MaterialParams { motion: number; transmission: number; light: number; depth?: number; lift?: number; prism?: number; }
 export const DEFAULT_MATERIAL: Readonly<MaterialParams>;
-export const JELLY_MATERIAL: Readonly<{ window: Readonly<{ filmHalfDepth: number; rimHalfDepth: number; rimSpan: number; gap: number }>; control: Readonly<{ filmHalfDepth: number; rimHalfDepth: number; rimSpan: number; attenuationDense: number; attenuationClear: number; selectedDensity: number; selectedTintAbsorption: number; selectedLift: number }> }>;
+export const JELLY_MATERIAL: Readonly<{ window: Readonly<{ filmHalfDepth: number; rimHalfDepth: number; rimSpan: number; gap: number }>; control: Readonly<{ filmHalfDepth: number; rimHalfDepth: number; rimSpan: number; attenuationDense: number; attenuationClear: number; selectedDensity: number; selectedTintAbsorption: number; selectedLift: number; densityShoulder: Readonly<{ minimumSpan: number; maximumSpan: number; relief: number; rest: number; hover: number; selected: number; maximum: number; absorption: number; smallControlPath: number; smallControlFullSpan: number; smallControlSpan: number }> }> }>;
 export const MOTION: Readonly<{
   expand: number; collapse: number; flow: number; material: number; feedback: number; compress: number; fade: number; follow: number;
   breathe: number; activityOrbit: number; activitySettle: number;

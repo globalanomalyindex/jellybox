@@ -40,6 +40,8 @@ Color illustrates separate pigments, shared identity, a pending edit and accepte
 
 The static site builds to `dist/client`. Hash links keep story navigation compatible with GitHub Pages. The optional `worker/` + Sites preparation adapter is independent of the Pages path. The licensed font is a build-only optional asset, never part of Git or the reusable package.
 
+Compact control boundaries use `control-density.js`: one finite rounded-volume field with matching CPU/GLSL derivatives. Existing compact meshes gain local relief; the same per-fragment field changes normals, thickness and absorption without an extra mesh, palette or context. `material.js` owns bounded rest/approach/commitment concentration and the small-thumb path compensation. The grouped selection carrier remains the single commitment owner. Reading accommodation runs after the optical shoulder, leaving native ink and bounds independent.
+
 ## Where to change things
 
 | Concern | Source |
