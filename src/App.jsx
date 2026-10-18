@@ -212,7 +212,7 @@ export function App({ active = true }) {
         contact: Boolean(el.closest('.story-demo')),
         layer: el.dataset.gelSurface === 'thumb' ? 2 : el.dataset.gelSurface === 'fill' ? 1.5 : 1,
         disabled: el.disabled || Boolean(el.closest('[inert]')) || el.closest('.jb-slider')?.classList.contains('jb-disabled') || el.dataset.gelAssist === 'false',
-        assist: el.dataset.gelSurface === 'thumb' || el.matches('button') && !el.closest('[data-gel-group]'),
+        assist: el.dataset.gelSurface === 'thumb' && el.dataset.gelPointer === 'true' || el.matches('button') && !el.closest('[data-gel-group]'),
         headerControl: el.classList.contains('dock-close'),
         feedback: el.dataset.gelFeedback,
         activity: el.dataset.gelActivity,
@@ -357,9 +357,9 @@ export function App({ active = true }) {
     observer.observe(surface);
     observer.observe(panelInnerRef.current);
     const mutations = new MutationObserver(refreshBubbles);
-    mutations.observe(panelInnerRef.current, { childList: true, subtree: true, attributes: true, attributeFilter: ['aria-pressed', 'aria-checked', 'aria-selected', 'aria-expanded', 'aria-disabled', 'disabled', 'inert', 'style', 'data-gel-hover', 'data-gel-pressed', 'data-gel-state', 'data-open', 'data-density-hover', 'data-gel-engaged', 'data-gel-dragging'] });
+    mutations.observe(panelInnerRef.current, { childList: true, subtree: true, attributes: true, attributeFilter: ['aria-pressed', 'aria-checked', 'aria-selected', 'aria-expanded', 'aria-disabled', 'disabled', 'inert', 'style', 'data-gel-hover', 'data-gel-pointer', 'data-gel-pressed', 'data-gel-state', 'data-open', 'data-density-hover', 'data-gel-engaged', 'data-gel-dragging'] });
     const close = toolbarRef.current.querySelector('.dock-close');
-    if (close) mutations.observe(close, { attributes: true, attributeFilter: ['style', 'data-gel-hover', 'data-gel-pressed'] });
+    if (close) mutations.observe(close, { attributes: true, attributeFilter: ['style', 'data-gel-hover', 'data-gel-pointer', 'data-gel-pressed'] });
     const followTransition = event => { const duration = event.target.closest('[data-density-region]') ? MOTION.densityGather : MOTION.recoil; movingUntil.current = Math.max(movingUntil.current, performance.now() + duration + 80); };
     panelInnerRef.current.addEventListener('transitionrun', followTransition);
     const revealTimer = setTimeout(() => {
@@ -376,7 +376,7 @@ export function App({ active = true }) {
     const resize = new ResizeObserver(invalidate);
     resize.observe(node);
     const mutations = new MutationObserver(invalidate);
-    mutations.observe(node, { childList: true, subtree: true, attributes: true, attributeFilter: ['style', 'aria-pressed', 'aria-expanded', 'aria-disabled', 'disabled', 'inert', 'data-open', 'data-density-hover', 'data-gel-hover', 'data-gel-pressed', 'data-gel-engaged', 'data-gel-dragging', 'data-story-concentration', 'data-gel-activity', 'data-gel-progress', 'data-gel-material-phase', 'data-motion-loop', 'data-desktop-lamp', 'data-lamp-anchor', 'data-lamp-height', 'data-lamp-brightness'] });
+    mutations.observe(node, { childList: true, subtree: true, attributes: true, attributeFilter: ['style', 'aria-pressed', 'aria-expanded', 'aria-disabled', 'disabled', 'inert', 'data-open', 'data-density-hover', 'data-gel-hover', 'data-gel-pointer', 'data-gel-pressed', 'data-gel-engaged', 'data-gel-dragging', 'data-story-concentration', 'data-gel-activity', 'data-gel-progress', 'data-gel-material-phase', 'data-motion-loop', 'data-desktop-lamp', 'data-lamp-anchor', 'data-lamp-height', 'data-lamp-brightness'] });
     const transition = () => { movingUntil.current = Math.max(movingUntil.current, performance.now() + MOTION.densityGather + 80); invalidate(); };
     node.addEventListener('transitionrun', transition);
     node.addEventListener('jellybox:motion', transition);
@@ -388,7 +388,12 @@ export function App({ active = true }) {
     // Touch may leave native :hover behind; refresh after clearing assistance.
     const pointerChanged = event.pointerType === 'touch' && sceneRef.current.pointer.visible;
     if (event.pointerType === 'touch') sceneRef.current.pointer.visible = false;
-    const element = event.target.closest('[data-gel-surface]') || event.target.closest('.jb-range-control')?.querySelector('.jb-range-thumb');
+    // The slider owns its rounded hover zones and native focus/drag feedback.
+    if (event.target.closest('.jb-slider')) {
+      if (pointerChanged) measureRef.current();
+      return;
+    }
+    const element = event.target.closest('[data-gel-surface]');
     // Crossing an icon or label inside the same lens is not a new hover.
     if (!element || type === 'gelHover' && event.relatedTarget instanceof Node && element.contains(event.relatedTarget)) {
       if (pointerChanged) measureRef.current();

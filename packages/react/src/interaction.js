@@ -3,6 +3,19 @@ import { MOTION, sampleBezier } from './renderer/motion.js';
 const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
 const quantize = (value, min, max, step) => Number(clamp(min + Math.round((value - min) / step) * step, min, max).toFixed(8));
 
+// Hover follows the displayed rounded surfaces; the native rail keeps its
+// independent 44px click/drag target and keyboard behavior.
+export function sliderHoverTarget(point, { thumb, value } = {}) {
+  const contains = rect => {
+    if (!point || !rect || !(rect.width > 0 && rect.height > 0)) return false;
+    const radius = Math.min(rect.width, rect.height) / 2;
+    const dx = Math.max(0, Math.abs(point.x - rect.left - rect.width / 2) - (rect.width / 2 - radius));
+    const dy = Math.max(0, Math.abs(point.y - rect.top - rect.height / 2) - (rect.height / 2 - radius));
+    return Math.hypot(dx, dy) <= radius;
+  };
+  return contains(thumb) ? 'thumb' : contains(value) ? 'value' : null;
+}
+
 const rangeValue = (value, { min, max, step = 1 }) => {
   if (step === 'any') return clamp(value, min, max);
   const unit = Number(step) > 0 ? Number(step) : 1;

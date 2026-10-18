@@ -1,4 +1,4 @@
-import { advanceScrub } from './interaction.js';
+import { advanceScrub, sliderHoverTarget } from './interaction.js';
 import { useSliderTravel } from './useSliderTravel.js';
 import { forwardRef, useCallback, useEffect, useId, useLayoutEffect, useRef, useState } from 'react';
 import { MOTION } from './renderer/motion.js';
@@ -144,11 +144,32 @@ export const JellySlider = forwardRef(function JellySlider({
   const scrub = useRef(null);
   const leaveTimer = useRef(null);
   const inputRef = useRef(null);
+  const thumbRef = useRef(null), valueRef = useRef(null);
+  const pointerRef = useRef(null);
+  const pointerHoverRef = useRef(false);
   const [current, setCurrent] = useState(value ?? defaultValue ?? min);
   const [dragging, setDragging] = useState(false);
   const [hovered, setHovered] = useState(false), [focused, setFocused] = useState(false);
+  const [hoverTarget, setHoverTarget] = useState(null);
   const engaged = hovered || focused || dragging;
   useEffect(() => () => clearTimeout(leaveTimer.current), []);
+  const setPointerTarget = target => {
+    setHoverTarget(target);
+    if (target) {
+      clearTimeout(leaveTimer.current); leaveTimer.current = null;
+      pointerHoverRef.current = true;
+      setHovered(true);
+    } else if (pointerHoverRef.current && !leaveTimer.current) {
+      leaveTimer.current = setTimeout(() => { pointerHoverRef.current = false; setHovered(false); leaveTimer.current = null; }, MOTION.sliderGrace);
+    }
+  };
+  const hoverAt = point => disabled ? null : sliderHoverTarget(point,
+    { thumb: thumbRef.current?.getBoundingClientRect(), value: valueRef.current?.getBoundingClientRect() });
+  const updatePointerHover = event => {
+    pointerRef.current = event.pointerType === 'touch' ? null : { x: event.clientX, y: event.clientY };
+    setPointerTarget(hoverAt(pointerRef.current));
+  };
+  const leavePointer = () => { pointerRef.current = null; setPointerTarget(null); };
   const beginDrag = () => setDragging(true);
   const material = useJellyControlStyle(tone, disabled ? 'disabled' : dragging ? 'pressed' : engaged ? 'highlighted' : 'rest');
   const fillMaterial = useJellyControlStyle(tone, disabled ? 'disabled' : dragging ? 'pressed' : engaged ? 'highlighted' : 'selected');
@@ -158,6 +179,10 @@ export const JellySlider = forwardRef(function JellySlider({
     const normalized = inputRef.current?.valueAsNumber;
     if (Number.isFinite(normalized)) setCurrent(normalized);
   }, [value, defaultValue, min, max, step]);
+  // Accepted click travel can bring the bulb beneath a stationary pointer.
+  useBrowserLayoutEffect(() => {
+    if (pointerRef.current) setPointerTarget(hoverAt(pointerRef.current));
+  }, [current, disabled]);
   useEffect(() => {
     if (value !== undefined) return;
     const input = inputRef.current;
@@ -193,9 +218,10 @@ export const JellySlider = forwardRef(function JellySlider({
   };
   return <div dir={props.dir} className={cx('jb-slider', compact && 'jb-slider-compact', disabled && 'jb-disabled', className)}
     data-gel-dragging={dragging && !disabled || undefined} data-gel-engaged={engaged && !disabled || undefined}
-    onPointerEnter={event => { clearTimeout(leaveTimer.current); if (event.pointerType !== 'touch') setHovered(true); }}
-    onPointerLeave={() => { clearTimeout(leaveTimer.current); leaveTimer.current = setTimeout(() => setHovered(false), MOTION.sliderGrace); }}
-    onFocus={() => setFocused(true)} onBlur={event => { if (!event.currentTarget.contains(event.relatedTarget)) setFocused(false); }}
+    onPointerEnter={updatePointerHover} onPointerMove={updatePointerHover} onPointerUp={updatePointerHover}
+    onPointerLeave={leavePointer} onPointerCancel={leavePointer}
+    onPointerDownCapture={() => setFocused(false)} onKeyDownCapture={() => setFocused(true)}
+    onFocus={event => setFocused(event.target.matches(':focus-visible'))} onBlur={event => { if (!event.currentTarget.contains(event.relatedTarget)) setFocused(false); }}
     style={{ ...material, '--jb-progress': `${progress}%`, '--jb-fraction': progress / 100, '--jb-slider-gather': `${MOTION.sliderGather}ms`, '--jb-slider-melt': `${MOTION.sliderMelt}ms`, ...style }}>
     <div className="jb-field-heading"><label id={`${inputId}-label`} htmlFor={inputId}>{label}</label>
 
@@ -204,10 +230,15 @@ export const JellySlider = forwardRef(function JellySlider({
     <div className="jb-range-control">
       <span className="jb-range-lens" aria-hidden="true" data-gel-surface="track" data-gel-tone="neutral" data-gel-sampled="true" />
       <span className="jb-range-fill" aria-hidden="true" data-gel-surface="fill" data-gel-tone={tone} data-gel-sampled="true" style={fillMaterial} />
-      <span className="jb-range-travel" aria-hidden="true"><span className="jb-range-thumb" data-gel-surface="thumb" data-gel-tone={tone} data-gel-sampled="true" data-gel-hover={engaged && !disabled || undefined} data-gel-pressed={dragging && !disabled || undefined} /></span>
+      <span className="jb-range-travel" aria-hidden="true"><span ref={thumbRef} className="jb-range-thumb" data-gel-surface="thumb" data-gel-tone={tone} data-gel-sampled="true" data-gel-pointer={hoverTarget === 'thumb' && !disabled || undefined} data-gel-hover={engaged && !disabled || undefined} data-gel-pressed={dragging && !disabled || undefined} /></span>
       <input {...props} ref={(node) => { inputRef.current = node; assignRef(ref, node); }} id={inputId} type="range" min={min} max={max} step={step} disabled={disabled}
         value={value} defaultValue={value === undefined ? defaultValue ?? min : undefined} aria-describedby={ids(props['aria-describedby'], descriptionId)}
-        onPointerDown={event => { props.onPointerDown?.(event); if (!event.defaultPrevented && !disabled && !travel.pointerDown(event)) beginDrag(); }}
+        onPointerDown={event => {
+          props.onPointerDown?.(event);
+          if (!event.defaultPrevented && !disabled && event.button === 0 && event.isPrimary !== false) {
+            beginDrag(); travel.pointerDown(event);
+          }
+        }}
         onPointerMove={event => { props.onPointerMove?.(event); if (!event.defaultPrevented) travel.pointerMove(event); }}
         onPointerUp={event => { travel.pointerUp(event); setDragging(false); props.onPointerUp?.(event); }}
         onPointerCancel={event => { travel.pointerCancel(event); setDragging(false); props.onPointerCancel?.(event); }}
@@ -215,7 +246,8 @@ export const JellySlider = forwardRef(function JellySlider({
         onKeyDown={event => { if (travel.keyDown(event)) setDragging(false); props.onKeyDown?.(event); }}
         onChange={(event) => { travel.nativeChange(); const next = event.currentTarget.valueAsNumber; if (value === undefined) setCurrent(next); onValueChange?.(next); onChange?.(event); }} />
     </div>
-      <button type="button" className="jb-range-value" disabled={disabled} data-gel-surface="badge" data-gel-tone={tone} data-gel-sampled="true" data-gel-assist="false"
+      <button ref={valueRef} type="button" className="jb-range-value" disabled={disabled} data-gel-surface="badge" data-gel-tone={tone} data-gel-sampled="true" data-gel-assist="false"
+        data-gel-pointer={hoverTarget === 'value' && !disabled || undefined} data-gel-hover={engaged && !disabled || undefined} data-gel-pressed={dragging && !!scrub.current && !disabled || undefined}
         aria-labelledby={`${inputId}-label ${inputId}-value`} aria-describedby={`${inputId}-scrub-help`}
         title="Drag to adjust. Hold Shift for finer control."
         onPointerDown={e => { if (e.button !== 0) return; travel.cancel(); const start = inputRef.current.valueAsNumber; scrub.current = { x: e.clientX, value: start, current: start, origin: start, fine: e.shiftKey }; e.currentTarget.setPointerCapture(e.pointerId); beginDrag(); }}

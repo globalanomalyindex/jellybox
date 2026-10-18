@@ -2,6 +2,21 @@ import { stepAttraction, MOTION } from '../src/renderer/motion.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { assistTarget, scrubRange, advanceScrub, scrollFrame, rangePointValue, rangeTravelValue, rangeDragValue } from '../src/interaction.js';
+import { sliderHoverTarget } from '../src/interaction.js';
+
+test('slider hover belongs to the round bulb or value bubble, never the rail, label or row gap', () => {
+ const bounds = { thumb: { left: 100, top: 200, width: 28, height: 28 }, value: { left: 260, top: 192, width: 58, height: 44 } };
+ assert.equal(sliderHoverTarget({ x: 114, y: 214 }, bounds), 'thumb');
+ assert.equal(sliderHoverTarget({ x: 289, y: 214 }, bounds), 'value');
+ assert.equal(sliderHoverTarget({ x: 180, y: 214 }, bounds), null, 'an empty part of the rail is not a hover zone');
+ assert.equal(sliderHoverTarget({ x: 180, y: 214 }, { ...bounds, thumb: { ...bounds.thumb, left: 166 } }), 'thumb', 'moving the bulb under a stationary pointer changes its actual hover zone');
+ assert.equal(sliderHoverTarget({ x: 50, y: 214 }, bounds), null, 'the label does not wake the material');
+ assert.equal(sliderHoverTarget({ x: 250, y: 214 }, bounds), null, 'the gap before the value stays quiet');
+ assert.equal(sliderHoverTarget({ x: 101, y: 201 }, bounds), null, 'the bulb hit follows its round surface, not its bounding corner');
+ assert.equal(sliderHoverTarget({ x: 261, y: 193 }, bounds), null, 'the value bubble keeps its rounded ends');
+ assert.equal(sliderHoverTarget({ x: 114, y: 214 }, { thumb: { ...bounds.thumb, width: 0 } }), null);
+ assert.equal(sliderHoverTarget({ x: NaN, y: 214 }, bounds), null);
+});
 
 test('pointer assistance selects one nearby eligible target and never follows a distant pointer', () => {
  const boxes=[{x:0,y:0,width:44,height:44},{x:60,y:0,width:44,height:44}];

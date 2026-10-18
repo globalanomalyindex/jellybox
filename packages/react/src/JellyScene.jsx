@@ -159,7 +159,7 @@ export function JellyScene({ children, params = DEFAULT_MATERIAL, tone = 'action
       if (records.some(record => !record.target.closest?.('.jb-selection-svg') && !record.target.matches?.('.jb-material-projection, .jb-optical-canvas') && !(record.type === 'childList' && [...record.addedNodes, ...record.removedNodes].every(child => child.classList?.contains('jb-material-projection'))) && !(record.type === 'attributes' && record.attributeName === 'style' && (record.target.hasAttribute('data-gel-window') || record.target.classList.contains('jb-window-content'))))) invalidate();
     });
     mutations.observe(node, { subtree: true, childList: true, attributes: true,
-      attributeFilter: ['aria-checked', 'aria-selected', 'aria-pressed', 'data-gel-hover', 'data-gel-pressed', 'style', 'data-gel-tone', 'disabled', 'hidden', 'inert', 'data-active', 'data-selected', 'data-gel-activity', 'data-gel-progress', 'data-gel-material-phase'] });
+      attributeFilter: ['aria-checked', 'aria-selected', 'aria-pressed', 'data-gel-hover', 'data-gel-pointer', 'data-gel-pressed', 'style', 'data-gel-tone', 'disabled', 'hidden', 'inert', 'data-active', 'data-selected', 'data-gel-activity', 'data-gel-progress', 'data-gel-material-phase'] });
     window.addEventListener('resize', invalidate);
     window.addEventListener('scroll', invalidate, { passive: true, capture: true });
     media.addEventListener('change', invalidate);
@@ -169,7 +169,9 @@ export function JellyScene({ children, params = DEFAULT_MATERIAL, tone = 'action
     node.addEventListener('transitionrun', animateBounds, true);
     node.addEventListener('jellybox:motion', animateBounds, true);
     const respond = event => {
-      const el = event.target.closest('[data-gel-surface]') || event.target.closest('.jb-slider')?.querySelector('.jb-range-thumb');
+      // Slider geometry owns hover; a rail or label is not its optical bulb.
+      if (event.target.closest('.jb-slider')) return;
+      const el = event.target.closest('[data-gel-surface]');
       if (!el || !node.contains(el) || ['badge', 'alert', 'track', 'table', 'row', 'menu'].includes(el.dataset.gelSurface) || el.matches(':disabled, [aria-disabled="true"]')) return;
       if (event.relatedTarget instanceof Node && el.contains(event.relatedTarget)) return;
       if (event.type === 'pointerover') el.dataset.gelPointer = 'true';

@@ -34,7 +34,9 @@ For external hosts that opt in, spatial transfer extends that same attention own
 
 Only deliberate track clicks use the opt-in240 ms accepted-value travel. Thumb drag, scrub and keyboard remain immediate. Shift changes scrub precision without jumping; Escape restores the drag origin. External controlled changes cancel stale gestures. Continuous motion off pauses idle breathing/assistance while preserving deliberate input feedback; OS reduced motion snaps spatial travel.
 
-Material assistance is bounded to 3 px, or 5 px for slider bulbs, toward one nearby pointer. Touch, active press/drag, window morphing, motion-off and reduced motion clear it. The actual clickable area never moves or activates automatically.
+Slider hover gathers only over the rounded bulb or value bubble, using current displayed geometry and the existing120ms exit grace. Labels and empty rail/row areas do not activate hover. Native rail clicks still share the240ms accepted-value travel, and keyboard-visible focus or an active gesture retains control feedback. Accepted value updates recheck a stationary pointer without a new timer.
+
+Material assistance is bounded to 3 px, or 5 px for slider bulbs, toward one nearby pointer. Slider-bulb assistance starts only inside that bulb’s pointer hover zone. Touch, active press/drag, window morphing, motion-off and reduced motion clear it. The actual clickable area never moves or activates automatically.
 
 Compact density shoulders consume the existing optical hover response (420ms flow with bounded spatial settling) and selected carrier. The CSS approximation keeps the240ms material response; displayed pigment follows the480ms cached Spectral path. There is no independent shoulder timer. Native targets and lettering do not follow the relief.
 
