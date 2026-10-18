@@ -219,7 +219,9 @@ export function App({ active = true }) {
       const parentElement = storyMass || (mainInView ? panelInnerRef.current : null);
       const allSurfaces = [...bubbleElements.current, ...(storyScopeRef.current?.querySelectorAll('[data-gel-surface]') || [])].filter(el => el.isConnected && !el.closest('[hidden]'));
       s.storyTraces = [...(storyScopeRef.current?.querySelectorAll('[data-motion-loop="running"] [data-gel-motion-preview]') || [])];
-      const receivers = new Set([densityAttention?.receiver, storyAttention?.receiver].filter(el => {
+      // The story compares held structures. Its controls keep local feedback
+      // without sending a traveling packet across the comparison surface.
+      const receivers = new Set([densityAttention?.receiver].filter(el => {
         if (!el) return false;
         const visible = intersectRect(rectOf(el), { x: 0, y: 0, width: innerWidth, height: innerHeight });
         const clip = el.closest('.jelly-details-clip');
@@ -261,8 +263,8 @@ export function App({ active = true }) {
         clip: el.closest('.jelly-details-clip') ? rectOf(el.closest('.jelly-details-clip')) : undefined,
         cornerRadius: Math.min(parseFloat(getComputedStyle(el).borderTopLeftRadius) || 24, el.offsetHeight / 2),
       }));
-      for (const [region, attention] of [[s.densityRegion, densityAttention], [s.storyDensity, storyAttention]]) {
-        const el = attention?.receiver;
+      {
+        const region = s.densityRegion, el = densityAttention?.receiver;
         const bubble = el && receivers.has(el) && claims.has(el) ? s.bubbles.find(item => item.id === surfaceId(el)) : null;
         // Copy native bounds: scroll rebases this nested target and the bubble
         // separately, and both later enter the same canvas coordinate frame.

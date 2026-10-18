@@ -5,26 +5,38 @@ import { createJellyPalette } from '../packages/react/src/color.js';
 import { useJellyColor } from '../packages/react/src/useMaterialColor.js';
 import { JellyDetails } from './JellyDetails.jsx';
 import { useStoryPlayback } from './useStoryPlayback.js';
-import { densityStorySample, colorStorySample } from './story-examples.js';
+import { colorStorySample } from './story-examples.js';
 export { MotionExample } from './StoryMotionExamples.jsx';
 
-export function DensityExample({ motionEnabled }) {
-  const ref = useRef(null);
+function DensityGroup({ gathered }) {
   const [included, setIncluded] = useState(['Image', 'Color']);
-  const { value, running } = useStoryPlayback(ref, { enabled: motionEnabled, sample: densityStorySample });
-  return <figure ref={ref} className="story-demo" aria-labelledby="density-example-title" data-story-playback={running ? 'running' : 'paused'}>
+  const label = gathered ? 'Gathered structure' : 'Open film';
+  const summary = `${included.length} of 3 included`;
+  const choices = <div className="story-demo-choices" role="group" aria-label={`${label} group contents`}>
+    {['Image', 'Color', 'Notes'].map(item => <JellyButton key={item} size="sm" selected={included.includes(item)}
+      onClick={() => setIncluded(items => items.includes(item) ? items.filter(value => value !== item) : [...items, item])}>
+      {included.includes(item) ? <Check size={15} /> : <Minus size={15} />}{item}
+    </JellyButton>)}
+  </div>;
+  return <section className="story-density-example" aria-label={label}>
+    <h4>{label}</h4>
+    {gathered ? <div data-story-concentration="1">
+      <JellyDetails title="Group contents" summary={summary} defaultOpen>{choices}</JellyDetails>
+    </div> : <div className="story-open-film">
+      <div className="story-open-film-title">Group contents</div>
+      <small className="jelly-details-summary">{summary}</small>
+      <div className="story-open-film-content">{choices}</div>
+    </div>}
+  </section>;
+}
+
+export function DensityExample() {
+  return <figure className="story-demo" aria-labelledby="density-example-title">
     <figcaption><strong id="density-example-title">Structure from the same material</strong></figcaption>
     <div className="story-mass" data-story-mass="" data-mass-pigment="#91d2f5">
-      <div className="story-mass-heading"><span>Working group</span><output aria-live="off">{value.label}</output></div>
-      <div data-story-concentration={value.strength / 100}>
-        <JellyDetails title="Group contents" summary={`${included.length} of 3 included`} defaultOpen>
-            <div className="story-demo-choices" role="group" aria-label="Group contents">
-              {['Image', 'Color', 'Notes'].map(label => <JellyButton key={label} size="sm" selected={included.includes(label)}
-                onClick={() => setIncluded(items => items.includes(label) ? items.filter(item => item !== label) : [...items, label])}>
-                {included.includes(label) ? <Check size={15} /> : <Minus size={15} />}{label}
-              </JellyButton>)}
-            </div>
-        </JellyDetails>
+      <div className="story-density-grid">
+        <DensityGroup gathered={false} />
+        <DensityGroup gathered />
       </div>
     </div>
   </figure>;

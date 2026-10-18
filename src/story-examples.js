@@ -24,11 +24,6 @@ export function motionLoopFrames({ duration, curve }, period = 0) {
   return { frames, duration: total };
 }
 
-export function densityStorySample(elapsed, { staticMode = false } = {}) {
-  const gathered = staticMode || Math.max(0, elapsed) % MOTION.breathe >= MOTION.breathe / 2;
-  return gathered ? { strength: 100, label: 'Gathered structure' } : { strength: 45, label: 'Open film' };
-}
-
 export function colorStorySample(elapsed, { staticMode = false } = {}) {
   const stage = staticMode ? 1 : Math.floor(Math.max(0, elapsed) / 2500) % 4;
   return { joined: stage > 0, pending: stage === 2, mix: stage > 1 ? 75 : 50,

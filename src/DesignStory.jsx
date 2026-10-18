@@ -99,7 +99,7 @@ export function DesignStory({ motionEnabled = true }) {
             <p>More concentrated areas carry thickness, color and a defined edge. Thinner areas keep the content open and readable. A border is a denser part of the same material. An inner group can gather out of its parent window, with a clear boundary that still belongs to the whole. Structure can become firmer where a task needs precision and looser where it helps you move between things.</p>
             <p>Shape &amp; optics is a small example: the compact pill stretches into an inner folder, holds the extra controls, then gathers back. Its edge, depth and lighting change together. The text stays steady.</p>
           </div>
-          <DensityExample motionEnabled={motionEnabled} />
+          <DensityExample />
         </section>
 
         <section id="story-continuity" className="story-section" tabIndex={-1} aria-labelledby="story-continuity-title">

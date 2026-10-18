@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { scrollEdgeState } from '../src/scroll-presentation.js';
-import { motionLoopFrames, densityStorySample, colorStorySample } from '../src/story-examples.js';
+import { motionLoopFrames, colorStorySample } from '../src/story-examples.js';
 import { MOTION, sampleBezier } from '../packages/react/src/renderer/motion.js';
 
 const reading = { viewportHeight: 720, documentHeight: 5000, scroll: 1000, storyTop: -200, credits: { top: -500, bottom: -400 } };
@@ -38,13 +38,6 @@ test('explanatory loops preserve the real response duration, hold, and close the
     assert.ok(loop.frames.every(frame => Math.abs(frame.strain) <= .16));
     if (response.curve === MOTION.recoilCurve) assert.ok(loop.frames.some(frame => frame.value > 1.05), 'recoil keeps its actual overshoot');
   }
-});
-
-test('density illustrates thin and gathered structure without requiring input', () => {
-  assert.deepEqual(densityStorySample(0), { strength: 45, label: 'Open film' });
-  assert.deepEqual(densityStorySample(3000), { strength: 100, label: 'Gathered structure' });
-  assert.deepEqual(densityStorySample(5400), { strength: 45, label: 'Open film' });
-  assert.deepEqual(densityStorySample(0, { staticMode: true }), { strength: 100, label: 'Gathered structure' });
 });
 
 test('color automatically distinguishes separate, joined, preview and accepted pigment', () => {
