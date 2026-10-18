@@ -1,6 +1,6 @@
 {
   "name": "jellybox-workspace",
-  "version": "0.5.10",
+  "version": "0.5.11",
   "private": true,
   "license": "MIT",
   "workspaces": [

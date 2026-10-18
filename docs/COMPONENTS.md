@@ -1,6 +1,6 @@
 # JellyBox components
 
-The 0.5.10 foundation contains seventeen components. Core components work with React and the scoped stylesheet; the optional Three renderer supplies the liquid material. Forms, focus, text and selected state remain DOM behavior. This is an initial foundation, not a complete component suite or broad accessibility certification.
+The 0.5.11 foundation contains seventeen components. Core components work with React and the scoped stylesheet; the optional Three renderer supplies the liquid material. Forms, focus, text and selected state remain DOM behavior. This is an initial foundation, not a complete component suite or broad accessibility certification.
 
 ```jsx
 import {
@@ -209,4 +209,4 @@ The optional renderer accepts `OpticalBody.density.concentration` in the bounded
 
 Compact slider thumbs, value bubbles and option surfaces share an interior density shoulder when claimed by optics. `JELLY_MATERIAL.control.densityShoulder` exposes its authored span, relief, state gains, absorption and small-thumb path bounds. No new component props or state ownership are required. CSS-only consumers receive a broad shaded approximation and native value-button chrome reset. Selected checks and keyboard/forced-color indicators retain their native purpose; custom colors and compositions still need rendered checks.
 
-The optional `OpticalDensity.hover` input keeps its existing boolean contract. Folder approach now gathers a local shoulder instead of globally tinting the reading plateau. Height, normals, concentration and receiver light share the field and cached pigment rows; no extra host timing or component props are required. The study's disclosure retains approach across its open group and uses the same native204×44px handle to toggle. CSS fallback approximates the hierarchy with a neutral center and deeper inset shading.
+The optional `OpticalDensity.hover` input keeps its existing boolean contract. Folder approach now gathers a local shoulder instead of globally tinting the reading plateau. Height, normals, concentration and receiver light share the field and cached pigment rows; no extra host timing or component props are required. The study's disclosure yields its extra hover gathering while an enabled child owns hover, focus or a gesture, using the same240ms response without altering structural density. Compound sliders supply their existing engagement/drag state; native hit targets and focus remain unchanged. The same native204×44px handle toggles the group. CSS fallback follows the same child priority with a neutral center and deeper inset shading.
