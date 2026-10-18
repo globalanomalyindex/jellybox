@@ -16,6 +16,8 @@ export interface OpticalBody extends OpticalRect {
 }
 export interface OpticalDensity extends OpticalRect {
   pigment: string; opacity: number; concentration?: number; folder?: boolean; expandedHeight?: number; phase?: number; open?: boolean; hover?: boolean;
+  /** An active child keeps a faint parent connection while owning motion. */
+  childActive?: boolean;
 }
 export interface OpticalSelection extends OpticalBody { id: string; key: string; }
 /** Position in scene pixels; height uses the renderer's authored scene units. */

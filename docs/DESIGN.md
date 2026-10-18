@@ -16,7 +16,7 @@ The story has a readable main column, persistent chapter index and a compact hor
 
 A quiet thin reading film and a concentrated perimeter belong to one parent. Inner groups are filled neutral clear-water concentrations with a narrow defined shoulder, broad crown and quieter receiver artifacts. No opaque inner white card, hollow glowing outline or residual pill over primary text.
 
-Hover/focus gathers a moving filled shoulder within the inner concentration, sharing the same240ms approach gain. Relief, pigment, highlights and refraction follow that shoulder while the reading plateau stays steady. Enabled inner controls own attention while hovered, focused or dragged; the extra parent invitation settles back through the shared240ms response. Its structural density stays visible. Header/blank material can invite again once no child remains engaged; the fixed tab alone opens/closes the group. Static acknowledgement remains when continuous motion is off. Labels, icon cells, values and hit targets stay anchored. Selected rims, checks, explicit headings and task grouping establish hierarchy. Sliders keep label/value/short rail visible; their optical cross-section gathers on approach rather than moving endpoints.
+Hover/focus gathers a moving filled shoulder within the inner concentration, sharing one attention envelope. Relief, pigment, highlights and refraction follow that shoulder while the reading plateau stays steady. Enabled inner controls own attention while hovered, focused or dragged. The parent melts its stronger gathering over420ms into a faint shared breath;280ms gather restores invitation. Its displayed density brakes the current while geometry, pigment and light stay connected. Structural density stays visible. Header/blank material can invite again once no child remains engaged; the fixed tab alone opens/closes the group. Static acknowledgement remains when continuous motion is off. Labels, icon cells, values and hit targets stay anchored. Selected rims, checks, explicit headings and task grouping establish hierarchy. Sliders keep label/value/short rail visible; their optical cross-section gathers on approach rather than moving endpoints.
 
 ## Color and state
 
@@ -24,7 +24,7 @@ Glass blue is the resting trio. Highlight invites interaction; a denser pigment 
 
 ## Motion and light
 
-A pill stretches into its top-left tab and withdraws on close; an old tab sinks as a new one gathers. Inner folders stretch/pinch and settle with a small bounded wobble. Text never deforms. One initial hierarchy settles by 900 ms, without delaying input or repeating on every section. Shared lighting and density follow the same material handoff.
+A pill stretches into its top-left tab and withdraws on close; an old tab sinks as a new one gathers. Inner folders stretch/pinch and settle with a small bounded wobble. Text never deforms. One initial hierarchy settles by 900 ms, without delaying input or repeating on every section. Shared lighting and density follow the same material handoff. Hover, selection, loading and result are changes in this material, so quieting a parent must retain continuity with its active child. Text, native targets and semantics remain steady.
 
 The movable bulb changes the material's highlights, transmitted casts and optical response. Effects support grouping; they cannot be the only source of state. The bottom progressive blur signals content below while yielding to the signature, focus, selected text and document end. It combines rendered pixels with native browser blur for HTML.
 

@@ -7,7 +7,7 @@ import { surfacePigment, windowPigment } from './surface-color.js';
 import { lightTemperature, moveReceiverField } from './lighting.js';
 import { DEFAULT_MATERIAL, JELLY_MATERIAL, densityShoulderAmount } from './material.js';
 import { controlDensityRole, controlDensityField, CONTROL_DENSITY_GLSL } from './control-density.js';
-import { DENSITY_GLSL, densityFieldProfile, densityClearing, densityPresentation, densityAttenuation, densityColorWeight, stepDensitySettle, densityHoverResponse } from './density-field.js';
+import { DENSITY_GLSL, densityFieldProfile, densityClearing, densityPresentation, densityAttenuation, densityColorWeight, stepDensitySettle, densityHoverResponse, stepFolderAttention } from './density-field.js';
 import { createContrastSampler } from './contrast-sampler.js';
 import { installReadingFilm, updateReadingFilm } from './reading-film.js';
 import { ACTIVITY_VOLUME, activityPocket, activityDisplacement, activityContour, stepActivity, activityPigment, ACTIVITY_GLSL, ACTIVITY_PIGMENT_GLSL } from './activity.js';
@@ -1135,7 +1135,7 @@ export function createOptics(canvas, { getScene, onError = () => {}, onAfterRend
         const wasLive = body.live && (!body.panel || body.owner === button?.id);
         if (body.panel) {
           body.owner = button?.id;
-          if (!wasLive) { body.densityPrevious = null; body.densityPigment = null; }
+          if (!wasLive) { body.densityPrevious = null; body.densityPigment = null; body.densityCurrent = undefined; }
         }
         body.live = !!button && button.width > 0 && button.height > 0;
         body.mesh.visible = body.live;
@@ -1237,14 +1237,17 @@ export function createOptics(canvas, { getScene, onError = () => {}, onAfterRend
           body.densityFolder = !!region.folder;
           // Pausing ambient movement keeps a static color acknowledgment for
           // deliberate pointer/focus input; only the circulating strain stops.
-          const hoverGain = stepJellyResponse(body, 'densityHover', region.hover ? 1 : 0, delta, { duration: MOTION.material, curve: MOTION.settle, instant: !!state.reducedMotion || !wasLive });
+          const attention = region.folder ? stepFolderAttention(body, { hover: region.hover, childActive: region.childActive }, delta,
+            { instant: !!state.reducedMotion || !wasLive, moving, initialCurrent: time * Math.PI * 2 / (MOTION.activityOrbit / 1000) }) : null;
+          const hoverGain = attention ? attention.gain : stepJellyResponse(body, 'densityHover', region.hover ? 1 : 0, delta, { duration: MOTION.material, curve: MOTION.settle, instant: !!state.reducedMotion || !wasLive });
+          if (!region.folder) body.densityCurrent = undefined;
           const hover = densityHoverResponse(hoverGain, time, moving);
           const concentration = stepJellyResponse(body, 'densityConcentration', clamp(region.concentration ?? 1, .3, 1), delta, { duration: MOTION.material, curve: MOTION.gather, instant: !!state.reducedMotion || !wasLive });
           const visibility = region.opacity * (body.window?.contentOpacity ?? 1) * openness;
           const densityHeight = region.expandedHeight ?? region.height;
           body.density = { x: region.x + region.width / 2 - button.x - button.width / 2,
             y: button.y + button.height / 2 - region.y - densityHeight / 2,
-            width: region.width + (region.folder ? 0 : Math.abs(field.flow) * 10), height: densityHeight, edge: field.edge, fold: region.folder ? field.fold : 0, folder: !!region.folder, approach: hoverGain * visibility, legacyHover: region.folder ? 0 : hoverGain, hover: region.folder ? hoverGain * (.9+.1*Math.cos(time*Math.PI*2/(MOTION.breathe/1000))) * visibility : 0, current: region.folder && hoverGain > .00001 ? time * Math.PI * 2 / (MOTION.activityOrbit / 1000) : 0, jiggle: (body.densitySettle.strain + (region.folder ? 0 : hover.jiggle)) * visibility, flow: field.flow * visibility, amount: (field.amount + (region.folder ? 0 : hover.amount)) * visibility * concentration };
+            width: region.width + (region.folder ? 0 : Math.abs(field.flow) * 10), height: densityHeight, edge: field.edge, fold: region.folder ? field.fold : 0, folder: !!region.folder, approach: hoverGain * visibility, legacyHover: region.folder ? 0 : hoverGain, hover: region.folder ? hoverGain * (.9+.1*Math.cos(time*Math.PI*2/(MOTION.breathe/1000))) * visibility : 0, current: attention?.current || 0, jiggle: (body.densitySettle.strain + (region.folder ? 0 : hover.jiggle)) * visibility, flow: field.flow * visibility, amount: (field.amount + (region.folder ? 0 : hover.amount)) * visibility * concentration };
           density.body.value.set(body.width, body.height, body.r);
           density.region.value.set(body.density.x, body.density.y, body.density.width, body.density.height);
           density.amount.value = body.density.amount;
@@ -1275,7 +1278,7 @@ export function createOptics(canvas, { getScene, onError = () => {}, onAfterRend
             paletteChanged = true;
           }
           if (paletteChanged) density.palette.value.needsUpdate = true;
-        } else { body.density = null; body.densityPrevious = null; body.densityFlow = 0; body.densitySettle = null; density.amount.value = 0; density.jiggle.value = 0; density.hover.value.set(0,0); density.legacyHover.value = 0; }
+        } else { body.density = null; body.densityCurrent = undefined; body.densityPrevious = null; body.densityFlow = 0; body.densitySettle = null; density.amount.value = 0; density.jiggle.value = 0; density.hover.value.set(0,0); density.legacyHover.value = 0; }
         body.material.thickness = body.c * 2;
         body.depth.opacity = 1;
         if (body.mesh.visible) updateGeometry(body, timestamp, moving);
@@ -1574,6 +1577,8 @@ export function createOptics(canvas, { getScene, onError = () => {}, onAfterRend
         canvas.dataset.densityPhase = String(parent.densityPrevious ?? 0);
         canvas.dataset.densityFlow = String(parent.density?.flow ?? 0);
         canvas.dataset.densityJiggle = String(parent.density?.jiggle ?? 0);
+        canvas.dataset.densityAttention = String(parent.density?.approach ?? 0);
+        canvas.dataset.densityCurrent = String(parent.density?.current ?? 0);
         canvas.dataset.densityCacheBuilds = String(parent.surfaceCacheBuilds || 0);
         canvas.dataset.tabAttachment = String(parent.tab?.amount ?? 0);
         canvas.dataset.tabNeck = [parent.tab?.neck?.pull || 0, parent.tab?.neck?.pinch || 0, parent.tab?.neck?.wobble || 0].map(v => v.toFixed(3)).join(',');

@@ -32,14 +32,13 @@ const PALETTES = [
 const rgb = hex => [1, 3, 5].map(at => parseInt(hex.slice(at, at + 2), 16) / 255);
 const PANELS = [{ name: 'Explore', Icon: SquaresFour }, { name: 'Color', Icon: Drop }, { name: 'Material', Icon: SlidersHorizontal }];
 
-function folderInvitation(region) {
-  if (region.dataset.densityHover !== 'true') return false;
-  if (region.dataset.open !== 'true') return true;
-  // The child's existing material owner wins, including a slider's retained
-  // focus or captured scrub. Keep the parent invitation for blank/header return.
+function folderAttention(region) {
+  // Keep the group's invitation separate from the child's existing owner,
+  // including retained slider focus or a captured scrub outside the folder.
   const children = region.querySelector('.jelly-details-content');
-  return ![...(children?.querySelectorAll('[data-gel-engaged="true"], [data-gel-dragging="true"], [data-gel-hover="true"], [data-gel-pressed="true"], :focus-visible') || [])]
+  const childActive = region.dataset.open === 'true' && [...(children?.querySelectorAll('[data-gel-engaged="true"], [data-gel-dragging="true"], [data-gel-hover="true"], [data-gel-pressed="true"], :focus-visible') || [])]
     .some(child => !child.closest('[inert], [disabled], [aria-disabled="true"], .jb-disabled'));
+  return { hover: region.dataset.densityHover === 'true', childActive };
 }
 
 function syncTabOutline(surface, tab, depth = 1, shell = null) {
@@ -169,7 +168,7 @@ export function App({ active = true }) {
       const expandedHeight = folder ? [densityRegion.querySelector(':scope > h4'), densityRegion.querySelector(':scope > .jelly-details-summary'), densityRegion.querySelector('.jelly-details-content')]
         .reduce((sum, el) => sum + (el?.getBoundingClientRect().height ?? 0), 0) : undefined;
       s.densityRegion = densityRegion ? { ...rectOf(densityRegion), folder, expandedHeight,
-        open: densityRegion.dataset.open === 'true', hover: folderInvitation(densityRegion),
+        open: densityRegion.dataset.open === 'true', ...folderAttention(densityRegion),
         phase: Number(getComputedStyle(densityRegion).getPropertyValue('--jb-density-phase').trim() || (densityRegion.dataset.open === 'true' ? '1' : '0')),
         pigment: s.colors[s.tabOwner], opacity: Number(getComputedStyle(densityRegion.closest('.panel-view')).opacity) } : null;
       const panelOpacity = panelInnerRef.current ? Number(getComputedStyle(panelInnerRef.current.closest('.jelly-panel')).opacity) : 1;
@@ -185,7 +184,7 @@ export function App({ active = true }) {
       s.storyPanel = storyMass ? { ...rectOf(storyMass), pigment: storyMass.dataset.massPigment } : null;
       s.storyDensity = storyRegion ? { ...rectOf(storyRegion), folder: true,
         expandedHeight: [storyRegion.querySelector(':scope > h4'), storyRegion.querySelector(':scope > .jelly-details-summary'), storyRegion.querySelector('.jelly-details-content')].reduce((sum, el) => sum + (el?.getBoundingClientRect().height ?? 0), 0),
-        open: storyRegion.dataset.open === 'true', hover: folderInvitation(storyRegion),
+        open: storyRegion.dataset.open === 'true', ...folderAttention(storyRegion),
         phase: Number(getComputedStyle(storyRegion).getPropertyValue('--jb-density-phase')),
         concentration: Number(storyRegion.closest('[data-story-concentration]')?.dataset.storyConcentration ?? 1),
         pigment: storyMass.dataset.massPigment, opacity: 1 } : null;

@@ -25,6 +25,7 @@ export const motionStyle = {
   '--ease-gather': MOTION.gather, '--ease-withdraw': MOTION.withdraw,
   '--motion-material': `${MOTION.material}ms`,
   '--motion-feedback': `${MOTION.feedback}ms`, '--motion-fade': `${MOTION.fade}ms`,
+  '--motion-attention-gather': `${MOTION.sliderGather}ms`, '--motion-attention-melt': `${MOTION.sliderMelt}ms`,
   '--motion-breathe': `${MOTION.breathe}ms`, '--motion-skeleton': `${MOTION.skeleton}ms`,
   '--ease-jelly': MOTION.spring, '--ease-settle': MOTION.settle, '--ease-effects': MOTION.effects,
 };

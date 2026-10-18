@@ -1,4 +1,4 @@
-import { MOTION } from './motion.js';
+import { MOTION, stepJellyResponse } from './motion.js';
 
 // A filled concentration within the parent optical volume, not another mesh.
 // The fragment shader and receiver tracing share this thickness profile.
@@ -15,6 +15,22 @@ export function densityHoverResponse(gain, time, moving = true) {
   // strain stays under 1.2px, while thickness makes the invitation readable.
   return { amount: g * (.13 + .025 * Math.cos(breath)),
     jiggle: g * .2 * Math.sin(current) * (.9 + .1 * Math.cos(breath)) };
+}
+
+// Parent and child share one material envelope. The child takes active energy
+// gradually, leaving a quiet connection while the same angle brakes to rest.
+export function stepFolderAttention(body, { hover = false, childActive = false }, seconds, { instant = false, moving = true, initialCurrent = 0 } = {}) {
+  const target = childActive ? .12 : hover ? 1 : 0;
+  const displayed = body.responses?.densityHover?.value ?? target;
+  const withdrawing = target < displayed;
+  const dt = Math.max(0, seconds);
+  const gain = stepJellyResponse(body, 'densityHover', target, dt,
+    { duration: withdrawing ? MOTION.sliderMelt : MOTION.sliderGather,
+      curve: withdrawing ? MOTION.withdraw : MOTION.gather, instant });
+  if (!Number.isFinite(body.densityCurrent)) body.densityCurrent = initialCurrent;
+  const speed = Math.max(0, Math.min(1, (gain - .12) / .88));
+  if (moving && !instant) body.densityCurrent += dt * Math.PI * 2 / (MOTION.activityOrbit / 1000) * speed * speed * (3 - 2 * speed);
+  return { gain, current: body.densityCurrent };
 }
 
 // Local material strain, independent of layout and the native disclosure state.
