@@ -1,9 +1,9 @@
 import { MOTION, sampleBezier } from '../packages/react/src/renderer/motion.js';
 
 // The response plays at its actual speed, rests, then returns on a gentler arc.
-export function motionLoopFrames({ duration, curve }) {
+export function motionLoopFrames({ duration, curve }, period = 0) {
   const hold = MOTION.recoil, returnTime = MOTION.recoil, rest = MOTION.fade;
-  const total = duration + hold + returnTime + rest;
+  const total = Math.max(duration + hold + returnTime + rest, period);
   const frames = Array.from({ length: 81 }, (_, index) => {
     const time = index / 80;
     const value = sampleBezier(curve, time);
@@ -24,12 +24,13 @@ export function motionLoopFrames({ duration, curve }) {
   return { frames, duration: total };
 }
 
-export function colorGroupState(draft, committed) {
-  const dirty = !committed || draft.pair !== committed.pair || draft.mix !== committed.mix;
-  return { dirty, joined: Boolean(committed), label: !committed ? 'Separate · preview' : dirty ? 'Joined · changes pending' : 'Joined · 2 items' };
+export function densityStorySample(elapsed, { staticMode = false } = {}) {
+  const gathered = staticMode || Math.max(0, elapsed) % MOTION.breathe >= MOTION.breathe / 2;
+  return gathered ? { strength: 100, label: 'Gathered structure' } : { strength: 45, label: 'Open film' };
 }
 
-export function taskSample(elapsed, outcome, duration = 2400) {
-  const progress = Math.max(0, Math.min(100, elapsed / duration * 100));
-  return { progress, status: progress < 100 ? 'loading' : ['success', 'warning', 'error'].includes(outcome) ? outcome : 'error' };
+export function colorStorySample(elapsed, { staticMode = false } = {}) {
+  const stage = staticMode ? 1 : Math.floor(Math.max(0, elapsed) / 2500) % 4;
+  return { joined: stage > 0, pending: stage === 2, mix: stage > 1 ? 75 : 50,
+    label: ['Separate pigments', 'Shared identity', 'Edit preview', 'Accepted pigment'][stage] };
 }

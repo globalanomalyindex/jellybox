@@ -116,10 +116,10 @@ export function DesignStory({ motionEnabled = true }) {
         <section id="story-feedback" className="story-section" tabIndex={-1} aria-labelledby="story-feedback-title">
           <h3 id="story-feedback-title">States in motion</h3>
           <div className="story-copy">
-            <p>Waiting is another place where the jelly can explain what’s happening. While a task is running, dense blue jelly moves through the whole button and breathes gently. Its shape, highlights and refraction follow the same current. A percentage and progress rail show how far along the task is when that information is available. Without it, the circulation communicates that work is continuing without inventing a completion value.</p>
+            <p>Waiting is another place where the jelly can explain what’s happening. While a task is running, dense blue jelly moves through the whole button and breathes gently. Its shape, highlights and refraction follow the same current. Indeterminate circulation communicates that work is continuing without inventing a completion value.</p>
             <p>When work finishes, that moving mass gathers into the result: green for completion, amber when something needs review, red when the task fails. Color, density and motion share that transition, while the label and icon make the state explicit. Reduced motion keeps the words, progress and outcome. I’m exploring whether keeping those changes in one continuous material makes a task easier to follow.</p>
           </div>
-          <LoadingExample />
+          <LoadingExample motionEnabled={motionEnabled} />
         </section>
 
         <section id="story-color" className="story-section" tabIndex={-1} aria-labelledby="story-color-title">
@@ -138,7 +138,7 @@ export function DesignStory({ motionEnabled = true }) {
           <div className="story-copy">
             <p>The little bulb is a movable light in the rendered scene. Dragging it changes the direction of highlights, colored casts and transmitted light on the textured surface. Its brightness, height, softness and warmth can be adjusted together.</p>
             <p>I wanted light reactivity to belong to the material itself. It could help reveal depth and grouping, or give someone another way to tune the feel of a workspace. Reading areas keep the effects quieter so a shadow can’t pretend to be a control. Text and selected states still need to make sense with the light off.</p>
-            <p>I’m thinking of this as a lamp on a real desk. You place it where you want it and adjust it while you work. A light-reactive interface could offer that same ambient experience on a digital desktop: a pool of light across the workspace, with the jelly responding naturally around it. It stays where you put it instead of following every hover or telling you what to do next. Here you can move that light between three positions and change its height and brightness. The controls keep their meaning with the lamp off.</p>
+            <p>I’m thinking of this as a lamp on a real desk. You place it where you want it and adjust it while you work. A light-reactive interface could offer that same ambient experience on a digital desktop: a pool of light across the workspace, with the jelly responding naturally around it. It stays where you put it instead of following every hover or telling you what to do next. The example below moves the same light between three held positions. The bulb above remains available to place and tune yourself. The controls keep their meaning with the lamp off.</p>
           </div>
           <DesktopLampExample motionEnabled={motionEnabled} />
         </section>

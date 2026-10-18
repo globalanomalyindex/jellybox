@@ -20,6 +20,15 @@
         ],
         "createdAt": "2026-10-18T15:53:26.857Z",
         "reason": "user confirmed custom jelly bounce and jiggle repeatedly; bounded material response with motion preferences"
+      },
+      {
+        "rule": "layout-transition",
+        "value": "*",
+        "files": [
+          "src/styles.css"
+        ],
+        "createdAt": "2026-10-18T16:23:48.020Z",
+        "reason": "user confirmed existing circle-to-pill expansion, anchored label reveal and connected window handoff; unchanged native menu redistribution is required by AGENTS. Story animations use transforms and shared material response."
       }
     ]
   }

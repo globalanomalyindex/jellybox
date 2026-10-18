@@ -184,7 +184,7 @@ export function App({ active = true }) {
       s.spotlight = lampAnchor && intersectRect(rectOf(desktopLamp), viewport).height > 1 ? { ...rectOf(lampAnchor), lampHeight: Number(desktopLamp.dataset.lampHeight), intensity: Number(desktopLamp.dataset.lampBrightness) / 100 } : null;
       const parentElement = storyMass || (mainInView ? panelInnerRef.current : null);
       const allSurfaces = [...bubbleElements.current, ...(storyScopeRef.current?.querySelectorAll('[data-gel-surface]') || [])].filter(el => el.isConnected && !el.closest('[hidden]'));
-      s.storyTrace = storyScopeRef.current?.querySelector('[data-motion-loop="running"] [data-gel-motion-preview]') || null;
+      s.storyTraces = [...(storyScopeRef.current?.querySelectorAll('[data-motion-loop="running"] [data-gel-motion-preview]') || [])];
       const chosen = pickSurfaces(allSurfaces.map(el => ({ el, kind: el.dataset.gelSurface || 'control', visibleRect: intersectRect(rectOf(el), viewport) })));
       const claims = new Set(s.fallback ? [] : chosen.map(item => item.el));
       inkNodes.clear();
@@ -199,7 +199,7 @@ export function App({ active = true }) {
         attached: Boolean(parentElement?.contains(el)),
         contact: Boolean(el.closest('.story-demo')),
         layer: el.dataset.gelSurface === 'thumb' ? 2 : el.dataset.gelSurface === 'fill' ? 1.5 : 1,
-        disabled: el.disabled || el.closest('.jb-slider')?.classList.contains('jb-disabled') || el.dataset.gelAssist === 'false',
+        disabled: el.disabled || Boolean(el.closest('[inert]')) || el.closest('.jb-slider')?.classList.contains('jb-disabled') || el.dataset.gelAssist === 'false',
         assist: el.dataset.gelSurface === 'thumb' || el.matches('button') && !el.closest('[data-gel-group]'),
         headerControl: el.classList.contains('dock-close'),
         feedback: el.dataset.gelFeedback,
@@ -284,11 +284,11 @@ export function App({ active = true }) {
           const project = rect => rect && ({ ...rect, y: rect.y + canvasY, ...(rect.clip ? { clip: { ...rect.clip, y: rect.clip.y + canvasY } } : {}) });
           // Measure transformed shell only while a container transition runs.
           if (storyDirty.current || now < movingUntil.current) measure();
-          // Only the one explanatory moving surface needs fresh transformed
+          // Only the visible explanatory moving surfaces need fresh transformed
           // bounds; do not remeasure every story control on every chart frame.
-          if (s.storyTrace) {
-            const trace = s.bubbles.find(surface => surface.id === surfaceId(s.storyTrace));
-            if (trace) Object.assign(trace, rectOf(s.storyTrace));
+          for (const preview of s.storyTraces || []) {
+            const trace = s.bubbles.find(surface => surface.id === surfaceId(preview));
+            if (trace) Object.assign(trace, rectOf(preview));
           }
           const colors = s.colors.map((color, i) => rgb(controlPigment('action', s.selected === i ? 'selected' : s.pressed[i] ? 'pressed' : s.hovers[i] ? 'highlighted' : 'rest', color)));
           const transfer = toolbarFrame.current;
@@ -473,7 +473,7 @@ export function App({ active = true }) {
     <div ref={storyScopeRef} onPointerOver={e => gelEvent(e, 'gelHover', true)} onPointerOut={e => gelEvent(e, 'gelHover', false)}
       onPointerDown={e => gelEvent(e, 'gelPressed', true)} onPointerUp={e => gelEvent(e, 'gelPressed', false)} onPointerCancel={e => gelEvent(e, 'gelPressed', false)}
       onFocus={e => gelEvent(e, 'gelHover', true)} onBlur={e => gelEvent(e, 'gelHover', false)}>
-      <DesignStory motionEnabled={!paused && !reducedMotion} />
+      <DesignStory motionEnabled={!paused && !reducedMotion && params.motion > 0} />
     </div>
     </main>
     <footer className="site-footer"><span>JellyBox <span className="footer-cross">—</span> by christopher robin fiore · MIT</span><JellySwitch tone="info" label="Continuous motion" checked={!paused} onCheckedChange={enabled => setPaused(!enabled)} /></footer>

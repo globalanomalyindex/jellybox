@@ -1,0 +1,26 @@
+.story-motion { container-type: inline-size; }
+.story-motion-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 28px 32px; }
+.story-motion-cell { min-width: 0; }
+.story-motion-heading { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin-bottom: 4px; font-variant-numeric: tabular-nums; }
+.story-motion-heading h4 { margin: 0; font-size: 14px; line-height: 1.5; font-weight: 550; }
+.story-motion-heading > span { color: var(--secondary); font-size: 12px; }
+.story-motion .story-motion-cell > code { display: block; font-size: 12px; line-height: 1.5; color: var(--secondary); }
+.story-motion-graph { position: relative; padding-left: 34px; margin-top: 16px; }
+.story-motion-chart { display: block; width: 100%; height: 132px; overflow: visible; }
+.story-motion-y-labels { position: absolute; left: 0; top: 0; width: 28px; height: 132px; color: var(--secondary); font-size: 11px; font-variant-numeric: tabular-nums; text-align: right; }
+.story-motion-y-labels > span { position: absolute; right: 0; line-height: 16px; }
+.story-motion-y-labels > :first-child { top: 16px; }
+.story-motion-y-labels > :last-child { top: 112px; }
+.story-motion-x-labels { display: flex; justify-content: space-between; color: var(--secondary); font-size: 11px; line-height: 16px; font-variant-numeric: tabular-nums; }
+.story-motion-chart .chart-guide { stroke: #a7b3bd; fill: none; stroke-width: 1; stroke-dasharray: 3 5; vector-effect: non-scaling-stroke; }
+.story-motion-chart .chart-response { fill: none; stroke: #7992a85c; stroke-width: 2; vector-effect: non-scaling-stroke; }
+.story-motion-chart .chart-progress { fill: none; stroke: #176ac0; stroke-width: 2.5; stroke-dasharray: 1; stroke-dashoffset: 0; }
+.story-motion-chart .chart-playhead { stroke: #647789; stroke-width: 1; opacity: .4; transform: translateX(256px); vector-effect: non-scaling-stroke; }
+.story-motion-chart .chart-dot { fill: #408fce; stroke: #225887; stroke-width: 1; transform: translate(256px, -96px); vector-effect: non-scaling-stroke; }
+.story-motion-travel { overflow: clip; overflow-clip-margin: 56px; position: relative; height: 36px; margin: 12px 48px 0 34px; pointer-events: none; }
+.story-motion-rail { position: absolute; top: 17px; left: 0; right: 0; height: 1px; background: #a7b3bd; }
+.story-motion-travel .chart-material-carrier { position: absolute; left: 0; top: 18px; width: 100%; height: 0; transform: translateX(100%); }
+.story-motion-travel .chart-jelly { position: absolute; top: -14px; left: -20px; width: 40px; height: 28px; border-radius: 999px; --jb-color: #5baff3; --jb-rgb: 91 175 243; background: linear-gradient(#b5e9ff, #529cde); box-shadow: inset 0 1px 1px #fff9, 0 2px 4px #24649f30; }
+@container (max-width: 480px) {
+  .story-motion-grid { grid-template-columns: minmax(0, 1fr); gap: 28px; }
+}

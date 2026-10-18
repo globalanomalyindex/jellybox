@@ -1197,11 +1197,12 @@ export function createOptics(canvas, { getScene, onError = () => {}, onAfterRend
           body.densityFolder = !!region.folder;
           const hoverGain = stepJellyResponse(body, 'densityHover', region.hover && moving ? 1 : 0, delta, { duration: MOTION.material, curve: MOTION.settle, instant: !!state.reducedMotion || !wasLive });
           const hover = densityHoverResponse(hoverGain, time, moving);
+          const concentration = stepJellyResponse(body, 'densityConcentration', clamp(region.concentration ?? 1, .3, 1), delta, { duration: MOTION.material, curve: MOTION.gather, instant: !!state.reducedMotion || !wasLive });
           const visibility = region.opacity * (body.window?.contentOpacity ?? 1) * openness;
           const densityHeight = region.expandedHeight ?? region.height;
           body.density = { x: region.x + region.width / 2 - button.x - button.width / 2,
             y: button.y + button.height / 2 - region.y - densityHeight / 2,
-            width: region.width + (region.folder ? 0 : Math.abs(field.flow) * 10), height: densityHeight, edge: field.edge, fold: region.folder ? field.fold : 0, folder: !!region.folder, jiggle: (body.densitySettle.strain + hover.jiggle) * visibility, flow: field.flow * visibility, amount: (field.amount + hover.amount) * visibility * clamp(region.concentration ?? 1, .3, 1) };
+            width: region.width + (region.folder ? 0 : Math.abs(field.flow) * 10), height: densityHeight, edge: field.edge, fold: region.folder ? field.fold : 0, folder: !!region.folder, jiggle: (body.densitySettle.strain + hover.jiggle) * visibility, flow: field.flow * visibility, amount: (field.amount + hover.amount) * visibility * concentration };
           density.body.value.set(body.width, body.height, body.r);
           density.region.value.set(body.density.x, body.density.y, body.density.width, body.density.height);
           density.amount.value = body.density.amount;

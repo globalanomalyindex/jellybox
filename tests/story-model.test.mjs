@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { scrollEdgeState } from '../src/scroll-presentation.js';
-import { motionLoopFrames, colorGroupState, taskSample } from '../src/story-examples.js';
+import { motionLoopFrames, densityStorySample, colorStorySample } from '../src/story-examples.js';
 import { MOTION, sampleBezier } from '../packages/react/src/renderer/motion.js';
 
 const reading = { viewportHeight: 720, documentHeight: 5000, scroll: 1000, storyTop: -200, credits: { top: -500, bottom: -400 } };
@@ -40,24 +40,18 @@ test('explanatory loops preserve the real response duration, hold, and close the
   }
 });
 
-test('group previews retain accepted membership until explicit update or separation', () => {
-  const original = { pair: 0, mix: 50 };
-  assert.equal(colorGroupState(original, null).joined, false);
-  const accepted = { ...original };
-  assert.equal(colorGroupState(original, accepted).dirty, false);
-  const preview = { pair: 1, mix: 75 };
-  assert.deepEqual(colorGroupState(preview, accepted), { dirty: true, joined: true, label: 'Joined · changes pending' });
-  assert.deepEqual(accepted, original);
-  assert.equal(colorGroupState({ ...accepted }, accepted).dirty, false);
-  assert.equal(colorGroupState(preview, { ...preview }).label, 'Joined · 2 items');
-  assert.equal(colorGroupState(preview, null).joined, false);
+test('density illustrates thin and gathered structure without requiring input', () => {
+  assert.deepEqual(densityStorySample(0), { strength: 45, label: 'Open film' });
+  assert.deepEqual(densityStorySample(3000), { strength: 100, label: 'Gathered structure' });
+  assert.deepEqual(densityStorySample(5400), { strength: 45, label: 'Open film' });
+  assert.deepEqual(densityStorySample(0, { staticMode: true }), { strength: 100, label: 'Gathered structure' });
 });
 
-test('the state demonstration reports progress before its selected outcome', () => {
-  for (const outcome of ['success', 'warning', 'error']) {
-    assert.deepEqual(taskSample(1200, outcome), { progress: 50, status: 'loading' });
-    assert.deepEqual(taskSample(2400, outcome), { progress: 100, status: outcome });
-    assert.deepEqual(taskSample(5000, outcome), { progress: 100, status: outcome });
-  }
-  assert.equal(taskSample(2400, 'unrecognized').status, 'error');
+test('color automatically distinguishes separate, joined, preview and accepted pigment', () => {
+  assert.deepEqual(colorStorySample(0), { joined: false, pending: false, mix: 50, label: 'Separate pigments' });
+  assert.deepEqual(colorStorySample(2800), { joined: true, pending: false, mix: 50, label: 'Shared identity' });
+  assert.deepEqual(colorStorySample(5500), { joined: true, pending: true, mix: 75, label: 'Edit preview' });
+  assert.deepEqual(colorStorySample(8000), { joined: true, pending: false, mix: 75, label: 'Accepted pigment' });
+  assert.deepEqual(colorStorySample(10100), colorStorySample(0));
+  assert.deepEqual(colorStorySample(0, { staticMode: true }), { joined: true, pending: false, mix: 50, label: 'Shared identity' });
 });
