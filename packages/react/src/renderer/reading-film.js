@@ -25,7 +25,9 @@ export function installReadingFilm(material) {
     `);
     shader.fragmentShader = shader.fragmentShader.replace('#include <clearcoat_normal_fragment_begin>', `
       float readingFacing = smoothstep(.25, .85, dot(normal, normalize(vPocketZ)));
-      float readingSupport = readingFilm * readingFacing;
+      // Only the gathered inner shoulder yields the parent reading policy.
+      // The inset plateau, primary faces and activity volumes stay unchanged.
+      float readingSupport = readingFilm * readingFacing * (1.0-densityGather*.88);
       normal = normalize(mix(normal, normalize(vPocketZ), readingSupport * .45));
       nonPerturbedNormal = normal;
       #include <clearcoat_normal_fragment_begin>
@@ -54,7 +56,7 @@ export function installReadingFilm(material) {
       vec3 pos = vWorldPosition;
     `);
   };
-  material.customProgramCacheKey = () => `${cacheKey.call(material)}-reading-film-v3`;
+  material.customProgramCacheKey = () => `${cacheKey.call(material)}-reading-film-v4`;
 }
 
 export function updateReadingFilm(material, target, body, retain = false) {

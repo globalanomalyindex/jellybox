@@ -31,3 +31,24 @@ test('hover transfers the optical crown inside the folder while keeping a filled
     assert.ok(Math.abs(actual.dx - dx) < .001 && Math.abs(actual.dy - dy) < .001, 'refraction/highlights follow the actual density gradient');
   }
 });
+
+test('folder approach gathers a traveling shoulder instead of tinting the whole reading plateau', () => {
+  const region = { width: 400, height: 220, amount: .94, edge: 5, folder: true, fold: 1, jiggle: 0 };
+  const resting = densityFieldProfile(193, -20, region);
+  const early = densityFieldProfile(193, -20, { ...region, hover: 1, current: 0 });
+  const later = densityFieldProfile(193, -20, { ...region, hover: 1, current: Math.PI });
+  assert.ok(early.height > resting.height + .2 && later.height > resting.height + .2, 'approach adds actual local material');
+  assert.ok(Math.abs(early.height - later.height) > .25, 'the same mass visibly transfers along the shoulder');
+  assert.ok(early.pigment > resting.pigment && later.pigment > resting.pigment, 'pigment concentration follows the gathering height');
+  assert.deepEqual(densityFieldProfile(0, 0, { ...region, hover: 1, current: 0 }), densityFieldProfile(0, 0, region), 'the broad reading plateau stays steady');
+  assert.deepEqual(densityFieldProfile(193, -20, { ...region, hover: 0, current: 2 }), resting, 'leaving returns to the exact incumbent density');
+  const plain = { ...region, folder: false };
+  assert.deepEqual(densityFieldProfile(193, -20, { ...plain, hover: 1, current: 2 }), densityFieldProfile(193, -20, plain), 'other parent density fields retain their identity');
+  for (const current of [0, .7, Math.PI]) for (const [x, y] of [[193, -20], [-193, -20], [25, -103]]) {
+    const field = { ...region, hover: .8, current };
+    const p = densityFieldProfile(x, y, field);
+    const dx = (densityFieldProfile(x + .001, y, field).height - densityFieldProfile(x - .001, y, field).height) / .002;
+    const dy = (densityFieldProfile(x, y + .001, field).height - densityFieldProfile(x, y - .001, field).height) / .002;
+    assert.ok(Math.abs(p.dx - dx) < .001 && Math.abs(p.dy - dy) < .001, 'highlight/refraction slope remains the actual gathered-height derivative');
+  }
+});

@@ -16,7 +16,7 @@ The story has a readable main column, persistent chapter index and a compact hor
 
 A quiet thin reading film and a concentrated perimeter belong to one parent. Inner groups are filled neutral clear-water concentrations with a narrow defined shoulder, broad crown and quieter receiver artifacts. No opaque inner white card, hollow glowing outline or residual pill over primary text.
 
-Hover/focus wakes the filled inner concentration with a clear blue pigment/current response, sharing the same240ms approach gain and bounded optical crown. Static acknowledgement remains when continuous motion is off. Labels, icon cells, values and hit targets stay anchored. Selected rims, checks, explicit headings and task grouping establish hierarchy. Sliders keep label/value/short rail visible; their optical cross-section gathers on approach rather than moving endpoints.
+Hover/focus gathers a moving filled shoulder within the inner concentration, sharing the same240ms approach gain. Relief, pigment, highlights and refraction follow that shoulder while the reading plateau stays steady. Open groups retain approach as the pointer enters their controls; the fixed tab alone opens/closes them. Static acknowledgement remains when continuous motion is off. Labels, icon cells, values and hit targets stay anchored. Selected rims, checks, explicit headings and task grouping establish hierarchy. Sliders keep label/value/short rail visible; their optical cross-section gathers on approach rather than moving endpoints.
 
 ## Color and state
 

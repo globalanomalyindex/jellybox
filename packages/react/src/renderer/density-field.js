@@ -46,7 +46,8 @@ function roundedField(x, y, width, height, radius) {
     (length ? oy / length : qy >= qx ? 1 : 0) * Math.sign(y)];
 }
 
-export function densityFieldProfile(x, y, { width, height, amount = 1, edge = 24, flow = 0, fold = 0, folder = false, jiggle = 0 }) {
+export function densityFieldProfile(x, y, { width, height, amount = 1, edge = 24, flow = 0, fold = 0, folder = false, jiggle = 0, hover = 0, current = 0 }, detail) {
+  if (detail) detail.gather = 0;
   if ((amount === 0 && flow === 0) || Math.abs(x) > width / 2 + 80 || Math.abs(y) > height / 2 + 80) return { height: 0, dx: 0, dy: 0, pigment: 0 };
   const radius = Math.min(32, width / 2, height / 2);
   let [d, nx, ny] = roundedField(x, y, width, height, radius);
@@ -96,11 +97,25 @@ export function densityFieldProfile(x, y, { width, height, amount = 1, edge = 24
   const crown = cx * cx * cy * cy;
   const crownX = -4 * crownXPosition / (hx * hx) * cx * cy * cy;
   const crownY = -4 * crownYPosition / (hy * hy) * cy * cx * cx;
+  let gathered = 0, gatheredX = 0, gatheredY = 0;
+  if (folder && hover > 0) {
+    const gain = Math.max(0, Math.min(1, hover)), inside = -d;
+    const riseT = Math.max(0, Math.min(1, inside / 3));
+    const fallT = Math.max(0, Math.min(1, (inside - 5) / 7));
+    const rise = riseT * riseT * (3 - 2 * riseT), fall = 1 - fallT * fallT * (3 - 2 * fallT);
+    const slope = 2 * riseT * (1 - riseT) * fall - rise * 6 * fallT * (1 - fallT) / 7;
+    const angle = crownXPosition / hx * 2.2 + crownYPosition / hy * 1.4 - current;
+    const crest = .6 + .4 * Math.sin(angle), transfer = gain * rise * fall;
+    gathered = transfer * crest;
+    gatheredX = -nx * gain * slope * crest + transfer * .4 * Math.cos(angle) * 2.2 / hx;
+    gatheredY = -ny * gain * slope * crest + transfer * .4 * Math.cos(angle) * 1.4 / hy;
+  }
+  if (detail) detail.gather = gathered;
   const bulk = 4.4 + 2 * crown;
   const gradient = bulk * slope * amount - .32 * donorSlope * flow;
-  return { height: bulk * coverage * amount - .32 * donor * flow,
-    dx: gradient * nx + 2 * coverage * amount * crownX, dy: gradient * ny + 2 * coverage * amount * crownY,
-    pigment: .12 * coverage * coverage * amount };
+  return { height: bulk * coverage * amount - .32 * donor * flow + 1.35 * gathered * amount,
+    dx: gradient * nx + 2 * coverage * amount * crownX + 1.35 * gatheredX * amount, dy: gradient * ny + 2 * coverage * amount * crownY + 1.35 * gatheredY * amount,
+    pigment: .12 * coverage * coverage * amount + .018 * gathered * amount };
 }
 
 // xy: height gradient, z: relief, w: spectral clearing concentration.
@@ -113,7 +128,8 @@ vec3 jellyRoundedField(vec2 p, vec2 size, float radius) {
   vec2 n = (len > .0001 ? outside / len : (q.x > q.y ? vec2(1.0, 0.0) : vec2(0.0, 1.0))) * sign(p);
   return vec3(d, n);
 }
-vec4 jellyDensity(vec2 point, vec4 region, float amount, vec4 shape, float jiggle) {
+vec4 jellyDensityField(vec2 point, vec4 region, float amount, vec4 shape, float jiggle, vec2 hover, out float gathered) {
+  gathered = 0.0;
   vec2 p = point - region.xy;
   if ((amount <= .001 && abs(shape.y) <= .001) || any(greaterThan(abs(p),region.zw*.5+vec2(80.0)))) return vec4(0.0);
   float radius = min(32.0, min(region.z, region.w) * .5);
@@ -157,9 +173,27 @@ vec4 jellyDensity(vec2 point, vec4 region, float amount, vec4 shape, float jiggl
   vec2 c = max(vec2(0.0), vec2(1.0) - (crownPoint/halfSize)*(crownPoint/halfSize));
   float crown = c.x*c.x*c.y*c.y;
   vec2 crownGradient = -4.0*crownPoint/(halfSize*halfSize)*vec2(c.x*c.y*c.y, c.y*c.x*c.x);
+  vec2 gatheredGradient = vec2(0.0);
+  if (shape.w > .5 && hover.x > .00001) {
+    float gain = clamp(hover.x,0.0,1.0), inside = -d;
+    float riseT = clamp(inside/3.0,0.0,1.0), fallT = clamp((inside-5.0)/7.0,0.0,1.0);
+    float rise = riseT*riseT*(3.0-2.0*riseT), fall = 1.0-fallT*fallT*(3.0-2.0*fallT);
+    float slope = 2.0*riseT*(1.0-riseT)*fall-rise*6.0*fallT*(1.0-fallT)/7.0;
+    float angle = crownPoint.x/halfSize.x*2.2+crownPoint.y/halfSize.y*1.4-hover.y;
+    float crest = .6+.4*sin(angle), transfer = gain*rise*fall;
+    gathered = transfer*crest;
+    gatheredGradient = -n*gain*slope*crest+transfer*.4*cos(angle)*vec2(2.2,1.4)/halfSize;
+  }
   float bulk = 4.4+2.0*crown;
   float gradient = bulk*slope*amount-.32*donorSlope*shape.y;
-  return vec4(n*gradient+2.0*coverage*amount*crownGradient, bulk*coverage*amount-.32*donor*shape.y, .12*coverage*coverage*amount);
+  return vec4(n*gradient+2.0*coverage*amount*crownGradient+1.35*gatheredGradient*amount, bulk*coverage*amount-.32*donor*shape.y+1.35*gathered*amount, .12*coverage*coverage*amount+.018*gathered*amount);
+}
+vec4 jellyDensity(vec2 point, vec4 region, float amount, vec4 shape, float jiggle, vec2 hover) {
+  float gathered;
+  return jellyDensityField(point,region,amount,shape,jiggle,hover,gathered);
+}
+vec4 jellyDensity(vec2 point, vec4 region, float amount, vec4 shape, float jiggle) {
+  return jellyDensity(point,region,amount,shape,jiggle,vec2(0.0));
 }
 float jellyDensityColorWeight(float concentration) {
   return clamp(concentration / .10, 0.0, 1.0);
