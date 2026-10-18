@@ -1,4 +1,4 @@
-import { MOTION, stepJellyResponse } from './motion.js';
+import { MOTION, sampleBezier, stepJellyResponse } from './motion.js';
 
 // A filled concentration within the parent optical volume, not another mesh.
 // The fragment shader and receiver tracing share this thickness profile.
@@ -19,18 +19,82 @@ export function densityHoverResponse(gain, time, moving = true) {
 
 // Parent and child share one material envelope. The child takes active energy
 // gradually, leaving a quiet connection while the same angle brakes to rest.
-export function stepFolderAttention(body, { hover = false, childActive = false }, seconds, { instant = false, moving = true, initialCurrent = 0 } = {}) {
+function folderDonorAnchor(width, height, y) {
+  return { x: width / 2 - 7, y: Math.max(-height / 2 + 22, Math.min(height / 2 - 58, y)) };
+}
+
+export function stepFolderAttention(body, { hover = false, childActive = false, receiver = null, width = 400, height = 220 }, seconds, { instant = false, moving = true, initialCurrent = 0 } = {}) {
   const target = childActive ? .12 : hover ? 1 : 0;
   const displayed = body.responses?.densityHover?.value ?? target;
   const withdrawing = target < displayed;
   const dt = Math.max(0, seconds);
-  const gain = stepJellyResponse(body, 'densityHover', target, dt,
-    { duration: withdrawing ? MOTION.sliderMelt : MOTION.sliderGather,
-      curve: withdrawing ? MOTION.withdraw : MOTION.gather, instant });
+  let gain;
+  let transfer = body.folderTransfer;
+  if (receiver || transfer) {
+    body.responses ||= {};
+    const response = body.responses.densityHover ||= { value: target, from: target, target, elapsed: 0 };
+    const receiverId = receiver?.id ?? null;
+    if (!transfer) {
+      const source = folderDonorAnchor(width, height, receiver.y);
+      transfer = body.folderTransfer = { receiverId: null, source, point: { ...source }, flow: 0, borrowed: 0, receivers: [] };
+    }
+    // The anchor belongs to the actual parent shoulder. A responsive resize
+    // rebases that shoulder without restarting the attention transaction.
+    if (transfer.width !== undefined && (transfer.width !== width || transfer.height !== height)) {
+      const source = folderDonorAnchor(width, height, transfer.source.y);
+      const dx = source.x - transfer.source.x, dy = source.y - transfer.source.y;
+      transfer.source = source;
+      if (!transfer.receiverId) {
+        transfer.point = { x: transfer.point.x + dx, y: transfer.point.y + dy };
+        if (transfer.from) transfer.from.point = { x: transfer.from.point.x + dx, y: transfer.from.point.y + dy };
+      }
+    }
+    transfer.width = width; transfer.height = height;
+    if (!transfer.from || response.target !== target || transfer.receiverId !== receiverId) {
+      // A single snapshot owns context, transport and all receiver shares.
+      // A returning packet keeps its path even when pointer-only focus retains
+      // the parent's quiet contextual floor.
+      if (transfer.borrowed < .00001 && !transfer.flow && receiver) {
+        transfer.source = folderDonorAnchor(width, height, receiver.y);
+        transfer.point = { ...transfer.source };
+      }
+      transfer.from = { point: { ...transfer.point }, flow: transfer.flow, borrowed: transfer.borrowed,
+        receivers: transfer.receivers.filter(entry => entry.weight > .00001).slice(0, 32) };
+      transfer.transporting = transfer.receiverId !== receiverId || transfer.flow > .00001
+        || Math.abs(transfer.borrowed - (receiver ? 1 : 0)) > .00001;
+      transfer.receiverId = receiverId;
+      const returning = !receiver && (transfer.borrowed > .00001 || transfer.flow > .00001 || transfer.receivers.length > 0);
+      transfer.duration = target < response.value || returning ? MOTION.sliderMelt : MOTION.sliderGather;
+      transfer.curve = target < response.value || returning ? MOTION.withdraw : MOTION.gather;
+      response.from = response.value; response.target = target; response.elapsed = 0;
+    }
+    response.elapsed = instant ? transfer.duration : Math.min(transfer.duration, response.elapsed + dt * 1000);
+    const p = sampleBezier(transfer.curve, response.elapsed / transfer.duration), from = transfer.from;
+    gain = response.value = response.from + (target - response.from) * p;
+    const destination = receiver || transfer.source;
+    transfer.point = p === 1 || !transfer.transporting ? { x: destination.x, y: destination.y }
+      : { x: from.point.x + (destination.x - from.point.x) * p, y: from.point.y + (destination.y - from.point.y) * p };
+    transfer.borrowed = from.borrowed + ((receiver ? 1 : 0) - from.borrowed) * p;
+    transfer.flow = transfer.transporting ? Math.min(1, from.flow * (1 - p) + 4 * p * (1 - p)) : 0;
+    // Shares follow departure/arrival, not the newest ID alone. Captured old
+    // shares decay from their displayed value when a route is interrupted.
+    const shares = transfer.transporting ? from.receivers.map(entry => ({ id: entry.id,
+      weight: receiver?.id === entry.id ? entry.weight + (1 - entry.weight) * p * p : entry.weight * (1 - p) ** 2 })) : [];
+    if (receiver) {
+      const existing = shares.find(entry => entry.id === receiver.id);
+      if (!existing) shares.push({ id: receiver.id, weight: transfer.transporting ? p * p : 1 });
+    }
+    transfer.receivers = shares.filter(entry => entry.weight > .00001).slice(-32);
+  } else {
+    gain = stepJellyResponse(body, 'densityHover', target, dt,
+      { duration: withdrawing ? MOTION.sliderMelt : MOTION.sliderGather,
+        curve: withdrawing ? MOTION.withdraw : MOTION.gather, instant });
+  }
   if (!Number.isFinite(body.densityCurrent)) body.densityCurrent = initialCurrent;
   const speed = Math.max(0, Math.min(1, (gain - .12) / .88));
   if (moving && !instant) body.densityCurrent += dt * Math.PI * 2 / (MOTION.activityOrbit / 1000) * speed * speed * (3 - 2 * speed);
-  return { gain, current: body.densityCurrent };
+  return transfer ? { gain, current: body.densityCurrent, transfer: { source: transfer.source, point: transfer.point,
+    flow: transfer.flow, borrowed: transfer.borrowed, receivers: transfer.receivers } } : { gain, current: body.densityCurrent };
 }
 
 // Local material strain, independent of layout and the native disclosure state.
@@ -62,7 +126,7 @@ function roundedField(x, y, width, height, radius) {
     (length ? oy / length : qy >= qx ? 1 : 0) * Math.sign(y)];
 }
 
-export function densityFieldProfile(x, y, { width, height, amount = 1, edge = 24, flow = 0, fold = 0, folder = false, jiggle = 0, hover = 0, current = 0 }, detail) {
+export function densityFieldProfile(x, y, { width, height, amount = 1, edge = 24, flow = 0, fold = 0, folder = false, jiggle = 0, hover = 0, current = 0, transfer = null }, detail) {
   if (detail) detail.gather = 0;
   if ((amount === 0 && flow === 0) || Math.abs(x) > width / 2 + 80 || Math.abs(y) > height / 2 + 80) return { height: 0, dx: 0, dy: 0, pigment: 0 };
   const radius = Math.min(32, width / 2, height / 2);
@@ -126,12 +190,28 @@ export function densityFieldProfile(x, y, { width, height, amount = 1, edge = 24
     gatheredX = -nx * gain * slope * crest + transfer * .4 * Math.cos(angle) * 2.2 / hx;
     gatheredY = -ny * gain * slope * crest + transfer * .4 * Math.cos(angle) * 1.4 / hy;
   }
-  if (detail) detail.gather = gathered;
+  let transported = 0, transportedX = 0, transportedY = 0, withdrawn = 0, withdrawnX = 0, withdrawnY = 0;
+  if (folder && transfer) {
+    // Authored redistribution inside the existing volume. Compact finite
+    // support stays on the control row; it is not a colored connecting mesh.
+    const packetX = x - transfer.point.x, packetY = y - transfer.point.y;
+    const sourceX = x - transfer.source.x, sourceY = y - transfer.source.y;
+    const packet = Math.max(0, 1 - (packetX / 32) ** 2 - (packetY / 14) ** 2);
+    const source = Math.max(0, 1 - (sourceX / 12) ** 2 - (sourceY / 28) ** 2);
+    transported = transfer.flow * packet ** 3 * coverage;
+    transportedX = transfer.flow * (-6 * packetX / 32 ** 2 * packet ** 2 * coverage + packet ** 3 * slope * nx);
+    transportedY = transfer.flow * (-6 * packetY / 14 ** 2 * packet ** 2 * coverage + packet ** 3 * slope * ny);
+    withdrawn = transfer.borrowed * source ** 3 * coverage;
+    withdrawnX = transfer.borrowed * (-6 * sourceX / 12 ** 2 * source ** 2 * coverage + source ** 3 * slope * nx);
+    withdrawnY = transfer.borrowed * (-6 * sourceY / 28 ** 2 * source ** 2 * coverage + source ** 3 * slope * ny);
+  }
+  if (detail) detail.gather = Math.min(1, gathered + transported * .75);
   const bulk = 4.4 + 2 * crown;
   const gradient = bulk * slope * amount - .32 * donorSlope * flow;
-  return { height: bulk * coverage * amount - .32 * donor * flow + 1.35 * gathered * amount,
-    dx: gradient * nx + 2 * coverage * amount * crownX + 1.35 * gatheredX * amount, dy: gradient * ny + 2 * coverage * amount * crownY + 1.35 * gatheredY * amount,
-    pigment: .12 * coverage * coverage * amount + .018 * gathered * amount };
+  return { height: bulk * coverage * amount - .32 * donor * flow + (1.35 * gathered + 1.8 * transported - .9 * withdrawn) * amount,
+    dx: gradient * nx + 2 * coverage * amount * crownX + (1.35 * gatheredX + 1.8 * transportedX - .9 * withdrawnX) * amount,
+    dy: gradient * ny + 2 * coverage * amount * crownY + (1.35 * gatheredY + 1.8 * transportedY - .9 * withdrawnY) * amount,
+    pigment: (.12 * coverage * coverage + .018 * gathered + .04 * transported - .015 * withdrawn) * amount };
 }
 
 // xy: height gradient, z: relief, w: spectral clearing concentration.
@@ -144,7 +224,7 @@ vec3 jellyRoundedField(vec2 p, vec2 size, float radius) {
   vec2 n = (len > .0001 ? outside / len : (q.x > q.y ? vec2(1.0, 0.0) : vec2(0.0, 1.0))) * sign(p);
   return vec3(d, n);
 }
-vec4 jellyDensityField(vec2 point, vec4 region, float amount, vec4 shape, float jiggle, vec2 hover, out float gathered) {
+vec4 jellyDensityField(vec2 point, vec4 region, float amount, vec4 shape, float jiggle, vec2 hover, vec4 transport, vec4 donorTransport, out float gathered) {
   gathered = 0.0;
   vec2 p = point - region.xy;
   if ((amount <= .001 && abs(shape.y) <= .001) || any(greaterThan(abs(p),region.zw*.5+vec2(80.0)))) return vec4(0.0);
@@ -200,9 +280,31 @@ vec4 jellyDensityField(vec2 point, vec4 region, float amount, vec4 shape, float 
     gathered = transfer*crest;
     gatheredGradient = -n*gain*slope*crest+transfer*.4*cos(angle)*vec2(2.2,1.4)/halfSize;
   }
+  float transported = 0.0, withdrawn = 0.0;
+  vec2 transportedGradient = vec2(0.0), withdrawnGradient = vec2(0.0);
+  if (shape.w > .5 && (transport.z > .00001 || donorTransport.z > .00001)) {
+    vec2 packetPoint = p-transport.xy, sourcePoint = p-donorTransport.xy;
+    float packet = max(0.0,1.0-dot(packetPoint/vec2(32.0,14.0),packetPoint/vec2(32.0,14.0)));
+    float source = max(0.0,1.0-dot(sourcePoint/vec2(12.0,28.0),sourcePoint/vec2(12.0,28.0)));
+    transported = transport.z*packet*packet*packet*coverage;
+    withdrawn = donorTransport.z*source*source*source*coverage;
+    transportedGradient = transport.z*(-6.0*packetPoint/vec2(1024.0,196.0)*packet*packet*coverage+packet*packet*packet*slope*n);
+    withdrawnGradient = donorTransport.z*(-6.0*sourcePoint/vec2(144.0,784.0)*source*source*coverage+source*source*source*slope*n);
+  }
+  float materialGather = gathered;
+  gathered = min(1.0,gathered+transported*.75);
   float bulk = 4.4+2.0*crown;
   float gradient = bulk*slope*amount-.32*donorSlope*shape.y;
-  return vec4(n*gradient+2.0*coverage*amount*crownGradient+1.35*gatheredGradient*amount, bulk*coverage*amount-.32*donor*shape.y+1.35*gathered*amount, .12*coverage*coverage*amount+.018*gathered*amount);
+  return vec4(n*gradient+2.0*coverage*amount*crownGradient+(1.35*gatheredGradient+1.8*transportedGradient-.9*withdrawnGradient)*amount,
+    bulk*coverage*amount-.32*donor*shape.y+(1.35*materialGather+1.8*transported-.9*withdrawn)*amount,
+    (.12*coverage*coverage+.018*materialGather+.04*transported-.015*withdrawn)*amount);
+}
+vec4 jellyDensityField(vec2 point, vec4 region, float amount, vec4 shape, float jiggle, vec2 hover, out float gathered) {
+  return jellyDensityField(point,region,amount,shape,jiggle,hover,vec4(0.0),vec4(0.0),gathered);
+}
+vec4 jellyDensity(vec2 point, vec4 region, float amount, vec4 shape, float jiggle, vec2 hover, vec4 transport, vec4 donorTransport) {
+  float gathered;
+  return jellyDensityField(point,region,amount,shape,jiggle,hover,transport,donorTransport,gathered);
 }
 vec4 jellyDensity(vec2 point, vec4 region, float amount, vec4 shape, float jiggle, vec2 hover) {
   float gathered;

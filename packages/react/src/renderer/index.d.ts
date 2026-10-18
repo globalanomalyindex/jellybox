@@ -18,6 +18,8 @@ export interface OpticalDensity extends OpticalRect {
   pigment: string; opacity: number; concentration?: number; folder?: boolean; expandedHeight?: number; phase?: number; open?: boolean; hover?: boolean;
   /** An active child keeps a faint parent connection while owning motion. */
   childActive?: boolean;
+  /** Folder receiver: a registered surface ID and its bounds in scene coordinates. Omit or pass null to return density. */
+  transferTarget?: (OpticalRect & { id: string }) | null;
 }
 export interface OpticalSelection extends OpticalBody { id: string; key: string; }
 /** Position in scene pixels; height uses the renderer's authored scene units. */

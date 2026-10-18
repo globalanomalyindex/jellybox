@@ -29,7 +29,7 @@ export default function PanelContent({ panel, params, setParams, defaults, reduc
   useEffect(() => { onReady?.(); }, [panel]);
   const change = (key, value) => setParams(previous => ({ ...previous, [key]: value }));
   if (panel === 0) return <div className="panel-content explore-content">
-    <div className="panel-intro"><h3>Jelly options</h3><p>A slow breath or a proper wobble. Same three buttons.</p></div>
+    <div className="panel-intro"><h3>Jelly options</h3><p>One shared jelly. Density, color and light carry each change.</p></div>
     <JellySelectionGroup className="study-presets" data-gel-bulbs="true" aria-label="Movement presets" value={params.motion} tone="action"
       options={MOVEMENT_PRESETS}
       onValueChange={value => change('motion', value)} />
@@ -65,7 +65,7 @@ export default function PanelContent({ panel, params, setParams, defaults, reduc
     <p className="panel-note">Previewing doesn’t change your saved or selected colors. The check always marks your choice.</p>
   </div>;
   return <div className="panel-content material-content">
-    <div className="panel-intro"><h3>Find your kind of jelly.</h3><p>Thicker, clearer, floatier. The edges tell the story.</p></div>
+    <div className="panel-intro"><h3>Find your kind of jelly.</h3><p>The folder lends density to the control you approach, carrying the light, then gathers it back.</p></div>
     <div className="settings-list">{[
       ['transmission', 'Translucency', 0, 100, 100, '%'], ['light', 'Surface light', 0, 100, 100, '%'],
     ].map(([key, label, min, max, scale, unit]) => <JellySlider compact animateTrack={animateTrack} key={key} tone="action" label={label} min={min} max={max} value={Math.round(params[key] * scale)} formatValue={value => `${value}${unit}`} onValueChange={value => change(key, value / scale)} />)}</div>

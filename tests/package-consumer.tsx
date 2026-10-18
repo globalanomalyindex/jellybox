@@ -10,7 +10,9 @@ export function Consumer() {
   const button = createRef<HTMLButtonElement>();
   const scene: OpticalScene = { width: 300, height: 200,
     panel: { x: 0, y: 0, width: 300, height: 200,
-      density: { x: 20, y: 20, width: 260, height: 140, pigment: '#6bbbf0', opacity: 1, folder: true, hover: true, childActive: open } },
+      density: { x: 20, y: 20, width: 260, height: 140, pigment: '#6bbbf0', opacity: 1, folder: true, hover: true, childActive: open,
+        transferTarget: open ? { id: 'density-value', x: 200, y: 100, width: 58, height: 44 } : null } },
+    bubbles: [{ id: 'density-value', x: 200, y: 100, width: 58, height: 44 }],
     contrastTargets: [{ id: 'action', x: 20, y: 20, width: 80, height: 16, ink: '#000000' }],
     light: { x: 100, y: 20, height: 152, intensity: 1, softness: .45, warmth: .5, enabled: true } };
   const settleDuration: number = MOTION.recoil + MOTION.arrival;

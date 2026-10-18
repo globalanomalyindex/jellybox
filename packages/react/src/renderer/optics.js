@@ -130,6 +130,8 @@ function installFloorFlux(material, fields) {
   uniforms.uReadingDensityAmount = { value: 0 };
   uniforms.uReadingDensityJiggle = { value: 0 };
   uniforms.uReadingDensityHover = { value: new THREE.Vector2() };
+  uniforms.uReadingDensityTransport = { value: new THREE.Vector4() };
+  uniforms.uReadingDensityDonor = { value: new THREE.Vector4() };
   material.onBeforeCompile = shader => {
     Object.assign(shader.uniforms, uniforms);
     shader.vertexShader = `varying vec3 vReceiverPosition;\n${shader.vertexShader}`;
@@ -204,7 +206,7 @@ function installFloorFlux(material, fields) {
       wavelengthReceiver *= mix(vec3(1.0), ${i === 3 ? 'shadow.rgb' : 'mix(vec3(1.0), shadow.rgb, readingTransmission)'}, uFluxWeight${i}); shadowCoverage = max(shadowCoverage, shadow.a);
       ${i === 3 ? 'panelCoverage = shadow.a;' : ''}
     }`; }).join('\n');
-    shader.fragmentShader = `varying vec3 vReceiverPosition;\nuniform float uShadowSoftness; uniform float uShadowStrength; uniform float uFluxStrength;\nuniform float uNeutralBounce; uniform vec4 uReadingDensityRegion; uniform vec4 uReadingDensityShape; uniform float uReadingDensityAmount; uniform float uReadingDensityJiggle; uniform vec2 uReadingDensityHover;\n${declarations}\n${shadowFunction}\n${shader.fragmentShader}`;
+    shader.fragmentShader = `varying vec3 vReceiverPosition;\nuniform float uShadowSoftness; uniform float uShadowStrength; uniform float uFluxStrength;\nuniform float uNeutralBounce; uniform vec4 uReadingDensityRegion; uniform vec4 uReadingDensityShape; uniform float uReadingDensityAmount; uniform float uReadingDensityJiggle; uniform vec2 uReadingDensityHover; uniform vec4 uReadingDensityTransport; uniform vec4 uReadingDensityDonor;\n${declarations}\n${shadowFunction}\n${shader.fragmentShader}`;
     // Keep cast silhouettes from the trio out of the window's reading area.
     // The dense outer lip still receives them; the thin center softly filters
     // their contrast without putting an opaque DOM card over the material.
@@ -217,9 +219,9 @@ function installFloorFlux(material, fields) {
         readingTransmission = mix(1.0, ${JELLY_MATERIAL.window.externalCastTransmission.toFixed(2)}, readingCoverage);
       }
     `;
-    shader.fragmentShader = shader.fragmentShader.replace('#include <opaque_fragment>', `vec3 photonLight = vec3(0.0);\nvec3 wavelengthReceiver = vec3(1.0);\nfloat shadowCoverage = 0.0;\nfloat panelCoverage = 0.0;\n${readingFilter}\n${samples}\n${shadowSamples}\nfloat densityTransmission = jellyDensityBackgroundTransmission(jellyDensity(vReceiverPosition.xy, uReadingDensityRegion, uReadingDensityAmount, uReadingDensityShape, uReadingDensityJiggle, uReadingDensityHover).w);\nwavelengthReceiver = mix(vec3(1.0), wavelengthReceiver, densityTransmission);\nphotonLight *= densityTransmission;\noutgoingLight += diffuseColor.rgb * uNeutralBounce * (shadowCoverage + panelCoverage * 0.55);\noutgoingLight *= wavelengthReceiver;\noutgoingLight += photonLight * diffuseColor.rgb * uFluxStrength / 3.14159265;\n#include <opaque_fragment>`);
+    shader.fragmentShader = shader.fragmentShader.replace('#include <opaque_fragment>', `vec3 photonLight = vec3(0.0);\nvec3 wavelengthReceiver = vec3(1.0);\nfloat shadowCoverage = 0.0;\nfloat panelCoverage = 0.0;\n${readingFilter}\n${samples}\n${shadowSamples}\nfloat densityTransmission = jellyDensityBackgroundTransmission(jellyDensity(vReceiverPosition.xy, uReadingDensityRegion, uReadingDensityAmount, uReadingDensityShape, uReadingDensityJiggle, uReadingDensityHover, uReadingDensityTransport, uReadingDensityDonor).w);\nwavelengthReceiver = mix(vec3(1.0), wavelengthReceiver, densityTransmission);\nphotonLight *= densityTransmission;\noutgoingLight += diffuseColor.rgb * uNeutralBounce * (shadowCoverage + panelCoverage * 0.55);\noutgoingLight *= wavelengthReceiver;\noutgoingLight += photonLight * diffuseColor.rgb * uFluxStrength / 3.14159265;\n#include <opaque_fragment>`);
   };
-  material.customProgramCacheKey = () => 'movable-light-folder-gather-receiver-v18';
+  material.customProgramCacheKey = () => 'movable-light-folder-transfer-receiver-v19';
   return uniforms;
 }
 
@@ -242,16 +244,16 @@ function installVolumeThickness(material) {
   const densityPalette = new THREE.DataTexture(densityPixels, 33, 2, THREE.RGBAFormat, THREE.FloatType);
   densityPalette.minFilter = densityPalette.magFilter = THREE.LinearFilter;
   densityPalette.needsUpdate = true;
-  const density = { legacyHover: { value: 0 }, hover: { value: new THREE.Vector2() }, body: { value: new THREE.Vector3(1, 1, .5) }, shape: { value: new THREE.Vector4(24, 0, 0, 0) }, region: { value: new THREE.Vector4(0, 0, 1, 1) }, amount: { value: 0 }, jiggle: { value: 0 }, palette: { value: densityPalette } };
+  const density = { transport: { value: new THREE.Vector4() }, donor: { value: new THREE.Vector4() }, legacyHover: { value: 0 }, hover: { value: new THREE.Vector2() }, body: { value: new THREE.Vector3(1, 1, .5) }, shape: { value: new THREE.Vector4(24, 0, 0, 0) }, region: { value: new THREE.Vector4(0, 0, 1, 1) }, amount: { value: 0 }, jiggle: { value: 0 }, palette: { value: densityPalette } };
   material.userData.density = density;
   material.onBeforeCompile = shader => {
-    Object.assign(shader.uniforms, { uPigmentRegion: flow.region, uActivityShape: flow.activity, uActivityGather: flow.gather, uActivityStrain: flow.strain, uActivityReading: flow.reading, uPocketDepth: flow.depth, uPigmentStrength: flow.strength, uPigmentPalette: flow.palette, uActivityPalette: flow.activityPalette, uActivityPigmentPhase: flow.pigmentPhase, uActivityFallbackDense: flow.fallbackDense, uDensityBody: density.body, uDensityRegion: density.region, uDensityShape: density.shape, uDensityAmount: density.amount, uDensityJiggle: density.jiggle, uDensityPalette: density.palette, uDensityHover: density.hover, uDensityLegacyHover: density.legacyHover, uControlDensity: controlDensity, uControlDensityThumb: controlDensity.thumb });
+    Object.assign(shader.uniforms, { uPigmentRegion: flow.region, uActivityShape: flow.activity, uActivityGather: flow.gather, uActivityStrain: flow.strain, uActivityReading: flow.reading, uPocketDepth: flow.depth, uPigmentStrength: flow.strength, uPigmentPalette: flow.palette, uActivityPalette: flow.activityPalette, uActivityPigmentPhase: flow.pigmentPhase, uActivityFallbackDense: flow.fallbackDense, uDensityBody: density.body, uDensityRegion: density.region, uDensityShape: density.shape, uDensityAmount: density.amount, uDensityJiggle: density.jiggle, uDensityPalette: density.palette, uDensityHover: density.hover, uDensityLegacyHover: density.legacyHover, uDensityTransport: density.transport, uDensityDonor: density.donor, uControlDensity: controlDensity, uControlDensityThumb: controlDensity.thumb });
     shader.vertexShader = `attribute float aVolumeDepth; varying float vVolumeDepth; varying vec2 vJellyPosition; varying vec3 vPocketX; varying vec3 vPocketY; varying vec3 vPocketZ;\n${shader.vertexShader}`;
     shader.vertexShader = shader.vertexShader.replace('#include <begin_vertex>', '#include <begin_vertex>\nvVolumeDepth = aVolumeDepth; vJellyPosition = position.xy; vPocketX = normalMatrix * vec3(1.0, 0.0, 0.0); vPocketY = normalMatrix * vec3(0.0, 1.0, 0.0); vPocketZ = normalMatrix * vec3(0.0, 0.0, 1.0);');
     shader.fragmentShader = `varying float vVolumeDepth; varying vec2 vJellyPosition;
       varying vec3 vPocketX; varying vec3 vPocketY; varying vec3 vPocketZ;
       uniform vec4 uPigmentRegion; uniform vec4 uActivityShape; uniform float uActivityGather; uniform vec2 uActivityReading; uniform float uPocketDepth; uniform float uPigmentStrength; uniform sampler2D uPigmentPalette;
-      uniform vec3 uDensityBody; uniform vec4 uDensityRegion; uniform vec4 uDensityShape; uniform float uDensityAmount; uniform float uDensityJiggle; uniform vec2 uDensityHover; uniform float uDensityLegacyHover; uniform sampler2D uDensityPalette;
+      uniform vec3 uDensityBody; uniform vec4 uDensityRegion; uniform vec4 uDensityShape; uniform float uDensityAmount; uniform float uDensityJiggle; uniform vec2 uDensityHover; uniform vec4 uDensityTransport; uniform vec4 uDensityDonor; uniform float uDensityLegacyHover; uniform sampler2D uDensityPalette;
       ${POCKET_GLSL}\n${ACTIVITY_GLSL}\n${ACTIVITY_PIGMENT_GLSL}\n${DENSITY_GLSL}\n${CONTROL_DENSITY_GLSL}\n${shader.fragmentShader}`;
     // One field drives the whole interior before PBR lighting and transmission.
     shader.fragmentShader = shader.fragmentShader.replace('#include <color_fragment>', `
@@ -260,7 +262,7 @@ function installVolumeThickness(material) {
       float activityReading = uActivityReading.x > .5 ? (1.0-smoothstep(.20,.54,abs(readingPoint.y))) * (1.0-smoothstep(.84,.97,abs(readingPoint.x))) : 0.0;
       vec4 controlShoulder = jellyControlDensity(vJellyPosition);
       float densityGather = 0.0;
-      vec4 densityField = uDensityAmount > .001 ? jellyDensityField(vJellyPosition, uDensityRegion, uDensityAmount, uDensityShape, uDensityJiggle, uDensityHover, densityGather) : vec4(0.0);
+      vec4 densityField = uDensityAmount > .001 ? jellyDensityField(vJellyPosition, uDensityRegion, uDensityAmount, uDensityShape, uDensityJiggle, uDensityHover, uDensityTransport, uDensityDonor, densityGather) : vec4(0.0);
     `).replace('#include <roughnessmap_fragment>', `
       #include <roughnessmap_fragment>
       roughnessFactor = min(1.0, roughnessFactor + .065 * densityField.w / .12 + activityReading * .11 + controlShoulder.w * .035);
@@ -333,7 +335,7 @@ function installVolumeThickness(material) {
       `);
     shader.fragmentShader = shader.fragmentShader.replace('#include <transmission_fragment>', transmission);
   };
-  material.customProgramCacheKey = () => 'shared-liquid-folder-gather-v28';
+  material.customProgramCacheKey = () => 'shared-liquid-folder-transfer-v29';
 }
 
 function makeMeniscusGeometry(joinedTab = false) {
@@ -569,7 +571,7 @@ function deformJelly(body) {
   const surfaceKey = cacheSurface ? geometrySampleKey([body.profileCacheKey, body.tab?.width, body.tab?.lift, body.tab?.amount,
     body.tab?.neck?.pull, body.tab?.neck?.pinch, body.tab?.neck?.wobble,
     body.density?.x, body.density?.y, body.density?.width, body.density?.height,
-    body.density?.amount, body.density?.edge, body.density?.flow, body.density?.fold, body.density?.folder, body.density?.jiggle, body.density?.hover, body.density?.current]) : null;
+    body.density?.amount, body.density?.edge, body.density?.flow, body.density?.fold, body.density?.folder, body.density?.jiggle, body.density?.hover, body.density?.current, body.density?.transfer?.point.x, body.density?.transfer?.point.y, body.density?.transfer?.source.x, body.density?.transfer?.source.y, body.density?.transfer?.flow, body.density?.transfer?.borrowed]) : null;
   if (cacheSurface && surfaceKey !== body.surfaceCacheKey) {
     body.surfaceCache ||= new Float32Array(body.base.length);
     for (let vertex = 0; vertex < body.base.length / 3; vertex++) {
@@ -639,7 +641,7 @@ function updateGeometry(body, timestamp, moving) {
   const key = geometrySampleKey([body.width, body.height, body.r, Math.round(body.hover * 10000),
     Math.round(body.pressed * 10000), body.stir, body.joinStrain, body.fullness, Math.round(body.c * 100),
     body.pointerX, body.pointerY, body.controlDensity?.amount, body.activityShape?.phase, body.activityShape?.gain, body.activityShape?.gather, body.activityShape?.breath, body.activityShape?.strain,
-    body.density?.x, body.density?.y, body.density?.width, body.density?.height, body.density?.amount, body.density?.edge, body.density?.flow, body.density?.fold, body.density?.folder, body.density?.jiggle, body.density?.approach, body.tab?.width, body.tab?.lift, body.tab?.amount, body.tab?.neck?.pull, body.tab?.neck?.pinch, body.tab?.neck?.wobble]);
+    body.density?.x, body.density?.y, body.density?.width, body.density?.height, body.density?.amount, body.density?.edge, body.density?.flow, body.density?.fold, body.density?.folder, body.density?.jiggle, body.density?.approach, body.density?.transfer?.point.x, body.density?.transfer?.point.y, body.density?.transfer?.source.x, body.density?.transfer?.source.y, body.density?.transfer?.flow, body.density?.transfer?.borrowed, body.tab?.width, body.tab?.lift, body.tab?.amount, body.tab?.neck?.pull, body.tab?.neck?.pinch, body.tab?.neck?.wobble]);
   if ((!body.panel && !body.isBubble && body.docked < .001) || key !== body.geometryKey || (moving && timestamp - (body.lastGeometry || -1000) >= 1000 / (body.isBubble ? 24 : 30))) {
     deformJelly(body);
     body.geometryKey = key; body.lastGeometry = timestamp;
@@ -1135,7 +1137,7 @@ export function createOptics(canvas, { getScene, onError = () => {}, onAfterRend
         const wasLive = body.live && (!body.panel || body.owner === button?.id);
         if (body.panel) {
           body.owner = button?.id;
-          if (!wasLive) { body.densityPrevious = null; body.densityPigment = null; body.densityCurrent = undefined; }
+          if (!wasLive) { body.densityPrevious = null; body.densityPigment = null; body.densityCurrent = undefined; body.folderTransfer = null; }
         }
         body.live = !!button && button.width > 0 && button.height > 0;
         body.mesh.visible = body.live;
@@ -1237,21 +1239,30 @@ export function createOptics(canvas, { getScene, onError = () => {}, onAfterRend
           body.densityFolder = !!region.folder;
           // Pausing ambient movement keeps a static color acknowledgment for
           // deliberate pointer/focus input; only the circulating strain stops.
-          const attention = region.folder ? stepFolderAttention(body, { hover: region.hover, childActive: region.childActive }, delta,
+          const densityHeight = region.expandedHeight ?? region.height;
+          const target = region.transferTarget;
+          const registeredTarget = target && (state.bubbles || []).find((item, index) => index < OPTICAL_SURFACE_LIMIT && item.id === target.id
+            && item.width > 0 && item.height > 0 && (item.opacity ?? 1) > .001 && controlDensityRole(item.kind || 'control', item));
+          const receiver = registeredTarget ? { id: registeredTarget.id, width: registeredTarget.width, height: registeredTarget.height,
+            x: registeredTarget.x + registeredTarget.width / 2 - region.x - region.width / 2,
+            y: region.y + densityHeight / 2 - registeredTarget.y - registeredTarget.height / 2 } : null;
+          const attention = region.folder ? stepFolderAttention(body, { hover: region.hover, childActive: region.childActive, receiver, width: region.width, height: densityHeight }, delta,
             { instant: !!state.reducedMotion || !wasLive, moving, initialCurrent: time * Math.PI * 2 / (MOTION.activityOrbit / 1000) }) : null;
           const hoverGain = attention ? attention.gain : stepJellyResponse(body, 'densityHover', region.hover ? 1 : 0, delta, { duration: MOTION.material, curve: MOTION.settle, instant: !!state.reducedMotion || !wasLive });
-          if (!region.folder) body.densityCurrent = undefined;
+          if (!region.folder) { body.densityCurrent = undefined; body.folderTransfer = null; }
           const hover = densityHoverResponse(hoverGain, time, moving);
           const concentration = stepJellyResponse(body, 'densityConcentration', clamp(region.concentration ?? 1, .3, 1), delta, { duration: MOTION.material, curve: MOTION.gather, instant: !!state.reducedMotion || !wasLive });
           const visibility = region.opacity * (body.window?.contentOpacity ?? 1) * openness;
-          const densityHeight = region.expandedHeight ?? region.height;
           body.density = { x: region.x + region.width / 2 - button.x - button.width / 2,
             y: button.y + button.height / 2 - region.y - densityHeight / 2,
-            width: region.width + (region.folder ? 0 : Math.abs(field.flow) * 10), height: densityHeight, edge: field.edge, fold: region.folder ? field.fold : 0, folder: !!region.folder, approach: hoverGain * visibility, legacyHover: region.folder ? 0 : hoverGain, hover: region.folder ? hoverGain * (.9+.1*Math.cos(time*Math.PI*2/(MOTION.breathe/1000))) * visibility : 0, current: attention?.current || 0, jiggle: (body.densitySettle.strain + (region.folder ? 0 : hover.jiggle)) * visibility, flow: field.flow * visibility, amount: (field.amount + (region.folder ? 0 : hover.amount)) * visibility * concentration };
+            width: region.width + (region.folder ? 0 : Math.abs(field.flow) * 10), height: densityHeight, edge: field.edge, fold: region.folder ? field.fold : 0, folder: !!region.folder, approach: hoverGain * visibility, legacyHover: region.folder ? 0 : hoverGain, hover: region.folder ? hoverGain * (.9+.1*Math.cos(time*Math.PI*2/(MOTION.breathe/1000))) * visibility : 0, current: attention?.current || 0, transfer: attention?.transfer || null, jiggle: (body.densitySettle.strain + (region.folder ? 0 : hover.jiggle)) * visibility, flow: field.flow * visibility, amount: (field.amount + (region.folder ? 0 : hover.amount)) * visibility * concentration };
           density.body.value.set(body.width, body.height, body.r);
           density.region.value.set(body.density.x, body.density.y, body.density.width, body.density.height);
           density.amount.value = body.density.amount;
           density.hover.value.set(body.density.hover,body.density.current);
+          const transport = body.density.transfer;
+          density.transport.value.set(transport?.point.x || 0, transport?.point.y || 0, transport?.flow || 0, 0);
+          density.donor.value.set(transport?.source.x || 0, transport?.source.y || 0, transport?.borrowed || 0, 0);
           density.legacyHover.value = body.density.legacyHover;
           density.jiggle.value = body.density.jiggle;
           density.shape.value.set(body.density.edge, body.density.flow, body.density.fold, body.density.folder ? 1 : 0);
@@ -1278,7 +1289,7 @@ export function createOptics(canvas, { getScene, onError = () => {}, onAfterRend
             paletteChanged = true;
           }
           if (paletteChanged) density.palette.value.needsUpdate = true;
-        } else { body.density = null; body.densityCurrent = undefined; body.densityPrevious = null; body.densityFlow = 0; body.densitySettle = null; density.amount.value = 0; density.jiggle.value = 0; density.hover.value.set(0,0); density.legacyHover.value = 0; }
+        } else { body.density = null; body.densityCurrent = undefined; body.folderTransfer = null; body.densityPrevious = null; body.densityFlow = 0; body.densitySettle = null; density.amount.value = 0; density.jiggle.value = 0; density.hover.value.set(0,0); density.transport.value.set(0,0,0,0); density.donor.value.set(0,0,0,0); density.legacyHover.value = 0; }
         body.material.thickness = body.c * 2;
         body.depth.opacity = 1;
         if (body.mesh.visible) updateGeometry(body, timestamp, moving);
@@ -1302,6 +1313,9 @@ export function createOptics(canvas, { getScene, onError = () => {}, onAfterRend
       floorUniforms.uReadingDensityAmount.value = parent.live && parent.density ? parent.density.amount : 0;
       floorUniforms.uReadingDensityJiggle.value = parent.live && parent.density ? parent.density.jiggle : 0;
       floorUniforms.uReadingDensityHover.value.set(parent.live && parent.density ? parent.density.hover : 0,parent.density?.current || 0);
+      const transport = parent.live ? parent.density?.transfer : null;
+      floorUniforms.uReadingDensityTransport.value.set(transport?.point.x || 0,transport?.point.y || 0,transport?.flow || 0,0);
+      floorUniforms.uReadingDensityDonor.value.set(transport?.source.x || 0,transport?.source.y || 0,transport?.borrowed || 0,0);
       if (parent.live && parent.density) {
         floorUniforms.uReadingDensityRegion.value.set(parent.mesh.position.x + parent.density.x, parent.mesh.position.y + parent.density.y, parent.density.width, parent.density.height);
         floorUniforms.uReadingDensityShape.value.set(parent.density.edge, parent.density.flow, parent.density.fold, parent.density.folder ? 1 : 0);
@@ -1353,7 +1367,8 @@ export function createOptics(canvas, { getScene, onError = () => {}, onAfterRend
           const shoulder = body.controlDensity ||= {};
           shoulder.width = body.width * body.scaleXY; shoulder.height = body.height * body.scaleXY;
           shoulder.radius = body.r * body.scaleXY;
-          shoulder.amount = densityShoulderAmount({ hover: body.hover, selected: body.selection });
+          const borrowed = parent.density?.transfer?.receivers.find(entry => entry.id === bubble.id)?.weight || 0;
+          shoulder.amount = Math.min(JELLY_MATERIAL.control.densityShoulder.maximum, densityShoulderAmount({ hover: body.hover, selected: body.selection }) + borrowed * .35);
           controlDensity.value.set(shoulder.width, shoulder.height, shoulder.radius, shoulder.amount);
         } else { body.controlDensity = null; controlDensity.value.set(0,0,0,0); }
         const localDensity = bubble.attached !== false && parent.density
@@ -1579,6 +1594,7 @@ export function createOptics(canvas, { getScene, onError = () => {}, onAfterRend
         canvas.dataset.densityJiggle = String(parent.density?.jiggle ?? 0);
         canvas.dataset.densityAttention = String(parent.density?.approach ?? 0);
         canvas.dataset.densityCurrent = String(parent.density?.current ?? 0);
+        canvas.dataset.densityTransport = JSON.stringify(parent.density?.transfer || null);
         canvas.dataset.densityCacheBuilds = String(parent.surfaceCacheBuilds || 0);
         canvas.dataset.tabAttachment = String(parent.tab?.amount ?? 0);
         canvas.dataset.tabNeck = [parent.tab?.neck?.pull || 0, parent.tab?.neck?.pinch || 0, parent.tab?.neck?.wobble || 0].map(v => v.toFixed(3)).join(',');
