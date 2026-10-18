@@ -32,36 +32,14 @@ const PALETTES = [
 const rgb = hex => [1, 3, 5].map(at => parseInt(hex.slice(at, at + 2), 16) / 255);
 const PANELS = [{ name: 'Explore', Icon: SquaresFour }, { name: 'Color', Icon: Drop }, { name: 'Material', Icon: SlidersHorizontal }];
 
-function folderAttention(region, pointerVisible) {
+function folderAttention(region) {
   // Keep the group's invitation separate from the child's existing owner,
   // including retained slider focus or a captured scrub outside the folder.
   const children = region.querySelector('.jelly-details-content');
   const enabled = node => node && children?.contains(node) && !node.closest('[inert], [disabled], [aria-disabled="true"], .jb-disabled');
   const open = region.dataset.open === 'true';
   const childActive = open && [...(children?.querySelectorAll('[data-gel-engaged="true"], [data-gel-dragging="true"], [data-gel-hover="true"], [data-gel-pressed="true"], :focus-visible') || [])].some(enabled);
-  const surfaceFor = node => {
-    if (!enabled(node)) return null;
-    return node.closest('.jb-range-value') || node.closest('[data-gel-surface]') || node.closest('.jb-slider')?.querySelector('[data-gel-surface="thumb"]');
-  };
-  let receiver = null;
-  if (open && children) {
-    const focused = region.ownerDocument.activeElement;
-    const dragging = [...children.querySelectorAll('.jb-slider[data-gel-dragging="true"]')].find(enabled);
-    if (dragging) {
-      // Value scrubbing keeps its native button focused/captured; a range drag
-      // belongs to the thumb. Neither follows the pointer outside the control.
-      const value = dragging.querySelector('.jb-range-value');
-      receiver = surfaceFor(value?.dataset.gelPressed === 'true' || value === focused ? value : dragging);
-    }
-    receiver ||= surfaceFor([...children.querySelectorAll('[data-gel-pressed="true"]')].find(enabled));
-    if (!receiver && enabled(focused) && focused.matches(':focus-visible')) receiver = surfaceFor(focused);
-    if (!receiver && pointerVisible) {
-      const hovered = [...children.querySelectorAll('button:hover, input:hover, select:hover, textarea:hover, a[href]:hover')].find(enabled)
-        || [...children.querySelectorAll('.jb-slider:hover')].find(enabled);
-      receiver = surfaceFor(hovered);
-    }
-  }
-  return { hover: region.dataset.densityHover === 'true', childActive, receiver };
+  return { hover: region.dataset.densityHover === 'true', childActive };
 }
 
 function syncTabOutline(surface, tab, depth = 1, shell = null) {
@@ -186,7 +164,7 @@ export function App({ active = true }) {
       } else s.tab = null;
       const densityRegion = panelInnerRef.current?.querySelector('.panel-view:not(.is-outgoing) [data-density-region]');
       const folder = densityRegion?.dataset.densityRegion === 'folder';
-      const densityAttention = densityRegion ? folderAttention(densityRegion, s.pointer.visible) : null;
+      const densityAttention = densityRegion ? folderAttention(densityRegion) : null;
       // Measure the mounted content's natural height, not the animated reveal.
       // The optical profile already applies the disclosure phase once.
       const expandedHeight = folder ? [densityRegion.querySelector(':scope > h4'), densityRegion.querySelector(':scope > .jelly-details-summary'), densityRegion.querySelector('.jelly-details-content')]
@@ -205,7 +183,7 @@ export function App({ active = true }) {
         else delete el.dataset.gelRendered;
       });
       const storyRegion = storyMass?.querySelector('[data-density-region]');
-      const storyAttention = storyRegion ? folderAttention(storyRegion, s.pointer.visible) : null;
+      const storyAttention = storyRegion ? folderAttention(storyRegion) : null;
       s.storyPanel = storyMass ? { ...rectOf(storyMass), pigment: storyMass.dataset.massPigment } : null;
       s.storyDensity = storyRegion ? { ...rectOf(storyRegion), folder: true,
         expandedHeight: [storyRegion.querySelector(':scope > h4'), storyRegion.querySelector(':scope > .jelly-details-summary'), storyRegion.querySelector('.jelly-details-content')].reduce((sum, el) => sum + (el?.getBoundingClientRect().height ?? 0), 0),
@@ -219,16 +197,7 @@ export function App({ active = true }) {
       const parentElement = storyMass || (mainInView ? panelInnerRef.current : null);
       const allSurfaces = [...bubbleElements.current, ...(storyScopeRef.current?.querySelectorAll('[data-gel-surface]') || [])].filter(el => el.isConnected && !el.closest('[hidden]'));
       s.storyTraces = [...(storyScopeRef.current?.querySelectorAll('[data-motion-loop="running"] [data-gel-motion-preview]') || [])];
-      // The story compares held structures. Its controls keep local feedback
-      // without sending a traveling packet across the comparison surface.
-      const receivers = new Set([densityAttention?.receiver].filter(el => {
-        if (!el) return false;
-        const visible = intersectRect(rectOf(el), { x: 0, y: 0, width: innerWidth, height: innerHeight });
-        const clip = el.closest('.jelly-details-clip');
-        const clipped = clip ? intersectRect(visible, rectOf(clip)) : visible;
-        return clipped.width > 1 && clipped.height > 1;
-      }));
-      const chosen = pickSurfaces(allSurfaces.map(el => ({ el, kind: el.dataset.gelSurface || 'control', priority: receivers.has(el) ? -1 : undefined, visibleRect: intersectRect(rectOf(el), viewport) })));
+      const chosen = pickSurfaces(allSurfaces.map(el => ({ el, kind: el.dataset.gelSurface || 'control', visibleRect: intersectRect(rectOf(el), viewport) })));
       const claims = new Set(s.fallback ? [] : chosen.map(item => item.el));
       inkNodes.clear();
       buttonRefs.current.forEach((el, i) => { if (el) inkNodes.set(`primary-${i}`, el); });
@@ -263,13 +232,6 @@ export function App({ active = true }) {
         clip: el.closest('.jelly-details-clip') ? rectOf(el.closest('.jelly-details-clip')) : undefined,
         cornerRadius: Math.min(parseFloat(getComputedStyle(el).borderTopLeftRadius) || 24, el.offsetHeight / 2),
       }));
-      {
-        const region = s.densityRegion, el = densityAttention?.receiver;
-        const bubble = el && receivers.has(el) && claims.has(el) ? s.bubbles.find(item => item.id === surfaceId(el)) : null;
-        // Copy native bounds: scroll rebases this nested target and the bubble
-        // separately, and both later enter the same canvas coordinate frame.
-        if (region) region.transferTarget = bubble?.opacity > .001 ? { id: bubble.id, x: bubble.x, y: bubble.y, width: bubble.width, height: bubble.height } : null;
-      }
       storyDirty.current = false;
       s.selections = [...(panelInnerRef.current?.querySelectorAll('.panel-view:not(.is-outgoing) [data-gel-group]') || [])].flatMap(group => {
         const selected = group.querySelector('[data-gel-option][aria-checked="true"], [data-gel-option][aria-selected="true"], [data-gel-option][aria-pressed="true"]');
@@ -287,7 +249,7 @@ export function App({ active = true }) {
     const scroll = () => {
       const s = sceneRef.current, previous = s.measuredScroll || { x: scrollX, y: scrollY };
       const dx = previous.x - scrollX, dy = previous.y - scrollY;
-      for (const rect of [s.hero, s.lightField, s.panelRect, s.densityRegion, s.densityRegion?.transferTarget, s.storyPanel, s.storyDensity, s.storyDensity?.transferTarget, s.spotlight, ...s.rects, ...s.bubbles, ...s.bubbles.map(r => r.clip), ...(s.selections || [])]) if (rect) { rect.x += dx; rect.y += dy; }
+      for (const rect of [s.hero, s.lightField, s.panelRect, s.densityRegion, s.storyPanel, s.storyDensity, s.spotlight, ...s.rects, ...s.bubbles, ...s.bubbles.map(r => r.clip), ...(s.selections || [])]) if (rect) { rect.x += dx; rect.y += dy; }
       if (dx || dy) storyDirty.current = true;
       s.measuredScroll = { x: scrollX, y: scrollY };
     };
@@ -334,7 +296,7 @@ export function App({ active = true }) {
           canvasRef.current.style.height = `${canvasFrame.height}px`;
           canvasRef.current.dataset.documentTop = String(canvasFrame.top);
           const canvasY = scrollY - canvasFrame.top;
-          const project = rect => rect && ({ ...rect, y: rect.y + canvasY, ...(rect.clip ? { clip: { ...rect.clip, y: rect.clip.y + canvasY } } : {}), ...(rect.transferTarget ? { transferTarget: project(rect.transferTarget) } : {}) });
+          const project = rect => rect && ({ ...rect, y: rect.y + canvasY, ...(rect.clip ? { clip: { ...rect.clip, y: rect.clip.y + canvasY } } : {}) });
           // Measure transformed shell only while a container transition runs.
           if (storyDirty.current || now < movingUntil.current) measure();
           // Only the visible explanatory moving surfaces need fresh transformed
@@ -423,7 +385,7 @@ export function App({ active = true }) {
   }, []);
 
   const gelEvent = (event, type, value) => {
-    // Touch may leave native :hover behind; it cannot retain a spatial receiver.
+    // Touch may leave native :hover behind; refresh after clearing assistance.
     const pointerChanged = event.pointerType === 'touch' && sceneRef.current.pointer.visible;
     if (event.pointerType === 'touch') sceneRef.current.pointer.visible = false;
     const element = event.target.closest('[data-gel-surface]') || event.target.closest('.jb-range-control')?.querySelector('.jb-range-thumb');

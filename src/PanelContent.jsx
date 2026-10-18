@@ -65,7 +65,7 @@ export default function PanelContent({ panel, params, setParams, defaults, reduc
     <p className="panel-note">Previewing doesn’t change your saved or selected colors. The check always marks your choice.</p>
   </div>;
   return <div className="panel-content material-content">
-    <div className="panel-intro"><h3>Find your kind of jelly.</h3><p>The folder lends density to the control you approach, carrying the light, then gathers it back.</p></div>
+    <div className="panel-intro"><h3>Find your kind of jelly.</h3><p>Thickness, clarity and light, with density gathering locally around each control.</p></div>
     <div className="settings-list">{[
       ['transmission', 'Translucency', 0, 100, 100, '%'], ['light', 'Surface light', 0, 100, 100, '%'],
     ].map(([key, label, min, max, scale, unit]) => <JellySlider compact animateTrack={animateTrack} key={key} tone="action" label={label} min={min} max={max} value={Math.round(params[key] * scale)} formatValue={value => `${value}${unit}`} onValueChange={value => change(key, value / scale)} />)}</div>
