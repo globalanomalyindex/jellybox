@@ -312,7 +312,7 @@ function installVolumeThickness(material) {
       `);
     shader.fragmentShader = shader.fragmentShader.replace('#include <transmission_fragment>', transmission);
   };
-  material.customProgramCacheKey = () => 'shared-liquid-current-pigment-v25';
+  material.customProgramCacheKey = () => 'shared-liquid-current-pigment-v26';
 }
 
 function makeMeniscusGeometry(joinedTab = false) {

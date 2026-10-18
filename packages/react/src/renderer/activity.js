@@ -2,7 +2,7 @@ import { createJellyPalette } from '../color.js';
 import { MOTION, sampleBezier } from './motion.js';
 const clamp = value => Math.max(0, Math.min(1, value));
 const smooth = (low, high, value) => { const t = clamp((value - low) / (high - low)); return t * t * (3 - 2 * t); };
-export const ACTIVITY_VOLUME = Object.freeze({ depth: 4.8, strength: .86, inset: 1.8, pull: 7.5, bulge: 1.1, recoil: 4.2 });
+export const ACTIVITY_VOLUME = Object.freeze({ depth: 6.8, strength: .86, inset: 1.8, pull: 7.5, bulge: 1.1, recoil: 4.2 });
 const outcome = status => ['success', 'warning', 'error'].includes(status);
 const bell = (start, peak, end, value) => smooth(start, peak, value) * (1 - smooth(peak, end, value));
 
@@ -34,7 +34,7 @@ export function stepActivity(previous, status = 'idle', materialPhase, seconds, 
   }
   state.elapsed = instant ? MOTION.activitySettle : Math.min(MOTION.activitySettle, state.elapsed + dt * 1000);
   const progress = instant ? 1 : Number.isFinite(materialPhase) ? clamp(materialPhase) : sampleBezier(MOTION.pigmentCurve, Math.min(1, state.elapsed / MOTION.pigment));
-  const elapsed = Math.min(MOTION.pigment, state.elapsed) / 1000;
+  const elapsed = Math.min(MOTION.pigment, state.elapsed) / 1000, previousGather = state.gather;
   for (const [key, target, from] of [['gain', targetGain, state.fromGain], ['gather', targetGather, state.fromGather], ['density', targetDensity, state.fromDensity]]) {
     const displayed = state[key];
     // A vanishing continuation keeps the last displayed momentum on a retry or
@@ -57,7 +57,8 @@ export function stepActivity(previous, status = 'idle', materialPhase, seconds, 
   if (moving && !instant) {
     state.clock += dt;
     // The current keeps turning as it collects, slowing with its own gather.
-    state.phase += dt * Math.PI * 2 / (MOTION.activityOrbit / 1000) * (1 - state.gather);
+    state.phase += dt * Math.PI * 2 / (MOTION.activityOrbit / 1000) * (1 - state.gather)
+      + (state.gather - previousGather) * 2.2;
   }
   return state;
 }
@@ -83,7 +84,10 @@ export function activityRelief(x, y, shape) {
   const returning = Math.cos(inward * 2.6 + shape.phase - ny * 3.2);
   const fold = current * .72 + returning * .28;
   const reading = 1 - smooth(.12, .55, Math.abs(ny));
-  const bulk = (.5 + fold * (.24 - reading * .17)) * shape.breath;
+  const orbitX = Math.cos(shape.phase) * .62, orbitY = Math.sin(shape.phase) * .46;
+  const lead = Math.exp(-(((nx - orbitX) / .42) ** 2) - ((ny - orbitY) / .48) ** 2);
+  const trail = Math.exp(-(((nx + orbitX) / .42) ** 2) - ((ny + orbitY) / .48) ** 2);
+  const bulk = (.32 + fold * (.10 - reading * .05) + (lead * .32 + trail * .22) * (1 - reading * .25)) * shape.breath;
   const q = shape.gather, squeeze = 4 * q * (1 - q);
   // Opposed density lobes sweep in from the ends and collect at the shoulders.
   // Their slopes bend light; the broad crown retains the gathered volume.
@@ -126,7 +130,10 @@ float jellyActivityHeight(vec2 point, vec4 shape, float gather) {
   float returning = cos(inward * 2.6 + shape.z - p.y * 3.2);
   float fold = current * .72 + returning * .28;
   float reading = 1.0 - smoothstep(.12, .55, abs(p.y));
-  float bulk = (.5 + fold * (.24 - reading * .17)) * shape.w;
+  vec2 orbit = vec2(cos(shape.z) * .62, sin(shape.z) * .46);
+  vec2 leadQ = (p-orbit)/vec2(.42,.48), trailQ = (p+orbit)/vec2(.42,.48);
+  float lead = exp(-dot(leadQ,leadQ)), trail = exp(-dot(trailQ,trailQ));
+  float bulk = (.32 + fold * (.10-reading*.05) + (lead*.32+trail*.22)*(1.0-reading*.25)) * shape.w;
   float squeeze = 4.0 * gather * (1.0 - gather);
   float travel = .76 * (1.0 - gather), arc = .42 + sin(shape.z) * .12 * (1.0 - gather);
   vec2 topQ = (p-vec2(travel,arc))/vec2(.38,.28);
@@ -164,23 +171,36 @@ export function activityPigment(previous, status, destination, progress) {
     state.status = status; state.target = target; state.filmTarget = filmTarget;
   }
   state.sample = clamp(progress);
-  state.color = state.palette.sample(state.sample);
-  state.film = state.filmPalette.sample(state.sample);
-  state.palette.sampleRGB(state.sample, state.denseRGB);
+  const filmPhase = activityPigmentPhase(state.sample, .15), densePhase = activityPigmentPhase(state.sample, .85);
+  state.color = state.palette.sample(densePhase);
+  state.film = state.filmPalette.sample(filmPhase);
+  state.palette.sampleRGB(densePhase, state.denseRGB);
   return state;
 }
 
 // The film/current paths converge at the result, so a settling highlight cannot
 // reintroduce loading blue. Text remains a native, stationary layer above it.
+// Film waits while the dense current collects the result. Both paths still
+// use the one host clock, and capture their exact displayed colors on retarget.
+export function activityPigmentPhase(progress, concentration) {
+  const p = clamp(progress);
+  return clamp(p + (clamp(concentration) - .5) * 1.35 * 4 * p * (1 - p));
+}
+
 export const ACTIVITY_PIGMENT_GLSL = `
 uniform sampler2D uActivityPalette;
 uniform float uActivityPigmentPhase;
 uniform vec3 uActivityFallbackDense;
+float jellyActivityPigmentPhase(float progress, float concentration) {
+  float p = clamp(progress, 0.0, 1.0);
+  return clamp(p + (clamp(concentration, 0.0, 1.0) - .5) * 1.35 * 4.0 * p * (1.0 - p), 0.0, 1.0);
+}
 vec3 jellyActivityPigment(vec3 filmColor, float concentration) {
   if (uActivityPigmentPhase < 0.0) return mix(filmColor, uActivityFallbackDense, clamp(concentration, 0.0, 1.0));
-  float sampleX = (clamp(uActivityPigmentPhase, 0.0, 1.0) * 32.0 + .5) / 33.0;
-  vec3 film = texture2D(uActivityPalette, vec2(sampleX, .25)).rgb;
-  vec3 current = texture2D(uActivityPalette, vec2(sampleX, .75)).rgb;
+  float filmX = (jellyActivityPigmentPhase(uActivityPigmentPhase, .15) * 32.0 + .5) / 33.0;
+  float currentX = (jellyActivityPigmentPhase(uActivityPigmentPhase, .85) * 32.0 + .5) / 33.0;
+  vec3 film = texture2D(uActivityPalette, vec2(filmX, .25)).rgb;
+  vec3 current = texture2D(uActivityPalette, vec2(currentX, .75)).rgb;
   return mix(film, current, clamp(concentration, 0.0, 1.0));
 }
 `;

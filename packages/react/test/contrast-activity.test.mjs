@@ -224,3 +224,13 @@ test('the authored capture has matching timing at 30, 60 and 120 Hz and settles 
   }
   assert.ok(Math.max(...values) - Math.min(...values) < .001, 'sampling frequency cannot change the material response');
 });
+
+test('the circulating mass keeps turning visibly as it collects, then becomes still', () => {
+  const state = stepActivity(null, 'loading', 1, 0), angle = state.phase;
+  stepActivity(state, 'success', 0, 0);
+  finishActivity(state, 'success', .8);
+  assert.ok(state.phase - angle > 1.8 && state.phase - angle < 3.5, 'collection carries a visible partial turn instead of stopping the swirl at the color change');
+  const settledAngle = state.phase;
+  stepActivity(state, 'success', 1, .1);
+  assert.equal(state.phase, settledAngle);
+});
