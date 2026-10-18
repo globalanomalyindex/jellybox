@@ -15,7 +15,7 @@ import { DesignStory } from './DesignStory.jsx';
 import { ProgressiveScrollEdge, usePagePresentation } from './PagePresentation.jsx';
 import { defaultLightForViewport } from './lighting.js';
 import { tabOutlinePath } from '../packages/react/src/renderer/tab-surface.js';
-import { applyJellyInk, clearJellyInk, inkElementRect } from '../packages/react/src/contrast.js';
+import { applyJellyInk, clearJellyInk, inkElementRect, jellyReadingInk } from '../packages/react/src/contrast.js';
 import { stepJellyResponse } from '../packages/react/src/renderer/motion.js';
 import { JellyButton, JellySwitch, useJellyWindow, SEMANTIC_COLORS } from '../packages/react/src/index.js';
 
@@ -179,9 +179,9 @@ export function App({ active = true }) {
         phase: Number(getComputedStyle(storyRegion).getPropertyValue('--jb-density-phase')),
         concentration: Number(storyRegion.closest('[data-story-concentration]')?.dataset.storyConcentration ?? 1),
         pigment: storyMass.dataset.massPigment, opacity: 1 } : null;
-      const spotlight = storyScopeRef.current?.querySelector('[data-story-spotlight][data-spotlight="true"]');
-      const spotTarget = spotlight?.querySelector('[data-spot-target="true"]');
-      s.spotlight = spotTarget && intersectRect(rectOf(spotlight), viewport).height > 1 ? { ...rectOf(spotTarget), spread: Number(spotlight.dataset.spotSpread) } : null;
+      const desktopLamp = storyScopeRef.current?.querySelector('[data-desktop-lamp="true"]');
+      const lampAnchor = desktopLamp?.querySelector('[data-lamp-anchor="true"]');
+      s.spotlight = lampAnchor && intersectRect(rectOf(desktopLamp), viewport).height > 1 ? { ...rectOf(lampAnchor), lampHeight: Number(desktopLamp.dataset.lampHeight), intensity: Number(desktopLamp.dataset.lampBrightness) / 100 } : null;
       const parentElement = storyMass || (mainInView ? panelInnerRef.current : null);
       const allSurfaces = [...bubbleElements.current, ...(storyScopeRef.current?.querySelectorAll('[data-gel-surface]') || [])].filter(el => el.isConnected && !el.closest('[hidden]'));
       s.storyTrace = storyScopeRef.current?.querySelector('[data-motion-loop="running"] [data-gel-motion-preview]') || null;
@@ -189,11 +189,12 @@ export function App({ active = true }) {
       const claims = new Set(s.fallback ? [] : chosen.map(item => item.el));
       inkNodes.clear();
       buttonRefs.current.forEach((el, i) => { if (el) inkNodes.set(`primary-${i}`, el); });
-      s.primaryInk = buttonRefs.current.map(el => el ? inkElementRect(el) : null);
+      s.primaryInk = buttonRefs.current.map(el => el ? { ...inkElementRect(el), ink: jellyReadingInk(el) } : null);
       allSurfaces.forEach(el => { if (claims.has(el)) { el.dataset.gelRendered = 'true'; inkNodes.set(surfaceId(el), el); } else { delete el.dataset.gelRendered; clearJellyInk(el); } });
       s.controlsDragging = Boolean(appRef.current?.querySelector('[data-gel-dragging="true"]'));
       s.bubbles = chosen.map(({ el }) => ({ ...rectOf(el),
         id: surfaceId(el),
+        ink: jellyReadingInk(el),
         inkRect: ['track', 'fill', 'thumb'].includes(el.dataset.gelSurface) ? null : inkElementRect(el),
         attached: Boolean(parentElement?.contains(el)),
         contact: Boolean(el.closest('.story-demo')),
@@ -301,7 +302,7 @@ export function App({ active = true }) {
             const target = project(s.spotlight);
             const response = s.spotlightResponse ||= {};
             const options = { duration: MOTION.material, curve: MOTION.gather, instant: s.reducedMotion || s.params.motion === 0 };
-            spotlight = { x: stepJellyResponse(response, 'x', target.x + target.width / 2 - 30, delta, options), y: stepJellyResponse(response, 'y', target.y - 60, delta, options), height: target.spread, intensity: 1, softness: .55, warmth: .5, enabled: true };
+            spotlight = { x: stepJellyResponse(response, 'x', target.x + target.width / 2 - 30, delta, options), y: stepJellyResponse(response, 'y', target.y - 60, delta, options), height: target.lampHeight, intensity: target.intensity, softness: .55, warmth: .5, enabled: true };
           } else s.spotlightResponse = null;
           return { width: innerWidth, height: canvasFrame.height, documentTop: canvasFrame.top, viewportTop: canvasY, viewportHeight: innerHeight, dpr: Math.min(devicePixelRatio, innerWidth < 700 ? 1.3 : 1.5) * Math.sqrt(innerHeight / canvasFrame.height), pointer: project(s.pointer), parallax: s.parallax, hero: project(s.hero),
             buttons: s.rects.map((r, i) => nearby(r) ? project({ ...r, ...assist(i), arrival: presentation.current.arrival[i], ...(transfer ? { width: transfer.poses[i].width, height: transfer.poses[i].height, x: r.x + (r.width - transfer.poses[i].width) / 2, y: r.y + (r.height - transfer.poses[i].height) / 2, merge: transfer.poses[i].merge, neckStrain: transfer.poses[i].strain || 0, ...(transfer.materialOnly ? { x: transfer.poses[i].x - scrollX - transfer.poses[i].width / 2, y: transfer.poses[i].y - scrollY - transfer.poses[i].height / 2 } : {}), transferring: true } : {}), hover: Math.max(s.hovers[i], s.selected === i ? 0.35 : 0), pressed: s.pressed[i], stir: impulse, docked: s.selected !== null, tabbed: s.selected === i, color: colors[i] }) : null),
@@ -309,7 +310,7 @@ export function App({ active = true }) {
             bubbles: s.bubbles.map((r, i) => project({ ...r, ...assist(i + s.rects.length), opacity: r.headerControl && s.closing ? 0 : r.opacity })), selections: s.selections?.map(project), assistanceBlocked, params: s.params, reducedMotion: s.reducedMotion,
             light: spotlight || (lightField ? project({ ...s.light, x: lightField.x + lightField.width * s.light.x, y: lightField.y + lightField.height * s.light.y }) : null),
             lightAnchor: spotlight ? { x: spotlight.x + 30, y: spotlight.y + 60 } : s.rects.length ? project({ x: s.rects.reduce((sum, r) => sum + r.x + r.width / 2, 0) / s.rects.length, y: s.rects.reduce((sum, r) => sum + r.y + r.height / 2, 0) / s.rects.length }) : undefined,
-            contrastTargets: [...(s.primaryInk || []).map((r, i) => r && ({ ...r, id: `primary-${i}` })), ...s.bubbles.filter(r => r.inkRect).map(r => ({ ...r.inkRect, id: r.id, reactive: Boolean(r.activity && r.activityPhase < 1) }))].filter(Boolean).map(project),
+            contrastTargets: [...(s.primaryInk || []).map((r, i) => r && ({ ...r, id: `primary-${i}` })), ...s.bubbles.filter(r => r.inkRect).map(r => ({ ...r.inkRect, ink: r.ink, id: r.id, reactive: Boolean(r.activity && r.activityPhase < 1) }))].filter(Boolean).map(project),
             scrollEdge: edgeRef.current ? { height: presentation.current.edgeHeight, strength: Number(getComputedStyle(edgeRef.current).opacity) } : null };
         },
         onError: error => { console.warn('Optical renderer:', error); inkNodes.forEach(clearJellyInk); document.documentElement.classList.remove('gel-bubbles-ready'); setFallback(true); },
@@ -360,7 +361,7 @@ export function App({ active = true }) {
     const resize = new ResizeObserver(invalidate);
     resize.observe(node);
     const mutations = new MutationObserver(invalidate);
-    mutations.observe(node, { childList: true, subtree: true, attributes: true, attributeFilter: ['style', 'aria-pressed', 'aria-expanded', 'data-open', 'data-density-hover', 'data-gel-hover', 'data-gel-pressed', 'data-gel-dragging', 'data-story-concentration', 'data-gel-activity', 'data-gel-progress', 'data-gel-material-phase', 'data-motion-loop', 'data-spotlight', 'data-spot-target', 'data-spot-spread'] });
+    mutations.observe(node, { childList: true, subtree: true, attributes: true, attributeFilter: ['style', 'aria-pressed', 'aria-expanded', 'data-open', 'data-density-hover', 'data-gel-hover', 'data-gel-pressed', 'data-gel-dragging', 'data-story-concentration', 'data-gel-activity', 'data-gel-progress', 'data-gel-material-phase', 'data-motion-loop', 'data-desktop-lamp', 'data-lamp-anchor', 'data-lamp-height', 'data-lamp-brightness'] });
     const transition = () => { movingUntil.current = Math.max(movingUntil.current, performance.now() + MOTION.densityGather + 80); invalidate(); };
     node.addEventListener('transitionrun', transition);
     node.addEventListener('jellybox:motion', transition);
@@ -446,7 +447,7 @@ export function App({ active = true }) {
   const reset = () => { setParams({ ...DEFAULTS }); setColors([...DEFAULT_COLORS]); setLight(defaultLightForViewport(innerWidth)); setPaused(false); setPanelPreferences({ colorTarget: 0, shapeOpen: false }); setAnnouncement('Experiment reset.'); };
   return <><div ref={appRef} className={`app ${fallback ? 'fallback' : 'jb-live'} ${paused ? 'is-paused' : ''} ${params.motion === 0 ? 'is-still' : ''}`} style={{ ...motionStyle, '--button-size': params.size, '--button-spacing': `${params.spacing}px` }}>
     <div className="optical-viewport" aria-hidden="true"><canvas className="optical-canvas" ref={canvasRef} /></div>
-    <header className="site-header"><nav aria-label="Project links"><a href="https://christopherfiore.net/" target="_blank" rel="noreferrer">Portfolio <span aria-hidden="true">↗</span></a><a href="https://github.com/globalanomalyindex/jellybox" target="_blank" rel="noreferrer">GitHub <span aria-hidden="true">↗</span></a></nav></header>
+    <header className="site-header"><nav aria-label="Project links"><a href="https://christopherfiore.net/" target="_blank" rel="noreferrer">Portfolio <span aria-hidden="true">↗</span></a><a href="https://christopherfiore.net/product-designs/jellybox/" target="_blank" rel="noreferrer">Case study <span aria-hidden="true">↗</span></a><a href="https://github.com/globalanomalyindex/jellybox" target="_blank" rel="noreferrer">GitHub <span aria-hidden="true">↗</span></a></nav></header>
     <main aria-label="JellyBox button experiment"><section ref={studyRef} className="material-stage" aria-label="Interactive JellyBox material experiment">
       <LightRig animateTrack={!reducedMotion} light={light} setLight={setLight} fieldRef={lightFieldRef} onOpenChange={setLightOpen} />
       <div className="hero" ref={heroRef}><h1 className="sr-only">JellyBox</h1><img className="jellybox-logo" src={`${import.meta.env.BASE_URL}brand/jellybox-logo.svg`} alt="" aria-hidden="true" /></div>

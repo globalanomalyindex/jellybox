@@ -1,11 +1,11 @@
 # JellyBox React foundation
 
-Experimental React controls and a shared jelly material, used by the [JellyBox study](https://globalanomalyindex.github.io/jellybox/). Seventeen core components work with CSS/SVG alone; optional Three.js rendering supplies depth, transmitted light and connected density. This 0.5.4 preview is distributed on GitHub Releases, not npm.
+Experimental React controls and a shared jelly material, used by the [JellyBox study](https://globalanomalyindex.github.io/jellybox/). Seventeen core components work with CSS/SVG alone; optional Three.js rendering supplies depth, transmitted light and connected density. This 0.5.5 preview is distributed on GitHub Releases, not npm.
 
 ## Install
 
 ```sh
-npm install https://github.com/globalanomalyindex/jellybox/releases/download/v0.5.4/jellybox-react-0.5.4.tgz
+npm install https://github.com/globalanomalyindex/jellybox/releases/download/v0.5.5/jellybox-react-0.5.5.tgz
 ```
 
 React and React DOM 18/19 are peers. Import CSS once. For the optical entry, also install the supported Three 0.186 peer.
@@ -62,4 +62,6 @@ MIT. Spectral.js 3.0.0 attribution is in THIRD_PARTY_NOTICES.md. The package con
 
 `JellyActivityButton` accepts an application-owned `status` (`idle`, `loading`, `success`, `warning`, `error`) and optional `progress` from 0–100. Loading uses native busy/disabled semantics. Both modes circulate through the whole material; supplied progress remains explicit in the label and the host’s progress rail. Completion gathers the current into a lasting thicker result crown, with moving density ridges and a small material recoil. Highlights, refraction and the contact cast follow the gathered contour while native text and target stay anchored. The component never starts a timer or invents success. Give failures a working retry callback. The story's timed task is explicitly a simulation.
 
-`JellyScene` samples nine background points within each visible label’s actual lettering bounds in one bounded asynchronous GPU batch, at most ten times per second for ordinary labels. During activity color handoffs, up to eight labels receive 30 Hz priority in the same fixed atlas with one readback pending. Shared `chooseJellyInk` selects dark/light ink against the least favorable sample, keeps a passing choice stable, and keeps the lettering solid without a glyph outline or text shadow. The returned ratio remains the actual sampled result, including mixed highlights below the target. The CSS fallback estimates its translucent skin over the neutral receiver. Forced colors use system ink. Sampling improves the supported composition; it is not an exhaustive pixel or WCAG certification. Low-level `createOptics` consumers provide `contrastTargets` and `onContrast` to connect the policy to their own DOM.
+`JellyScene` uses one stable reading intent (`--jb-reading-ink`) with the same CSS skin and optical material. Transmitting controls use black. A custom intentionally dark skin can explicitly choose white; lighting never recolors the letters. The whole volume’s front is a thinner, quieter reading film while its shoulders stay dense and colored. There is no label-shaped backing, outline or text shadow.
+
+Nine framebuffer samples within the actual lettering bounds verify that intent, in one fixed asynchronous atlas: ordinary labels at10Hz, up to eight circulating/settling labels at30Hz, one readback pending. `chooseJellyInk(samples, previous, { preferred })` reports the actual worst ratio for the intended ink, including failures. Without an explicit preference it chooses black when it passes, otherwise the stronger candidate. Custom `createOptics` hosts supply `contrastTargets[].ink` and `onContrast`. Forced colors use system ink. These bounded samples are not exhaustive pixel or WCAG certification.

@@ -4,7 +4,7 @@ import { DEFAULT_MATERIAL } from './renderer/material.js';
 import { SEMANTIC_COLORS } from './tokens.js';
 import { MOTION } from './renderer/motion.js';
 import { intersectRect, pickSurfaces } from './renderer/surface-layout.js';
-import { applyJellyInk, clearJellyInk, inkElementRect } from './contrast.js';
+import { applyJellyInk, clearJellyInk, inkElementRect, jellyReadingInk } from './contrast.js';
 
 // One optional optical scene per visible workbench. Semantics remain native DOM.
 export function JellyScene({ children, params = DEFAULT_MATERIAL, tone = 'action', active = true, defer = false, className = '', style }) {
@@ -96,7 +96,7 @@ export function JellyScene({ children, params = DEFAULT_MATERIAL, tone = 'action
       groups.forEach(el => { if (el.dataset.gelSelectionRendered !== 'true') el.dataset.gelSelectionRendered = 'true'; });
       bounds = {
         width: canvasBounds.width, height: canvasBounds.height,
-        contrastTargets: chosen.filter(({ kind }) => !['track', 'fill', 'thumb'].includes(kind)).map(({ el }) => { const ink = inkElementRect(el); return { ...ink, x: ink.x - canvasBounds.x, y: ink.y - canvasBounds.y, id: idOf(el), reactive: Boolean(el.dataset.gelActivity && Number(el.dataset.gelMaterialPhase) < 1) }; }),
+        contrastTargets: chosen.filter(({ kind }) => !['track', 'fill', 'thumb'].includes(kind)).map(({ el }) => { const ink = inkElementRect(el); return { ...ink, x: ink.x - canvasBounds.x, y: ink.y - canvasBounds.y, id: idOf(el), ink: jellyReadingInk(el), reactive: Boolean(el.dataset.gelActivity && Number(el.dataset.gelMaterialPhase) < 1) }; }),
         panel: panel ? { ...box(panel), color: rgb(panel.dataset.gelTone || latest.current.tone) } : null,
         bubbles: chosen.map(({ el, kind, clip }) => ({ ...box(el), id: idOf(el), kind, attached: Boolean(panel?.contains(el)),
           clip: { ...clip, x: clip.x - canvasBounds.x, y: clip.y - canvasBounds.y },

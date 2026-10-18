@@ -20,11 +20,19 @@ export interface OpticalDensity extends OpticalRect {
 export interface OpticalSelection extends OpticalBody { id: string; key: string; }
 /** Position in scene pixels; height uses the renderer's authored scene units. */
 export interface OpticalLight { x: number; y: number; height: number; intensity: number; softness: number; warmth: number; enabled?: boolean; }
+export interface OpticalReadingTarget extends OpticalRect {
+  id: string;
+  /** Stable reading intent, independent of sampled lighting. Defaults to black. */
+  ink?: '#000000' | '#ffffff';
+  reactive?: boolean;
+  /** @deprecated Ignored; lettering has no outline. */
+  guard?: boolean;
+}
 export interface OpticalScene {
   width: number; height: number; dpr?: number; reducedMotion?: boolean; params?: Partial<MaterialParams>;
   viewportTop?: number; viewportHeight?: number; documentTop?: number; light?: OpticalLight | null;
   lightAnchor?: { x: number; y: number };
-  contrastTargets?: readonly (OpticalRect & { id: string; reactive?: boolean; /** @deprecated Ignored; lettering has no outline. */ guard?: boolean })[];
+  contrastTargets?: readonly OpticalReadingTarget[];
   scrollEdge?: { height: number; strength: number } | null;
   panel?: OpticalBody | null; buttons?: readonly (OpticalBody | null)[]; bubbles?: readonly OpticalBody[]; selections?: readonly OpticalSelection[];
   parallax?: { x?: number; y?: number }; pointer?: { x?: number; y?: number; visible?: boolean };

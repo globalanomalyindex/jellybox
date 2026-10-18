@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { Check } from '@phosphor-icons/react';
+import { Lightbulb } from '@phosphor-icons/react';
 import { JellyActivityButton, JellyBadge, JellyButton, JellySlider, JellySwitch } from '../packages/react/src/index.js';
 import { useJellyToneStyle } from '../packages/react/src/useMaterialColor.js';
 import { taskSample } from './story-examples.js';
@@ -45,20 +45,17 @@ export function LoadingExample() {
   </figure>;
 }
 
-const TASKS = ['Sketch', 'Review', 'Export'];
-const TASK_COPY = ['Gather ideas into a working group.', 'Check the study before sharing it.', 'The finished study is ready to leave the workspace.'];
-export function SpotlightExample({ motionEnabled }) {
-  const [selected, setSelected] = useState(0), [pointed, setPointed] = useState(null), [focused, setFocused] = useState(null), [enabled, setEnabled] = useState(false), [spread, setSpread] = useState(180);
-  const target = pointed ?? focused ?? selected;
-  return <figure className="story-demo" aria-labelledby="spotlight-example-title" data-story-spotlight="" data-spotlight={enabled} data-spot-spread={spread}>
-    <figcaption><strong id="spotlight-example-title">Light as a guide</strong></figcaption>
-    <div className="story-demo-choices" role="group" aria-label="Working step">
-      {TASKS.map((task, i) => <JellyButton size="lg" key={task} selected={selected === i} data-spot-target={target === i}
-        onPointerEnter={() => setPointed(i)} onPointerLeave={() => setPointed(null)}
-        onFocus={() => setFocused(i)} onBlur={() => setFocused(null)} onClick={() => { setSelected(i); setEnabled(true); }}>{selected === i && <Check size={17} />}{task}</JellyButton>)}
+const LAMP_POSITIONS = ['Left', 'Center', 'Right'];
+export function DesktopLampExample({ motionEnabled }) {
+  const [position, setPosition] = useState(1), [enabled, setEnabled] = useState(false), [height, setHeight] = useState(180), [brightness, setBrightness] = useState(100);
+  return <figure className="story-demo" aria-labelledby="desktop-lamp-title" data-desktop-lamp={enabled} data-lamp-height={height} data-lamp-brightness={brightness}>
+    <figcaption><strong id="desktop-lamp-title">A light on your desktop</strong></figcaption>
+    <div className="story-demo-choices" role="group" aria-label="Lamp position">
+      {LAMP_POSITIONS.map((name, i) => <JellyButton size="lg" key={name} selected={position === i} data-lamp-anchor={position === i}
+        onClick={() => { setPosition(i); setEnabled(true); }}><Lightbulb size={17} weight={position === i ? 'fill' : 'regular'} />{name}</JellyButton>)}
     </div>
-    <p className="story-task-copy" role="status">{TASK_COPY[selected]}</p>
-    <JellySlider compact animateTrack={motionEnabled} label="Light spread" min={120} max={360} value={spread} formatValue={v => v < 200 ? 'Focused' : v < 280 ? 'Balanced' : 'Broad'} onValueChange={setSpread} />
-    <JellySwitch label="Task spotlight" checked={enabled} onCheckedChange={setEnabled} />
+    <JellySlider compact animateTrack={motionEnabled} label="Lamp height" min={120} max={360} value={height} formatValue={v => `${v}`} onValueChange={setHeight} />
+    <JellySlider compact animateTrack={motionEnabled} label="Lamp brightness" min={20} max={140} value={brightness} formatValue={v => `${v}%`} onValueChange={setBrightness} />
+    <JellySwitch label="Desktop lamp" checked={enabled} onCheckedChange={setEnabled} />
   </figure>;
 }

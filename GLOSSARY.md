@@ -12,3 +12,5 @@ _Avoid_: Separate tab bar
 **Density**: The concentration of a shared jelly mass that makes structure, ownership and selection visible. A whole area can gather density, with a quiet reading plateau and broad soft shoulders; a bright outline alone does not communicate density.
 
 **Light reactivity**: A shared material response to a user-adjustable light: highlights, transmitted color and restrained casts follow its position and settings. It reinforces visible structure; labels and state remain independent of it. Proposed usability benefits still need evaluation.
+
+**Desktop lamp**: A user-positioned ambient light for a digital workspace, analogous to a lamp on a physical desk. It stays where placed while the shared material reacts; it is independent of task selection, pointer hover and keyboard focus.

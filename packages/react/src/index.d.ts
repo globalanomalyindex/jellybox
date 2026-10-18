@@ -30,7 +30,11 @@ export const JellyActivityButton: React.ForwardRefExoticComponent<JellyActivityB
 export const JELLY_INK: Readonly<{ dark: string; light: string; minimum: number }>;
 export function contrastRatio(first: number, second: number): number;
 export interface JellyInkResult { ink: string; ratio: number; /** @deprecated Lettering has no outline; always false. */ halo: boolean; }
-export function chooseJellyInk(samples: readonly (number | string)[], previous?: string): JellyInkResult;
+export interface JellyInkOptions {
+  /** Intended solid ink. Samples still report their actual worst contrast ratio. */
+  preferred?: string;
+}
+export function chooseJellyInk(samples: readonly (number | string)[], previous?: string, options?: JellyInkOptions): JellyInkResult;
 export interface JellySurfaceProps extends React.HTMLAttributes<HTMLDivElement> { tone?: JellyTone; }
 export const JellySurface: React.ForwardRefExoticComponent<JellySurfaceProps & React.RefAttributes<HTMLDivElement>>;
 

@@ -16,7 +16,6 @@ export function createContrastSampler(renderer, publish) {
   const geometry = new THREE.PlaneGeometry(2, 2); scene.add(new THREE.Mesh(geometry, material));
   const target = new THREE.WebGLRenderTarget(9, 40, { depthBuffer: false, minFilter: THREE.NearestFilter, magFilter: THREE.NearestFilter });
   const size = new THREE.Vector2(), viewport = new THREE.Vector4(), scissor = new THREE.Vector4();
-  const history = new Map();
   let texture, pending = false, last = -Infinity, lastFull = -Infinity, disposed = false;
   return {
     sample(state, timestamp, materialReactive) {
@@ -48,25 +47,24 @@ export function createContrastSampler(renderer, publish) {
         pending = true;
         renderer.readRenderTargetPixelsAsync(target, 0, 0, 9, items.length, buffer).then(() => {
           if (disposed) return;
-          const ids = new Set(visible.map(item => item.id));
-          for (const id of history.keys()) if (!ids.has(id)) history.delete(id);
           publish(items.map((item, index) => {
             const samples = Array.from({ length: 9 }, (_, tap) => {
               const at = (index * 9 + tap) * 4;
               return '#' + [...buffer.slice(at, at + 3)].map(c => c.toString(16).padStart(2, '0')).join('');
             });
-            const result = chooseJellyInk(samples, history.get(item.id));
-            history.set(item.id, result.ink);
+            // The native label owns its intended solid ink. Actual optical
+            // samples verify that contract rather than changing text on glare.
+            const result = chooseJellyInk(samples, undefined, { preferred: item.ink || '#000000' });
             return { id: item.id, ...result };
           }));
         }).catch(() => {
-          if (!disposed) publish(items.map(item => ({ id: item.id, ink: history.get(item.id) || '#000000', ratio: 0, halo: false })));
+          if (!disposed) publish(items.map(item => ({ id: item.id, ink: item.ink || '#000000', ratio: 0, halo: false })));
         }).finally(() => { pending = false; });
       } finally {
         renderer.setRenderTarget(previousTarget); renderer.autoClear = autoClear; renderer.info.autoReset = autoReset;
         renderer.setViewport(viewport); renderer.setScissor(scissor); renderer.setScissorTest(scissorTest);
       }
     },
-    destroy() { disposed = true; texture?.dispose(); geometry.dispose(); material.dispose(); target.dispose(); history.clear(); },
+    destroy() { disposed = true; texture?.dispose(); geometry.dispose(); material.dispose(); target.dispose(); },
   };
 }

@@ -3,6 +3,7 @@
   --jb-rgb: 5 74 243;
   --jb-ink: #102d43;
   --jb-control-ink: #03121e;
+  --jb-reading-ink: #000000;
   --jb-focus: #125cf2;
   --jb-frost: rgb(255 255 255 / .28);
   --jb-material: 240ms;
@@ -115,11 +116,12 @@
 .jb-optical-canvas { position: absolute; inset: -32px; width: calc(100% + 64px); height: calc(100% + 64px); pointer-events: none; z-index: -1; }
 .jb-live [data-gel-rendered="true"] { background: transparent; box-shadow: none; border-color: transparent; }
 
-/* Ink is immediate and solid; never outline or fade through unreadable gray. */
-[data-gel-ink], [data-gel-ink] :is(.jb-button-face, .jb-selection-content, .jb-selection-label, .jb-selection-description, .jb-field-label, .jb-range-value, .jb-dropdown-value, .jb-dropdown-option-copy, .jb-alert-copy, .jb-table-cell-content) { color: var(--jb-rendered-ink) !important; text-shadow: none !important; -webkit-text-stroke: 0 !important; }
-[data-gel-ink] { --jb-control-ink: var(--jb-rendered-ink) !important; --jb-ink: var(--jb-rendered-ink) !important; }
-[data-gel-ink] :is(.jb-button-face, .jb-alert-copy, .jb-checkbox-face, .jb-table-cell-content) { background: transparent !important; backdrop-filter: none !important; -webkit-backdrop-filter: none !important; box-shadow: none !important; border-color: transparent; }
-.jb-badge[data-gel-ink]::before { display: none; }
+/* Intended ink is independent of sampled material feedback. The same solid
+   lettering works before the first readback and without optional graphics. */
+:is([data-gel-surface], [data-gel-ink]), :is([data-gel-surface], [data-gel-ink]) :is(.jb-button-face, .jb-selection-content, .jb-selection-label, .jb-selection-description, .jb-field-label, .jb-range-value, .jb-dropdown-value, .jb-dropdown-option-copy, .jb-alert-copy, .jb-table-cell-content) { color: var(--jb-reading-ink, #000000) !important; text-shadow: none !important; -webkit-text-stroke: 0 !important; }
+:is([data-gel-surface], [data-gel-ink]) { --jb-control-ink: var(--jb-reading-ink, #000000) !important; --jb-ink: var(--jb-reading-ink, #000000) !important; }
+:is([data-gel-rendered="true"], [data-gel-ink]) :is(.jb-button-face, .jb-alert-copy, .jb-checkbox-face, .jb-table-cell-content) { background: transparent !important; backdrop-filter: none !important; -webkit-backdrop-filter: none !important; box-shadow: none !important; border-color: transparent; }
+.jb-badge:is([data-gel-rendered="true"], [data-gel-ink])::before { display: none; }
 [data-gel-ink] svg { filter: none; }
 .jb-activity { min-width: 208px; }
 .jb-activity .jb-button-face { display: grid; grid-template-columns: 16px minmax(0, 1fr); width: 100%; gap: 8px; }
@@ -127,7 +129,7 @@
 .jb-activity .jb-spinner { display: none; }
 .jb-activity[aria-busy="true"] { opacity: 1; }
 .jb-activity[data-gel-activity="loading"]:not([data-gel-rendered="true"]) { background: radial-gradient(ellipse at 25% 50%, rgb(91 175 243 / .78), transparent 65%), var(--jb-skin); }
-@media (forced-colors: active) { [data-gel-ink], [data-gel-ink] :is(.jb-button-face, .jb-selection-content, .jb-selection-label, .jb-selection-description, .jb-field-label, .jb-range-value, .jb-dropdown-value, .jb-dropdown-option-copy, .jb-alert-copy, .jb-table-cell-content) { color: ButtonText !important; text-shadow: none !important; } }
+@media (forced-colors: active) { :is([data-gel-surface], [data-gel-ink]), :is([data-gel-surface], [data-gel-ink]) :is(.jb-button-face, .jb-selection-content, .jb-selection-label, .jb-selection-description, .jb-field-label, .jb-range-value, .jb-dropdown-value, .jb-dropdown-option-copy, .jb-alert-copy, .jb-table-cell-content) { color: ButtonText !important; text-shadow: none !important; } }
 .jb-live [data-gel-selection-rendered="true"] > .jb-selection-contour { display: none; }
 .jb-paused .jb-spinner, .jb-paused .jb-skeleton-line::after { animation-play-state: paused; }
 @keyframes jb-spin { to { transform: rotate(360deg); } }

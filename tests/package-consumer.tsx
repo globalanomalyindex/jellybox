@@ -8,9 +8,11 @@ export function Consumer() {
   const [choice, setChoice] = useState(1);
   const [open, setOpen] = useState(false);
   const button = createRef<HTMLButtonElement>();
-  const scene: OpticalScene = { width: 300, height: 200, light: { x: 100, y: 20, height: 152, intensity: 1, softness: .45, warmth: .5, enabled: true } };
+  const scene: OpticalScene = { width: 300, height: 200,
+    contrastTargets: [{ id: 'action', x: 20, y: 20, width: 80, height: 16, ink: '#000000' }],
+    light: { x: 100, y: 20, height: 152, intensity: 1, softness: .45, warmth: .5, enabled: true } };
   const settleDuration: number = MOTION.recoil + MOTION.arrival;
-  const ink: string = chooseJellyInk(['#085bb9']).ink;
+  const ink: string = chooseJellyInk(['#085bb9'], undefined, { preferred: '#000000' }).ink;
   void ink;
   void scene; void settleDuration;
   return <JellyScene>

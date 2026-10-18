@@ -1,6 +1,17 @@
+import { MOTION } from './motion.js';
+
 // A filled concentration within the parent optical volume, not another mesh.
 // The fragment shader and receiver tracing share this thickness profile.
 export const FOLDER_DENSITY = Object.freeze({ width: 204, handleHeight: 44, shoulder: 26, radius: 22, join: 16 });
+
+// A shared-clock breath wakes the parent concentration on approach. The host
+// eases gain; the field supplies geometry, normals and receiver response together.
+export function densityHoverResponse(gain, time, moving = true) {
+  if (!moving || gain <= 0) return { amount: 0, jiggle: 0 };
+  const g = Math.max(0, Math.min(1, gain));
+  const phase = time * Math.PI * 2 / (MOTION.breathe / 1000);
+  return { amount: g * (.06 + .022 * Math.cos(phase)), jiggle: g * .28 * Math.sin(phase) };
+}
 
 // Local material strain, independent of layout and the native disclosure state.
 // Retain momentum when the disclosure reverses; reduced motion clears it.

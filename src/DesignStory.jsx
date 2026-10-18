@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { ColorExample, DensityExample, MotionExample } from './StoryExamples.jsx';
-import { LoadingExample, SpotlightExample } from './StoryStateExamples.jsx';
+import { LoadingExample, DesktopLampExample } from './StoryStateExamples.jsx';
 
 const CHAPTERS = [
   ['story-abstract', 'Abstract'],
@@ -128,7 +128,7 @@ export function DesignStory({ motionEnabled = true }) {
             <p>I use <a href="https://github.com/rvanwijnen/spectral.js/" target="_blank" rel="noreferrer">Spectral.js</a> for pigment-inspired color mixing. Its Kubelka–Munk model gives me a shared mixing path for the material’s colors. Precomputed samples let the controls and window follow that path smoothly, including when a color changes halfway through a transition.</p>
             <p>Color also has a job. Clear blue is the resting material; a highlight invites interaction; a denser selection marks the committed choice. Save uses green and Delete uses red. Labels, checks and focus indicators carry those meanings too. Trying a palette shows a preview before applying it, so exploring a color doesn’t silently change the current choice.</p>
             <p>Color can also carry a relationship. When two items join a working group, their pigments can mix into a shared identity, with a denser connection marking that they belong together. Separating them returns their individual colors. A pending edit can flow through that connection as a preview while the accepted grouping stays intact. This gives the jelly another job: showing what belongs together, what is changing, and what you’ve committed.</p>
-            <p>Legibility has to travel with the color. A shared ink rule samples the rendered jelly behind control labels and chooses dark or light text. It keeps a passing choice steady and colors the letters themselves, without an outline or a backing over the material. The material can stay expressive without asking you to read dark text through a dark pill.</p>
+            <p>Legibility has to travel with the color. A shared reading rule keeps the lettering steady while the jelly becomes thinner and quieter beneath it, with denser color at its shoulders. Rendered samples check the contrast rather than making the letters switch whenever a highlight passes. The color belongs to the letters themselves, without an outline or a backing over the material.</p>
           </div>
           <ColorExample motionEnabled={motionEnabled} />
         </section>
@@ -138,9 +138,9 @@ export function DesignStory({ motionEnabled = true }) {
           <div className="story-copy">
             <p>The little bulb is a movable light in the rendered scene. Dragging it changes the direction of highlights, colored casts and transmitted light on the textured surface. Its brightness, height, softness and warmth can be adjusted together.</p>
             <p>I wanted light reactivity to belong to the material itself. It could help reveal depth and grouping, or give someone another way to tune the feel of a workspace. Reading areas keep the effects quieter so a shadow can’t pretend to be a control. Text and selected states still need to make sense with the light off.</p>
-            <p>That also opens up a useful possibility for apps: light can guide attention. A task spotlight could illuminate the next control, follow keyboard focus, or help someone find their place again. In this example the light follows a preview while a check keeps the selected step clear. It’s a shared material response, rather than a separate glowing outline. The idea is to help you find the next action without changing its location.</p>
+            <p>I’m thinking of this as a lamp on a real desk. You place it where you want it and adjust it while you work. A light-reactive interface could offer that same ambient experience on a digital desktop: a pool of light across the workspace, with the jelly responding naturally around it. It stays where you put it instead of following every hover or telling you what to do next. Here you can move that light between three positions and change its height and brightness. The controls keep their meaning with the lamp off.</p>
           </div>
-          <SpotlightExample motionEnabled={motionEnabled} />
+          <DesktopLampExample motionEnabled={motionEnabled} />
         </section>
 
         <section id="story-interaction" className="story-section" tabIndex={-1} aria-labelledby="story-interaction-title">

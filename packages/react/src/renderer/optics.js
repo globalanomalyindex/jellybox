@@ -6,8 +6,9 @@ import { MOTION, sampleBezier, stepJellyResponse, stepAttraction } from './motio
 import { surfacePigment, windowPigment } from './surface-color.js';
 import { lightTemperature, moveReceiverField } from './lighting.js';
 import { DEFAULT_MATERIAL, JELLY_MATERIAL } from './material.js';
-import { DENSITY_GLSL, densityFieldProfile, densityClearing, densityPresentation, densityAttenuation, densityColorWeight, stepDensitySettle } from './density-field.js';
+import { DENSITY_GLSL, densityFieldProfile, densityClearing, densityPresentation, densityAttenuation, densityColorWeight, stepDensitySettle, densityHoverResponse } from './density-field.js';
 import { createContrastSampler } from './contrast-sampler.js';
+import { installReadingFilm, updateReadingFilm } from './reading-film.js';
 import { ACTIVITY_VOLUME, activityPocket, activityDisplacement, activityContour, stepActivity, activityPigment, ACTIVITY_GLSL } from './activity.js';
 import { volumeCrown, volumeHeight, volumeFullness } from './volume-profile.js';
 import { primaryTabMerge } from './tab-transfer.js';
@@ -391,6 +392,7 @@ function makeJelly(scene, index, field, panel = false) {
     envMapIntensity: 0.82, specularIntensity: 1, dispersion: 0.025,
   });
   installVolumeThickness(material);
+  installReadingFilm(material);
   if (panel) material.dispersion = 0;
   const mesh = new THREE.Mesh(geometry, material);
   mesh.name = panel ? 'Expanding jelly content container' : `Liquid volume ${index + 1}`;
@@ -1085,6 +1087,8 @@ export function createOptics(canvas, { getScene, onError = () => {}, onAfterRend
       }
       floorUniforms.uFluxStrength.value = .52;
       const buttonStates = [state.buttons?.[0], state.buttons?.[1], state.buttons?.[2], state.panel || null];
+      const readingTargets = new Map((state.contrastTargets || []).map(target => [target.id, target]));
+      const attachedReading = readingTargets.get(`primary-${state.buttons?.findIndex(button => button?.tabbed)}`);
       const smooth = 1 - Math.exp(-delta / (state.reducedMotion ? 0.07 : MOTION.feedback / 1000));
       bodies.forEach((body, index) => {
         let button = buttonStates[index];
@@ -1146,6 +1150,7 @@ export function createOptics(canvas, { getScene, onError = () => {}, onAfterRend
         body.field.strength.value = body.panel ? 1 : (1 - body.docked) * (1 - (body.merge || 0)) * body.arrival;
         const targetRadius = body.panel ? Math.min(button.cornerRadius ?? 30, button.width / 2, button.height / 2) : button.height / 2;
         body.r = body.panel && wasLive && !button.boundsSampled ? lerp(body.r, targetRadius, 1 - Math.exp(-delta / (MOTION.feedback / 1000))) : targetRadius;
+        updateReadingFilm(body.material, index === 3 ? attachedReading : readingTargets.get(`primary-${index}`), body, index === 3 && wasLive);
         body.h = Math.max(0, button.width / 2 - body.r);
         body.hY = body.panel ? Math.max(0, button.height / 2 - body.r) : 0;
         const phase = time * Math.PI * 2 / (MOTION.breathe / 1000) + index * Math.PI * 2 / 3;
@@ -1190,12 +1195,13 @@ export function createOptics(canvas, { getScene, onError = () => {}, onAfterRend
           const field = densityPresentation(phase, body.densityFlow);
           body.densitySettle = stepDensitySettle(body.densitySettle, phase, delta, !!state.reducedMotion || !wasLive || !region.folder || body.densityFolder !== !!region.folder);
           body.densityFolder = !!region.folder;
-          const hover = stepJellyResponse(body, 'densityHover', region.hover ? .06 : 0, delta, { duration: MOTION.follow, curve: MOTION.settle, instant: !!state.reducedMotion || !wasLive });
+          const hoverGain = stepJellyResponse(body, 'densityHover', region.hover && moving ? 1 : 0, delta, { duration: MOTION.material, curve: MOTION.settle, instant: !!state.reducedMotion || !wasLive });
+          const hover = densityHoverResponse(hoverGain, time, moving);
           const visibility = region.opacity * (body.window?.contentOpacity ?? 1) * openness;
           const densityHeight = region.expandedHeight ?? region.height;
           body.density = { x: region.x + region.width / 2 - button.x - button.width / 2,
             y: button.y + button.height / 2 - region.y - densityHeight / 2,
-            width: region.width + (region.folder ? 0 : Math.abs(field.flow) * 10), height: densityHeight, edge: field.edge, fold: region.folder ? field.fold : 0, folder: !!region.folder, jiggle: body.densitySettle.strain * visibility, flow: field.flow * visibility, amount: (field.amount + hover) * visibility * clamp(region.concentration ?? 1, .3, 1) };
+            width: region.width + (region.folder ? 0 : Math.abs(field.flow) * 10), height: densityHeight, edge: field.edge, fold: region.folder ? field.fold : 0, folder: !!region.folder, jiggle: (body.densitySettle.strain + hover.jiggle) * visibility, flow: field.flow * visibility, amount: (field.amount + hover.amount) * visibility * clamp(region.concentration ?? 1, .3, 1) };
           density.body.value.set(body.width, body.height, body.r);
           density.region.value.set(body.density.x, body.density.y, body.density.width, body.density.height);
           density.amount.value = body.density.amount;
@@ -1278,6 +1284,7 @@ export function createOptics(canvas, { getScene, onError = () => {}, onAfterRend
         const acknowledgement = moving && bubble.feedback && feedbackAge < 1.1 ? Math.sin(feedbackAge / 1.1 * Math.PI) * Math.exp(-feedbackAge * 2) : 0;
         body.width = bubble.width; body.height = bubble.height;
         body.r = Math.min(bubble.cornerRadius ?? 22, bubble.width / 2, bubble.height / 2);
+        updateReadingFilm(body.material, readingTargets.get(bubble.id), body);
         // Pills and badges are the very same closed capsule as the hero. Keep
         // the rounded rectangular reading body only where layout requires it.
         fitSurfaceGeometry(body, body.r >= bubble.height / 2 - .5 && bubble.width >= bubble.height && (!body.grouped || body.bulb));

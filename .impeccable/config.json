@@ -1,0 +1,26 @@
+{
+  "detector": {
+    "ignoreRules": [],
+    "ignoreFiles": [],
+    "ignoreValues": [
+      {
+        "rule": "bounce-easing",
+        "value": "cubic-bezier(.18, 1.48, .32, 1)",
+        "files": [
+          "packages/react/src/styles.css"
+        ],
+        "createdAt": "2026-10-18T15:53:26.834Z",
+        "reason": "user confirmed custom jelly bounce and jiggle repeatedly; spatial material only, native text and targets remain steady"
+      },
+      {
+        "rule": "bounce-easing",
+        "value": "cubic-bezier(.22, 1.12, .36, 1)",
+        "files": [
+          "packages/react/src/styles.css"
+        ],
+        "createdAt": "2026-10-18T15:53:26.857Z",
+        "reason": "user confirmed custom jelly bounce and jiggle repeatedly; bounded material response with motion preferences"
+      }
+    ]
+  }
+}
