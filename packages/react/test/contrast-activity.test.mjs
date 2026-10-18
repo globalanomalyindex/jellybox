@@ -158,8 +158,8 @@ test('gathering has a visible inward contour, swelling and a bounded release', (
     stepActivity(state,'error',sampleBezier(MOTION.pigmentCurve,Math.min(1,frame/60/.48)),1/60);
     contours.push(activityContour(activityPocket(208,48,state.clock,state)));
   }
-  assert.ok(Math.max(...contours.map(c=>c.inset)) > 5, 'both ends pull inward by a visible amount');
-  assert.ok(Math.max(...contours.map(c=>c.bulge)) > 3, 'the shoulders visibly swell');
+  assert.ok(Math.max(...contours.map(c=>c.inset)) > 3 && Math.max(...contours.map(c=>c.inset)) < 5, 'a deliberate tuck without squeezing the whole capsule');
+  assert.ok(Math.max(...contours.map(c=>c.bulge)) > 2 && Math.max(...contours.map(c=>c.bulge)) < 3, 'a contained shoulder swell');
   assert.ok(contours.some(c=>c.inset < ACTIVITY_VOLUME.inset-.25), 'release travels past the resting contour');
   assert.equal(contours.at(-1).inset, ACTIVITY_VOLUME.inset);
 });
@@ -184,4 +184,43 @@ test('the settled crown stops circulating and breathing while retaining its volu
     assert.equal(activityRelief(x,y,first),activityRelief(x,y,later));
     assert.ok(Number.isFinite(activityDisplacement(x,y,later).z));
   }
+});
+
+test('gathering stays on the displayed pigment phase and settles without a whole-body spring', () => {
+  const state = stepActivity(null, 'loading', 1, 0);
+  stepActivity(state, 'success', 0, 0);
+  for (const phase of [.1, .35, .7, 1]) {
+    stepActivity(state, 'success', phase, .08);
+    assert.ok(Math.abs(state.gather - phase) < .000001, 'density gathering and visible pigment share one phase');
+    assert.ok(state.gather >= 0 && state.gather <= 1, 'the result crown cannot overshoot its semantic density');
+  }
+  finishActivity(state, 'success', 1);
+  assert.equal(state.settling, false);
+});
+
+test('settling travels through the shoulders while the reading center remains steady', () => {
+  const flowing = activityPocket(208, 48, 0, { phase: .7, gather: .6, energy: 1, strain: 0 });
+  const captured = { ...flowing, strain: .4 };
+  const readingBefore = activityDisplacement(0, 0, flowing), readingAfter = activityDisplacement(0, 0, captured);
+  assert.ok(Math.abs(readingAfter.z - readingBefore.z) < .01, 'the label reading plateau is not pulsed as a whole');
+  const right = activityDisplacement(45, 18, captured).z - activityDisplacement(45, 18, flowing).z;
+  const left = activityDisplacement(-45, -18, captured).z - activityDisplacement(-45, -18, flowing).z;
+  assert.ok(right > .3 && left > .3, 'localized density bends light on both shoulders');
+  assert.ok(Math.abs(right - left) > .1, 'the return wave has direction rather than a uniform scale bounce');
+});
+
+test('the authored capture has matching timing at 30, 60 and 120 Hz and settles after its 720 ms track', () => {
+  const values = [];
+  for (const fps of [30, 60, 120]) {
+    const state = stepActivity(null, 'loading', 1, 0);
+    stepActivity(state, 'warning', 0, 0);
+    for (let frame = 1; frame <= Math.ceil(.75 * fps); frame++) {
+      stepActivity(state, 'warning', sampleBezier(MOTION.pigmentCurve, Math.min(1, frame / fps / .48)), 1 / fps);
+      if (frame === Math.round(.4 * fps)) values.push(state.strain);
+    }
+    assert.equal(state.strain, 0);
+    assert.equal(state.gather, 1);
+    assert.equal(state.settling, false);
+  }
+  assert.ok(Math.max(...values) - Math.min(...values) < .001, 'sampling frequency cannot change the material response');
 });

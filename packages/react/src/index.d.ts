@@ -10,7 +10,7 @@ export const DEFAULT_MATERIAL: Readonly<MaterialParams>;
 export const JELLY_MATERIAL: Readonly<{ window: Readonly<{ filmHalfDepth: number; rimHalfDepth: number; rimSpan: number; gap: number }>; control: Readonly<{ filmHalfDepth: number; rimHalfDepth: number; rimSpan: number; attenuationDense: number; attenuationClear: number; selectedDensity: number; selectedTintAbsorption: number; selectedLift: number }> }>;
 export const MOTION: Readonly<{
   expand: number; collapse: number; flow: number; material: number; feedback: number; compress: number; fade: number; follow: number;
-  breathe: number; activityOrbit: number;
+  breathe: number; activityOrbit: number; activitySettle: number;
   activityResponse: Readonly<{ frequency: number; damping: number }>; activityStrain: Readonly<{ frequency: number; damping: number }>;
   skeleton: number; loadingPreview: number; recoil: number; pigment: number; tabTransfer: number;
   windowOpen: number; windowClose: number; densityGather: number; densityMelt: number;

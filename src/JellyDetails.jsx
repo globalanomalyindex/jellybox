@@ -43,10 +43,10 @@ export function JellyDetails({ title, summary, children, open: controlledOpen, o
   const parts = typeof summary === 'string' ? summary.split(' · ') : null;
   return <section className="jelly-details" data-open={open} data-density-region="folder" data-density-hover={hover || focus}
     style={{ '--folder-handle-width': `${FOLDER_DENSITY.width}px`, '--folder-handle-height': `${FOLDER_DENSITY.handleHeight}px` }}
-    onFocus={() => setFocus(true)} onBlur={e => { if (!e.currentTarget.contains(e.relatedTarget)) { setFocus(false); releaseScroll(); } }}>
+    onFocus={e => setFocus(e.target.matches(':focus-visible'))} onBlur={e => { if (!e.currentTarget.contains(e.relatedTarget)) { setFocus(false); releaseScroll(); } }}>
     <h4><button type="button" id={`${id}-trigger`} aria-expanded={open} aria-controls={id} aria-labelledby={`${id}-title`} aria-describedby={`${id}-summary`}
       data-density-handle="" style={material} className="jelly-details-trigger"
-      onPointerEnter={() => setHover(true)} onPointerLeave={() => { setHover(false); if (!open) releaseScroll(); }}
+      onPointerEnter={e => { if (e.pointerType !== 'touch') setHover(true); }} onPointerLeave={() => { setHover(false); if (!open) releaseScroll(); }}
       onClick={() => { if (open) holdScroll(); setOpen(!open); onOpenChange?.(!open); }}>
       <span className="jelly-details-title" id={`${id}-title`}>{title}</span>
       <span className="jelly-details-caret" aria-hidden="true"><CaretDown size={18} /></span>

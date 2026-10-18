@@ -9,7 +9,7 @@ import { DEFAULT_MATERIAL, JELLY_MATERIAL } from './material.js';
 import { DENSITY_GLSL, densityFieldProfile, densityClearing, densityPresentation, densityAttenuation, densityColorWeight, stepDensitySettle, densityHoverResponse } from './density-field.js';
 import { createContrastSampler } from './contrast-sampler.js';
 import { installReadingFilm, updateReadingFilm } from './reading-film.js';
-import { ACTIVITY_VOLUME, activityPocket, activityDisplacement, activityContour, stepActivity, activityPigment, ACTIVITY_GLSL } from './activity.js';
+import { ACTIVITY_VOLUME, activityPocket, activityDisplacement, activityContour, stepActivity, activityPigment, ACTIVITY_GLSL, ACTIVITY_PIGMENT_GLSL } from './activity.js';
 import { volumeCrown, volumeHeight, volumeFullness } from './volume-profile.js';
 import { primaryTabMerge } from './tab-transfer.js';
 import { POCKET, POCKET_GLSL, stepPocket, pocketShape } from './pocket.js';
@@ -27,6 +27,9 @@ const smoothstep = (a, b, value) => { const t = clamp((value - a) / (b - a)); re
 const geometrySampleKey = values => values.map(value => typeof value === 'number' ? Math.round(value * 1000) : value).join(',');
 const PHOTON_RANGE = 7;
 const LIGHT_DIRECTION = new THREE.Vector3(780, -900, -760).normalize();
+// One cached pigment path wakes the whole parent concentration. Linear working
+// colors are decoded once; the same eased hover gain samples color and strain.
+const DENSITY_HOVER_PIGMENT = createJellyPalette('#bfdfee', '#69bafa').colors.map(hex => new THREE.Color(hex).toArray());
 
 function colorFrom(rgb) {
   return new THREE.Color().setRGB(...rgb, THREE.SRGBColorSpace);
@@ -224,7 +227,11 @@ function installVolumeThickness(material) {
   palette.colorSpace = THREE.SRGBColorSpace;
   palette.minFilter = palette.magFilter = THREE.LinearFilter;
   palette.needsUpdate = true;
-  const flow = { region: { value: new THREE.Vector4(0, 0, 1, 1) }, activity: { value: new THREE.Vector4() }, gather: { value: 0 }, strain: { value: 0 }, reading: { value: new THREE.Vector2() }, depth: { value: POCKET.depth }, strength: { value: 0 }, palette: { value: palette } };
+  const activityPalette = new THREE.DataTexture(new Uint8Array(33 * 2 * 4).fill(255), 33, 2, THREE.RGBAFormat);
+  activityPalette.colorSpace = THREE.SRGBColorSpace;
+  activityPalette.minFilter = activityPalette.magFilter = THREE.LinearFilter;
+  activityPalette.needsUpdate = true;
+  const flow = { activityPalette: { value: activityPalette }, pigmentPhase: { value: -1 }, fallbackDense: { value: new THREE.Color() }, region: { value: new THREE.Vector4(0, 0, 1, 1) }, activity: { value: new THREE.Vector4() }, gather: { value: 0 }, strain: { value: 0 }, reading: { value: new THREE.Vector2() }, depth: { value: POCKET.depth }, strength: { value: 0 }, palette: { value: palette } };
   material.userData.flow = flow;
   const densityPalette = new THREE.DataTexture(new Float32Array(33 * 4), 33, 1, THREE.RGBAFormat, THREE.FloatType);
   densityPalette.minFilter = densityPalette.magFilter = THREE.LinearFilter;
@@ -232,14 +239,14 @@ function installVolumeThickness(material) {
   const density = { body: { value: new THREE.Vector3(1, 1, .5) }, shape: { value: new THREE.Vector4(24, 0, 0, 0) }, region: { value: new THREE.Vector4(0, 0, 1, 1) }, amount: { value: 0 }, jiggle: { value: 0 }, palette: { value: densityPalette } };
   material.userData.density = density;
   material.onBeforeCompile = shader => {
-    Object.assign(shader.uniforms, { uPigmentRegion: flow.region, uActivityShape: flow.activity, uActivityGather: flow.gather, uActivityStrain: flow.strain, uActivityReading: flow.reading, uPocketDepth: flow.depth, uPigmentStrength: flow.strength, uPigmentPalette: flow.palette, uDensityBody: density.body, uDensityRegion: density.region, uDensityShape: density.shape, uDensityAmount: density.amount, uDensityJiggle: density.jiggle, uDensityPalette: density.palette });
+    Object.assign(shader.uniforms, { uPigmentRegion: flow.region, uActivityShape: flow.activity, uActivityGather: flow.gather, uActivityStrain: flow.strain, uActivityReading: flow.reading, uPocketDepth: flow.depth, uPigmentStrength: flow.strength, uPigmentPalette: flow.palette, uActivityPalette: flow.activityPalette, uActivityPigmentPhase: flow.pigmentPhase, uActivityFallbackDense: flow.fallbackDense, uDensityBody: density.body, uDensityRegion: density.region, uDensityShape: density.shape, uDensityAmount: density.amount, uDensityJiggle: density.jiggle, uDensityPalette: density.palette });
     shader.vertexShader = `attribute float aVolumeDepth; varying float vVolumeDepth; varying vec2 vJellyPosition; varying vec3 vPocketX; varying vec3 vPocketY; varying vec3 vPocketZ;\n${shader.vertexShader}`;
     shader.vertexShader = shader.vertexShader.replace('#include <begin_vertex>', '#include <begin_vertex>\nvVolumeDepth = aVolumeDepth; vJellyPosition = position.xy; vPocketX = normalMatrix * vec3(1.0, 0.0, 0.0); vPocketY = normalMatrix * vec3(0.0, 1.0, 0.0); vPocketZ = normalMatrix * vec3(0.0, 0.0, 1.0);');
     shader.fragmentShader = `varying float vVolumeDepth; varying vec2 vJellyPosition;
       varying vec3 vPocketX; varying vec3 vPocketY; varying vec3 vPocketZ;
       uniform vec4 uPigmentRegion; uniform vec4 uActivityShape; uniform float uActivityGather; uniform vec2 uActivityReading; uniform float uPocketDepth; uniform float uPigmentStrength; uniform sampler2D uPigmentPalette;
       uniform vec3 uDensityBody; uniform vec4 uDensityRegion; uniform vec4 uDensityShape; uniform float uDensityAmount; uniform float uDensityJiggle; uniform sampler2D uDensityPalette;
-      ${POCKET_GLSL}\n${ACTIVITY_GLSL}\n${DENSITY_GLSL}\n${shader.fragmentShader}`;
+      ${POCKET_GLSL}\n${ACTIVITY_GLSL}\n${ACTIVITY_PIGMENT_GLSL}\n${DENSITY_GLSL}\n${shader.fragmentShader}`;
     // One field drives the whole interior before PBR lighting and transmission.
     shader.fragmentShader = shader.fragmentShader.replace('#include <color_fragment>', `
       #include <color_fragment>
@@ -298,12 +305,14 @@ function installVolumeThickness(material) {
         }
         if (uPigmentStrength > 0.001) {
           float concentration = pocket.w * clamp(uPigmentStrength, 0.0, 1.0);
-          material.attenuationColor = texture2D(uPigmentPalette, vec2((concentration * 32.0 + .5) / 33.0, .5)).rgb;
+          if (uActivityShape.w > .001) {
+            material.attenuationColor = jellyActivityPigment(material.attenuationColor, concentration);
+          } else material.attenuationColor = texture2D(uPigmentPalette, vec2((concentration * 32.0 + .5) / 33.0, .5)).rgb;
         }
       `);
     shader.fragmentShader = shader.fragmentShader.replace('#include <transmission_fragment>', transmission);
   };
-  material.customProgramCacheKey = () => 'shared-liquid-gather-folder-v24';
+  material.customProgramCacheKey = () => 'shared-liquid-current-pigment-v25';
 }
 
 function makeMeniscusGeometry(joinedTab = false) {
@@ -948,10 +957,10 @@ export function createOptics(canvas, { getScene, onError = () => {}, onAfterRend
     castMaterial.onBeforeCompile = shader => {
       const flow = body.material.userData.flow;
       Object.assign(shader.uniforms, { uCastSize: body.castUniforms.size, uCastRadius: body.castUniforms.radius, uCastPigment: body.castUniforms.pigment, uCastDensity: body.castUniforms.density, uCastLight: body.castUniforms.light, uCastContact: body.castUniforms.contact,
-        uPigmentRegion: flow.region, uActivityShape: flow.activity, uActivityGather: flow.gather, uActivityStrain: flow.strain, uActivityReading: flow.reading, uPocketDepth: flow.depth, uPigmentStrength: flow.strength, uPigmentPalette: flow.palette });
+        uPigmentRegion: flow.region, uActivityShape: flow.activity, uActivityGather: flow.gather, uActivityStrain: flow.strain, uActivityReading: flow.reading, uPocketDepth: flow.depth, uPigmentStrength: flow.strength, uPigmentPalette: flow.palette, uActivityPalette: flow.activityPalette, uActivityPigmentPhase: flow.pigmentPhase, uActivityFallbackDense: flow.fallbackDense });
       shader.vertexShader = 'varying vec2 vCastUv;\n' + shader.vertexShader;
       shader.vertexShader = shader.vertexShader.replace('#include <uv_vertex>', '#include <uv_vertex>\nvCastUv = uv;');
-      shader.fragmentShader = 'varying vec2 vCastUv; uniform vec2 uCastSize; uniform float uCastRadius; uniform vec3 uCastPigment; uniform float uCastDensity; uniform float uCastLight; uniform float uCastContact; uniform vec4 uPigmentRegion; uniform vec4 uActivityShape; uniform float uActivityGather; uniform float uPigmentStrength; uniform sampler2D uPigmentPalette;\n' + POCKET_GLSL + ACTIVITY_GLSL + shader.fragmentShader;
+      shader.fragmentShader = 'varying vec2 vCastUv; uniform vec2 uCastSize; uniform float uCastRadius; uniform vec3 uCastPigment; uniform float uCastDensity; uniform float uCastLight; uniform float uCastContact; uniform vec4 uPigmentRegion; uniform vec4 uActivityShape; uniform float uActivityGather; uniform float uPigmentStrength; uniform sampler2D uPigmentPalette;\n' + POCKET_GLSL + ACTIVITY_GLSL + ACTIVITY_PIGMENT_GLSL + shader.fragmentShader;
       shader.fragmentShader = shader.fragmentShader.replace('#include <color_fragment>', `
         vec2 p = (vCastUv - .5) * (uCastSize + 24.0);
         vec2 q = abs(p) - max(vec2(0.0), uCastSize * .5 - uCastRadius);
@@ -968,7 +977,9 @@ export function createOptics(canvas, { getScene, onError = () => {}, onAfterRend
           float pocketEdge = 4.0 * pocket.w * (1.0 - pocket.w);
           bodyCast += pocket.z * .20;
           focused += pocketEdge * .18;
-          pigment = texture2D(uPigmentPalette, vec2((concentration * 32.0 + .5) / 33.0, .5)).rgb;
+          if (uActivityShape.w > .001) {
+            pigment = jellyActivityPigment(pigment, concentration);
+          } else pigment = texture2D(uPigmentPalette, vec2((concentration * 32.0 + .5) / 33.0, .5)).rgb;
         }
         diffuseColor.rgb = mix(pigment, vec3(1.0), focused * .7);
         if (uCastContact > .5) {
@@ -1195,7 +1206,9 @@ export function createOptics(canvas, { getScene, onError = () => {}, onAfterRend
           const field = densityPresentation(phase, body.densityFlow);
           body.densitySettle = stepDensitySettle(body.densitySettle, phase, delta, !!state.reducedMotion || !wasLive || !region.folder || body.densityFolder !== !!region.folder);
           body.densityFolder = !!region.folder;
-          const hoverGain = stepJellyResponse(body, 'densityHover', region.hover && moving ? 1 : 0, delta, { duration: MOTION.material, curve: MOTION.settle, instant: !!state.reducedMotion || !wasLive });
+          // Pausing ambient movement keeps a static color acknowledgment for
+          // deliberate pointer/focus input; only the circulating strain stops.
+          const hoverGain = stepJellyResponse(body, 'densityHover', region.hover ? 1 : 0, delta, { duration: MOTION.material, curve: MOTION.settle, instant: !!state.reducedMotion || !wasLive });
           const hover = densityHoverResponse(hoverGain, time, moving);
           const concentration = stepJellyResponse(body, 'densityConcentration', clamp(region.concentration ?? 1, .3, 1), delta, { duration: MOTION.material, curve: MOTION.gather, instant: !!state.reducedMotion || !wasLive });
           const visibility = region.opacity * (body.window?.contentOpacity ?? 1) * openness;
@@ -1209,8 +1222,9 @@ export function createOptics(canvas, { getScene, onError = () => {}, onAfterRend
           density.jiggle.value = body.density.jiggle;
           density.shape.value.set(body.density.edge, body.density.flow, body.density.fold, body.density.folder ? 1 : 0);
           const pixels = density.palette.value.image.data;
+          const basePixels = body.densityBasePixels ||= new Float32Array(pixels);
           if (body.densityPigment !== region.pigment) {
-            body.densityFrom = new Float32Array(pixels);
+            body.densityFrom = new Float32Array(basePixels);
             body.densityTarget = new Float32Array(pixels.length);
             const origin = new THREE.Color(region.pigment).toArray();
             const palette = createJellyPalette(region.pigment, '#bfdfee');
@@ -1221,11 +1235,22 @@ export function createOptics(canvas, { getScene, onError = () => {}, onAfterRend
           }
           // Only the local density correction follows this clock. The parent
           // keeps its already-sampled Spectral pigment without a second lag.
+          let paletteChanged = false;
           if (body.densityElapsed < MOTION.pigment || body.densityPaletteDirty) {
             body.densityElapsed = state.reducedMotion ? MOTION.pigment : Math.min(MOTION.pigment, body.densityElapsed + delta * 1000);
             const mix = sampleBezier(MOTION.pigmentCurve, body.densityElapsed / MOTION.pigment);
-            for (let i = 0; i < pixels.length; i++) pixels[i] = lerp(body.densityFrom[i], body.densityTarget[i], mix);
+            for (let i = 0; i < pixels.length; i++) basePixels[i] = lerp(body.densityFrom[i], body.densityTarget[i], mix);
             body.densityPaletteDirty = false;
+            paletteChanged = true;
+          }
+          if (paletteChanged || body.densityHoverPigment !== hoverGain) {
+            const sample = clamp(hoverGain) * 32, lower = Math.floor(sample), upper = Math.min(32, lower + 1);
+            for (let i = 0; i < pixels.length; i++) {
+              const channel = i % 4;
+              const tint = channel < 3 ? lerp(DENSITY_HOVER_PIGMENT[lower][channel], DENSITY_HOVER_PIGMENT[upper][channel], sample - lower) - DENSITY_HOVER_PIGMENT[0][channel] : 0;
+              pixels[i] = basePixels[i] + tint * Math.floor(i / 4) / 32;
+            }
+            body.densityHoverPigment = hoverGain;
             density.palette.value.needsUpdate = true;
           }
         } else { body.density = null; body.densityPrevious = null; body.densityFlow = 0; body.densitySettle = null; density.amount.value = 0; density.jiggle.value = 0; }
@@ -1295,7 +1320,7 @@ export function createOptics(canvas, { getScene, onError = () => {}, onAfterRend
         body.scaleXY = 1 + body.hover * 0.016 - body.pressed * .012 + rest;
         body.c = (body.grouped && !body.bulb ? JELLY_MATERIAL.control.filmHalfDepth + 1.1 : bubble.kind === 'menu' ? JELLY_MATERIAL.control.menuHalfDepth : Math.min(JELLY_MATERIAL.control.maxHalfDepth, Math.max(JELLY_MATERIAL.control.rimHalfDepth, bubble.height * JELLY_MATERIAL.control.heightDepthRatio)) * role.depth)
           * (['thumb', 'track', 'fill'].includes(bubble.kind) ? .74 + .26 * clamp(bubble.emphasis ?? 1, 0, 1.12) : 1)
-          + acknowledgement * .65 + body.hover * (body.grouped && !body.bulb ? 0.42 : 1.1) + body.selection * JELLY_MATERIAL.control.selectedLift - body.pressed * (body.grouped ? 0.25 : 0.8) + (activityState?.density || 0) * 1.5 + (activityState?.strain || 0) * 1.6;
+          + acknowledgement * .65 + body.hover * (body.grouped && !body.bulb ? 0.42 : 1.1) + body.selection * JELLY_MATERIAL.control.selectedLift - body.pressed * (body.grouped ? 0.25 : 0.8) + (activityState?.density || 0) * 1.5;
         const localDensity = bubble.attached !== false && parent.density
           ? densityFieldProfile(bubble.x + bubble.width / 2 - parent.mesh.position.x - width / 2 - parent.density.x,
             height / 2 - bubble.y - bubble.height / 2 - parent.mesh.position.y - parent.density.y, parent.density).height : 0;
@@ -1321,12 +1346,27 @@ export function createOptics(canvas, { getScene, onError = () => {}, onAfterRend
         const activityGain = activityState?.energy || 0;
         const activity = body.activityShape;
         if (bubble.activity && bubble.activityColor) {
-          body.activityPigment = activityPigment(body.activityPigment, bubble.activity, bubble.activityColor, activityState.sample);
-          if (activity) activity.color = [1,3,5].map(at => parseInt(body.activityPigment.color.slice(at,at+2),16)/255);
-        } else if (activity && bubble.activity !== 'loading') {
-          // Custom optical hosts can omit the destination; their displayed
-          // surface pigment still owns the retained outcome volume.
-          activity.color = body.pigmentRGB;
+          const destination = bubble.activityColor;
+          body.activityPigment = activityPigment(body.activityPigment, bubble.activity, destination, activityState.sample);
+          const pigment = body.activityPigment;
+          if (activity) activity.color = pigment.denseRGB;
+          flowUniforms.pigmentPhase.value = pigment.sample;
+          if (body.activityFilmPalette !== pigment.filmPalette || body.activityDensePalette !== pigment.palette) {
+            body.activityFilmPalette = pigment.filmPalette; body.activityDensePalette = pigment.palette;
+            const pixels = flowUniforms.activityPalette.value.image.data;
+            for (const [row, path] of [pigment.filmPalette, pigment.palette].entries()) {
+              path.colors.forEach((hex, i) => pixels.set([parseInt(hex.slice(1, 3), 16), parseInt(hex.slice(3, 5), 16), parseInt(hex.slice(5, 7), 16), 255], (row * 33 + i) * 4));
+            }
+            flowUniforms.activityPalette.value.needsUpdate = true;
+          }
+        } else {
+          // Without an explicit destination, the host's displayed pigment is
+          // authoritative. Its own sample needs no guessed Spectral retarget.
+          flowUniforms.pigmentPhase.value = -1;
+          if (bubble.activity === 'loading') flowUniforms.fallbackDense.value.set('#1459d1');
+          else flowUniforms.fallbackDense.value.copy(targetTint);
+          body.activityPigment = null;
+          if (activity) activity.color = body.pigmentRGB;
         }
         flowUniforms.activity.value.set(activity?.width || 0, activity?.height || 0, activity?.phase || 0, activity?.breath || 0);
         flowUniforms.gather.value = activity?.gather || 0;
@@ -1339,14 +1379,16 @@ export function createOptics(canvas, { getScene, onError = () => {}, onAfterRend
           body.flow = { ...pocketShape(body.pocket), strength: (activity ? ACTIVITY_VOLUME.strength : JELLY_MATERIAL.control.focusPigmentStrength) * (bubble.flow ? 1 : activityGain) };
           flowUniforms.region.value.set(body.flow.x, body.flow.y, body.flow.width, body.flow.height);
           flowUniforms.strength.value = body.flow.strength;
-          const from = `#${targetTint.getHexString(THREE.SRGBColorSpace)}`;
-          const to = `#${colorFrom(target.color).getHexString(THREE.SRGBColorSpace)}`;
-          const paletteKey = `${from}:${to}`;
-          if (body.flowPaletteKey !== paletteKey) {
-            body.flowPaletteKey = paletteKey;
-            const palette = createJellyPalette(from, to), pixels = flowUniforms.palette.value.image.data;
-            palette.colors.forEach((hex, i) => pixels.set([parseInt(hex.slice(1, 3), 16), parseInt(hex.slice(3, 5), 16), parseInt(hex.slice(5, 7), 16), 255], i * 4));
-            flowUniforms.palette.value.needsUpdate = true;
+          if (!activity) {
+            const from = `#${targetTint.getHexString(THREE.SRGBColorSpace)}`;
+            const to = `#${colorFrom(target.color).getHexString(THREE.SRGBColorSpace)}`;
+            const paletteKey = `${from}:${to}`;
+            if (body.flowPaletteKey !== paletteKey) {
+              body.flowPaletteKey = paletteKey;
+              const palette = createJellyPalette(from, to), pixels = flowUniforms.palette.value.image.data;
+              palette.colors.forEach((hex, i) => pixels.set([parseInt(hex.slice(1, 3), 16), parseInt(hex.slice(3, 5), 16), parseInt(hex.slice(5, 7), 16), 255], i * 4));
+              flowUniforms.palette.value.needsUpdate = true;
+            }
           }
         } else { body.flow = null; body.pocket = null; flowUniforms.strength.value = 0; }
         body.material.attenuationColor.multiplyScalar(1 - clamp(body.selection) * JELLY_MATERIAL.control.selectedTintAbsorption);
@@ -1553,7 +1595,7 @@ export function createOptics(canvas, { getScene, onError = () => {}, onAfterRend
       destroyed = true;
       cancelAnimationFrame(frame);
       bubbles.forEach(body => body.cast.material.dispose()); castGeometry.dispose();
-      bodies.concat(bubbles, selectionSlots.map(slot => slot.body)).forEach(body => { body.geometry.dispose(); body.material.userData.flow.palette.value.dispose(); body.material.userData.density.palette.value.dispose(); body.material.dispose(); body.depth.dispose(); });
+      bodies.concat(bubbles, selectionSlots.map(slot => slot.body)).forEach(body => { body.geometry.dispose(); body.material.userData.flow.palette.value.dispose(); body.material.userData.flow.activityPalette.value.dispose(); body.material.userData.density.palette.value.dispose(); body.material.dispose(); body.depth.dispose(); });
       floor.geometry.dispose(); floorMaterial.dispose();
       fields.forEach(field => field.texture.dispose());
       paper.color.dispose(); paper.relief.dispose();

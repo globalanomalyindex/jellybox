@@ -2,25 +2,17 @@ import { createJellyPalette } from '../color.js';
 import { MOTION, sampleBezier } from './motion.js';
 const clamp = value => Math.max(0, Math.min(1, value));
 const smooth = (low, high, value) => { const t = clamp((value - low) / (high - low)); return t * t * (3 - 2 * t); };
-export const ACTIVITY_VOLUME = Object.freeze({ depth: 4.8, strength: .86, inset: 1.8, pull: 12, bulge: 1.2, recoil: 6.5 });
+export const ACTIVITY_VOLUME = Object.freeze({ depth: 4.8, strength: .86, inset: 1.8, pull: 7.5, bulge: 1.1, recoil: 4.2 });
 const outcome = status => ['success', 'warning', 'error'].includes(status);
+const bell = (start, peak, end, value) => smooth(start, peak, value) * (1 - smooth(peak, end, value));
 
-// Pigment remains on the host's 480 ms sample. One damped material response
-// follows that sample; its retained velocity carries the last compression into
-// a small recoil. This changes geometry/light, never task timing or native text.
-const RESPONSE = MOTION.activityResponse;
-function settle(state, key, target, dt, instant, response = RESPONSE) {
-  const velocity = `${key}Velocity`;
-  if (instant) { state[key] = target; state[velocity] = 0; return; }
-  const steps = Math.max(1, Math.ceil(dt * 120)), h = dt / steps;
-  for (let i = 0; i < steps; i++) {
-    state[velocity] += (response.frequency ** 2 * (target - state[key])
-      - 2 * response.damping * response.frequency * state[velocity]) * h;
-    state[key] += state[velocity] * h;
-  }
-  if (Math.abs(state[key] - target) < .001 && Math.abs(state[velocity]) < .01) {
-    state[key] = target; state[velocity] = 0;
-  }
+// Density gathers on the displayed pigment sample. A short, authored release
+// travels through the shoulders after capture: compression, softer return,
+// then one diminishing ripple. It never spring-scales the native capsule.
+function gatheringStrain(progress) {
+  return .46 * bell(0, .22, .43, progress)
+    - .12 * bell(.25, .53, .78, progress)
+    + .025 * bell(.62, .81, 1, progress);
 }
 export function stepActivity(previous, status = 'idle', materialPhase, seconds, { instant = false, moving = true } = {}) {
   const targetGain = status === 'loading' || outcome(status) ? 1 : 0;
@@ -28,29 +20,44 @@ export function stepActivity(previous, status = 'idle', materialPhase, seconds, 
   const targetDensity = outcome(status) ? 1 : status === 'loading' ? .4 : 0;
   const state = previous || { status, gain: targetGain, gather: targetGather, density: targetDensity,
     gainVelocity: 0, gatherVelocity: 0, densityVelocity: 0, strain: 0, strainVelocity: 0,
-    fromGain: targetGain, fromGather: targetGather, fromDensity: targetDensity, phase: 0, clock: 0, elapsed: MOTION.pigment, sample: 1 };
+    fromGain: targetGain, fromGather: targetGather, fromDensity: targetDensity,
+    fromGainVelocity: 0, fromGatherVelocity: 0, fromDensityVelocity: 0,
+    fromStrain: 0, fromStrainVelocity: 0, capture: 0,
+    phase: 0, clock: 0, elapsed: MOTION.activitySettle, sample: 1 };
   const dt = Math.max(0, Math.min(.1, seconds));
   if (state.status !== status || Number.isFinite(materialPhase) && materialPhase + .0001 < state.sample) {
-    if (state.status !== status && outcome(status) && state.status === 'loading' && !instant) state.strainVelocity += Math.max(0, state.gain) * 7;
     state.fromGain = state.gain; state.fromGather = state.gather; state.fromDensity = state.density;
+    state.fromGainVelocity = state.gainVelocity; state.fromGatherVelocity = state.gatherVelocity; state.fromDensityVelocity = state.densityVelocity;
+    state.fromStrain = state.strain; state.fromStrainVelocity = state.strainVelocity;
+    state.capture = outcome(status) ? clamp(1 - state.gather) * state.gain : 0;
     state.status = status; state.elapsed = 0;
   }
-  state.elapsed = Math.min(MOTION.pigment, state.elapsed + dt * 1000);
-  const progress = instant ? 1 : Number.isFinite(materialPhase) ? clamp(materialPhase) : sampleBezier(MOTION.pigmentCurve, state.elapsed / MOTION.pigment);
+  state.elapsed = instant ? MOTION.activitySettle : Math.min(MOTION.activitySettle, state.elapsed + dt * 1000);
+  const progress = instant ? 1 : Number.isFinite(materialPhase) ? clamp(materialPhase) : sampleBezier(MOTION.pigmentCurve, Math.min(1, state.elapsed / MOTION.pigment));
+  const elapsed = Math.min(MOTION.pigment, state.elapsed) / 1000;
   for (const [key, target, from] of [['gain', targetGain, state.fromGain], ['gather', targetGather, state.fromGather], ['density', targetDensity, state.fromDensity]]) {
-    settle(state, key, from + (target - from) * progress, dt, instant);
+    const displayed = state[key];
+    // A vanishing continuation keeps the last displayed momentum on a retry or
+    // cancel. It is zero for ordinary capture and at the exact pigment endpoint.
+    const carry = state[`from${key[0].toUpperCase()}${key.slice(1)}Velocity`] * elapsed * (1 - progress) ** 2;
+    state[key] = instant ? target : clamp(from + (target - from) * progress + carry);
+    if (dt > 0) state[`${key}Velocity`] = (state[key] - displayed) / dt;
+    if (progress === 1) state[`${key}Velocity`] = 0;
   }
   state.sample = progress;
-  settle(state, 'strain', state.gatherVelocity * .12, dt, instant, MOTION.activityStrain);
-  state.strain = Math.max(-.24, Math.min(.85, state.strain));
+  const beforeStrain = state.strain, age = state.elapsed / MOTION.activitySettle;
+  const remaining = 1 - smooth(0, 1, age);
+  const carriedStrain = (state.fromStrain + state.fromStrainVelocity * state.elapsed / 1000 * (1 - age)) * remaining;
+  state.strain = instant ? 0 : Math.max(-.24, Math.min(.85, carriedStrain + gatheringStrain(age) * state.capture));
+  if (dt > 0) state.strainVelocity = (state.strain - beforeStrain) / dt;
+  if (state.elapsed === MOTION.activitySettle) state.strain = state.strainVelocity = 0;
   state.energy = clamp(state.gain);
-  state.settling = Math.abs(state.gather - targetGather) > .0003 || Math.abs(state.gatherVelocity) > .003
-    || Math.abs(state.gain - targetGain) > .0003 || Math.abs(state.gainVelocity) > .003 || Math.abs(state.strain) > .0003 || Math.abs(state.strainVelocity) > .003;
+  state.settling = progress < 1 || state.elapsed < MOTION.activitySettle
+    && (Math.abs(state.strain) > .0001 || state.capture > .0001 || Math.abs(state.fromStrain) > .0001 || Math.abs(state.fromStrainVelocity) > .001);
   if (moving && !instant) {
     state.clock += dt;
-    // Avoid multiplying two vanishing envelopes: the last current continues
-    // turning as it concentrates, then stops with the material's momentum.
-    state.phase += dt * Math.PI * 2 / (MOTION.activityOrbit / 1000) * Math.max(0, 1 - clamp(state.gather));
+    // The current keeps turning as it collects, slowing with its own gather.
+    state.phase += dt * Math.PI * 2 / (MOTION.activityOrbit / 1000) * (1 - state.gather);
   }
   return state;
 }
@@ -84,7 +91,9 @@ export function activityRelief(x, y, shape) {
   const top = Math.exp(-(((nx - travel) / .38) ** 2) - ((ny - arc) / .28) ** 2);
   const bottom = Math.exp(-(((nx + travel) / .38) ** 2) - ((ny + arc) / .28) ** 2);
   const crown = .84 - .10 * nx * nx;
-  return (bulk * (1 - q) + crown * q + (top + bottom) * squeeze * .58 + shape.strain * .20) * support;
+  const shoulder = Math.exp(-(((Math.abs(nx) - (.74 - .28 * q)) / .28) ** 2));
+  const ripple = shoulder * (1 - reading * .88) * (1 + Math.sin(shape.phase + nx * 2.4) * .22);
+  return (bulk * (1 - q) + crown * q + (top + bottom) * squeeze * .58 + shape.strain * ripple * .42) * support;
 }
 
 export function activityContour(shape) {
@@ -95,8 +104,9 @@ export function activityDisplacement(x, y, shape, output = {}) {
   const nx = x / Math.max(1, shape.width * .5), ny = y / Math.max(1, shape.height * .5);
   const movement = shape.gain * (1 - shape.gather);
   const shoulder = smooth(.18, .85, Math.abs(nx));
-  const inset = ACTIVITY_VOLUME.inset * shape.gather + ACTIVITY_VOLUME.pull * shape.strain;
-  const bulge = ACTIVITY_VOLUME.bulge * shape.gather + ACTIVITY_VOLUME.recoil * shape.strain;
+  const traveling = .82 + .18 * Math.sin(shape.phase + nx * 2.4 + ny * .8);
+  const inset = ACTIVITY_VOLUME.inset * shape.gather + ACTIVITY_VOLUME.pull * shape.strain * traveling;
+  const bulge = ACTIVITY_VOLUME.bulge * shape.gather + ACTIVITY_VOLUME.recoil * shape.strain * traveling;
   output.x = Math.cos(shape.phase + ny * 1.8) * .45 * nx * movement - nx * shoulder * inset;
   output.y = Math.sin(shape.phase - nx * 3.1) * 1.15 * ny * movement + ny * (1 - Math.abs(nx) * .35) * bulge;
   output.z = activityRelief(x, y, shape) * shape.gain * ACTIVITY_VOLUME.depth * ACTIVITY_VOLUME.strength;
@@ -124,7 +134,10 @@ float jellyActivityHeight(vec2 point, vec4 shape, float gather) {
   float top = exp(-dot(topQ,topQ));
   float bottom = exp(-dot(bottomQ,bottomQ));
   float crown = .84 - .10 * p.x * p.x;
-  return (mix(bulk,crown,gather) + (top+bottom)*squeeze*.58 + uActivityStrain*.20) * support;
+  float shoulderQ = (abs(p.x)-(.74-.28*gather))/.28;
+  float shoulder = exp(-shoulderQ*shoulderQ);
+  float ripple = shoulder * (1.0-reading*.88) * (1.0+sin(shape.z+p.x*2.4)*.22);
+  return (mix(bulk,crown,gather) + (top+bottom)*squeeze*.58 + uActivityStrain*ripple*.42) * support;
 }
 vec4 jellyActivity(vec2 point, vec4 shape, float gather) {
   float h = jellyActivityHeight(point, shape, gather);
@@ -136,15 +149,38 @@ vec4 jellyActivity(vec2 point, vec4 shape, float gather) {
 }
 `;
 
-// The current's pigment follows the host sample too. Capturing its displayed
-// endpoint on retarget avoids a blue flash during an outcome's spatial recoil.
+// Two concentrations retain the circulating material's color identity. The
+// host's one eased phase samples both cached Spectral paths; spatial relief
+// blends them in the shader. No palette is reconstructed for a frame sample.
 export function activityPigment(previous, status, destination, progress) {
   const target = status === 'loading' ? '#1459d1' : destination;
-  const state = previous || { color: target, target, status, sample: 1, palette: null };
-  if (state.status !== status || state.target !== target || progress + .0001 < state.sample) {
-    state.palette = createJellyPalette(state.color, target); state.status = status; state.target = target;
+  const filmTarget = status === 'loading' ? destination : target;
+  const state = previous || { color: target, film: filmTarget, target, filmTarget, status, sample: 1,
+    palette: createJellyPalette(target, target), filmPalette: createJellyPalette(filmTarget, filmTarget),
+    denseRGB: [0, 0, 0] };
+  if (state.status !== status || state.target !== target || state.filmTarget !== filmTarget || progress + .0001 < state.sample) {
+    state.palette = createJellyPalette(state.color, target);
+    state.filmPalette = createJellyPalette(state.film, filmTarget);
+    state.status = status; state.target = target; state.filmTarget = filmTarget;
   }
   state.sample = clamp(progress);
-  state.color = state.palette ? state.palette.sample(state.sample) : target;
+  state.color = state.palette.sample(state.sample);
+  state.film = state.filmPalette.sample(state.sample);
+  state.palette.sampleRGB(state.sample, state.denseRGB);
   return state;
 }
+
+// The film/current paths converge at the result, so a settling highlight cannot
+// reintroduce loading blue. Text remains a native, stationary layer above it.
+export const ACTIVITY_PIGMENT_GLSL = `
+uniform sampler2D uActivityPalette;
+uniform float uActivityPigmentPhase;
+uniform vec3 uActivityFallbackDense;
+vec3 jellyActivityPigment(vec3 filmColor, float concentration) {
+  if (uActivityPigmentPhase < 0.0) return mix(filmColor, uActivityFallbackDense, clamp(concentration, 0.0, 1.0));
+  float sampleX = (clamp(uActivityPigmentPhase, 0.0, 1.0) * 32.0 + .5) / 33.0;
+  vec3 film = texture2D(uActivityPalette, vec2(sampleX, .25)).rgb;
+  vec3 current = texture2D(uActivityPalette, vec2(sampleX, .75)).rgb;
+  return mix(film, current, clamp(concentration, 0.0, 1.0));
+}
+`;

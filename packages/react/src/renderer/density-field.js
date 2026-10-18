@@ -9,8 +9,12 @@ export const FOLDER_DENSITY = Object.freeze({ width: 204, handleHeight: 44, shou
 export function densityHoverResponse(gain, time, moving = true) {
   if (!moving || gain <= 0) return { amount: 0, jiggle: 0 };
   const g = Math.max(0, Math.min(1, gain));
-  const phase = time * Math.PI * 2 / (MOTION.breathe / 1000);
-  return { amount: g * (.06 + .022 * Math.cos(phase)), jiggle: g * .28 * Math.sin(phase) };
+  const breath = time * Math.PI * 2 / (MOTION.breathe / 1000);
+  const current = time * Math.PI * 2 / (MOTION.activityOrbit / 1000);
+  // The current transfers the crown through the volume. Its small shoulder
+  // strain stays under 1.2px, while thickness makes the invitation readable.
+  return { amount: g * (.13 + .025 * Math.cos(breath)),
+    jiggle: g * .2 * Math.sin(current) * (.9 + .1 * Math.cos(breath)) };
 }
 
 // Local material strain, independent of layout and the native disclosure state.
@@ -76,6 +80,9 @@ export function densityFieldProfile(x, y, { width, height, amount = 1, edge = 24
     [d, nx, ny] = joined;
     crownXPosition = bx; crownYPosition = y - height / 2 + wholeHeight / 2;
     crownWidth = bodyWidth; crownHeight = wholeHeight;
+    // A local transfer of the optical crown, rather than uniform scaling.
+    // CPU geometry, analytic normals and receiver filtering share this field.
+    crownXPosition -= Math.max(-.24, Math.min(.24, jiggle)) * crownWidth * .75;
   }
   const t = Math.max(0, Math.min(1, (d + edge) / (edge * 2)));
   const coverage = 1 - t ** 3 * (t * (t * 6 - 15) + 10);
@@ -135,6 +142,7 @@ vec4 jellyDensity(vec2 point, vec4 region, float amount, vec4 shape, float jiggl
     if (envelope.x > joined.x) joined = envelope;
     field = joined;
     crownPoint = vec2(bx,p.y-region.w*.5+wholeHeight*.5); crownSize = vec2(bodyWidth,wholeHeight);
+    crownPoint.x -= clamp(jiggle,-.24,.24)*crownSize.x*.75;
   }
   float d = field.x;
   vec2 n = field.yz;
