@@ -60,7 +60,8 @@ export function installReadingFilm(material) {
 export function updateReadingFilm(material, target, body, retain = false) {
   const reading = material.userData.reading;
   reading.surface.value.set(body.width, body.height, body.r);
-  reading.activity.value = body.activityShape ? 1 : 0;
+  // Withdraw the optical policy with the same mass, without a final mask jump.
+  reading.activity.value = body.activityShape?.gain ?? 0;
   // A retiring window keeps its displayed reading material until the same
   // owner's body has withdrawn. Losing a native tab is not a second exit cue.
   if (!target && retain) return;
