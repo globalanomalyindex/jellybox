@@ -13,3 +13,7 @@ public/story-font.css
 .DS_Store
 coverage/
 *.log
+
+# Local browser verification artifacts
+.playwright-cli/
+output/playwright/

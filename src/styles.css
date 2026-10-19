@@ -246,9 +246,10 @@ html { scrollbar-color: #a4bdcf var(--surface); scrollbar-width: thin; }
 .palette-choice:hover:not([aria-pressed="true"]) { background: #d6edf780; }
 @keyframes light-editor-in { from { opacity: 0; transform: translateY(7px) scale(.98); } to { opacity: 1; transform: none; } }
 .jelly-toolbar { gap: var(--button-spacing, 18px); }
-.jelly.jb-button { width: calc(70px * var(--button-size, 1)); height: calc(70px * var(--button-size, 1)); }
-.jelly.jb-button.is-active { width: calc(158px * var(--button-size, 1)); height: calc(76px * var(--button-size, 1)); }
-.jelly.jb-button.is-neighbor { width: calc(62px * var(--button-size, 1)); height: calc(62px * var(--button-size, 1)); }
+.jelly.jb-button { width: calc(84px * var(--button-size, 1)); height: calc(84px * var(--button-size, 1)); }
+.jelly-workbench:not(.is-open) .jelly > .jb-button-face > svg { width: 26px; height: 26px; }
+.jelly.jb-button.is-active { width: calc(176px * var(--button-size, 1)); height: calc(84px * var(--button-size, 1)); }
+.jelly.jb-button.is-neighbor { width: calc(70px * var(--button-size, 1)); height: calc(70px * var(--button-size, 1)); }
 .palette-options { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
 .palette-choice { display: flex; align-items: center; gap: 10px; padding: 12px; min-height: 50px; border-radius: 18px; background: #e6f4fa70; box-shadow: inset 0 1px 2px #fff9, inset 0 0 0 1px #accbd6; font-size: 13px; }
 .palette-choice[aria-pressed="true"] { background: #c0e3f570; box-shadow: inset 0 0 0 2px #4a98ca, inset 0 2px 3px #fff9; }
@@ -270,16 +271,17 @@ html { scrollbar-color: #a4bdcf var(--surface); scrollbar-width: thin; }
   .light-bulb { width: 46px; height: 46px; }
   .light-hint { top: 56px; font-size: 12px; width: 146px; }
   .jelly-toolbar { gap: min(var(--button-spacing, 18px), 4vw); }
-  .jelly.jb-button { width: calc(56px * var(--button-size, 1)); height: calc(56px * var(--button-size, 1)); }
-  .jelly.jb-button.is-active { width: min(calc(116px * var(--button-size, 1)), calc((100vw - 40px - 8vw) * .58)); height: calc(62px * var(--button-size, 1)); }
-  .jelly.jb-button.is-neighbor { width: min(calc(42px * var(--button-size, 1)), calc((100vw - 40px - 8vw) * .21)); height: calc(42px * var(--button-size, 1)); }
+  .jelly.jb-button { width: calc(64px * var(--button-size, 1)); height: calc(64px * var(--button-size, 1)); }
+  .jelly-workbench:not(.is-open) .jelly > .jb-button-face > svg { width: 24px; height: 24px; }
+  .jelly.jb-button.is-active { width: min(calc(126px * var(--button-size, 1)), calc((100vw - 40px - 8vw) * .58)); height: calc(64px * var(--button-size, 1)); }
+  .jelly.jb-button.is-neighbor { width: min(calc(48px * var(--button-size, 1)), calc((100vw - 40px - 8vw) * .21)); height: calc(48px * var(--button-size, 1)); }
 }
 @media(prefers-reduced-motion:reduce) { .light-bulb, .lighting-editor { animation: none; transition: none; } }
 
 /* One body owns the active view. The actual trigger docks into its header;
    the frame, caption and content no longer compete as separate layers. */
 .jelly-workbench { position: relative; scroll-margin-top: 48px; scroll-margin-bottom: 28px; }
-.jelly-toolbar { position: relative; width: 100%; height: calc(84px * var(--button-size, 1)); z-index: 2; }
+.jelly-toolbar { position: relative; width: 100%; height: calc(96px * var(--button-size, 1)); z-index: 2; }
 .jelly-workbench > .panel-surface { z-index: 0; }
 .jelly-workbench.is-open .jelly-toolbar { height: 72px; padding: 12px 68px 12px 20px; gap: min(var(--button-spacing, 17px), 18px); transform: none; }
 .jelly-workbench:is(.is-open, .is-undocking) .jelly { transition: none; }

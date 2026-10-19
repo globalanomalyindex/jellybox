@@ -3,7 +3,7 @@ import { JellyDetails } from './JellyDetails.jsx';
 import { PalettePreview } from './PalettePreview.jsx';
 import { useJellyToneStyle } from '../packages/react/src/useMaterialColor.js';
 import { MOVEMENT_PRESETS } from './experiment.js';
-import { ArrowCounterClockwise, Check, HandTap, FloppyDisk, Trash, ArrowUUpLeft, CheckCircle, WarningCircle } from '@phosphor-icons/react';
+import { ArrowCounterClockwise, FloppyDisk, Trash, ArrowUUpLeft, CheckCircle, WarningCircle } from '@phosphor-icons/react';
 import { JellySelectionGroup, JellyButton, JellySlider } from '../packages/react/src/index.js';
 
 function SaveFeedback({ status, message, sequence }) {
@@ -14,7 +14,7 @@ function SaveFeedback({ status, message, sequence }) {
   </p>;
 }
 
-export default function PanelContent({ panel, params, setParams, defaults, reducedMotion, onAnnounce, onReady, onReset, colors, setColors, palettes, onNudge, paused, savedLook, preferences, setPreferences }) {
+export default function PanelContent({ panel, params, setParams, defaults, reducedMotion, onAnnounce, onReady, onReset, colors, setColors, palettes, paused, savedLook, preferences, setPreferences }) {
   // Continuous motion governs idle breathing; intentional input still eases.
   const animateTrack = !reducedMotion;
   const colorTarget = preferences.colorTarget;
@@ -37,7 +37,7 @@ export default function PanelContent({ panel, params, setParams, defaults, reduc
       <JellySlider compact animateTrack={animateTrack} label="Button size" min={80} max={140} value={Math.round(params.size * 100)} formatValue={v => `${v}%`} onValueChange={v => change('size', v / 100)} />
       <JellySlider compact animateTrack={animateTrack} label="Space between" min={8} max={40} value={params.spacing} formatValue={v => `${v}`} onValueChange={v => change('spacing', v)} />
     </div>
-    <div className="panel-actions"><JellyButton tone="info" onClick={onNudge} disabled={reducedMotion || paused || params.motion === 0}><HandTap size={18} /> Give them a wobble</JellyButton><JellyButton size="sm" tone="neutral" variant="quiet" onClick={onReset}><ArrowCounterClockwise size={16} /> Reset experiment</JellyButton></div>
+    <div className="panel-actions"><JellyButton size="sm" tone="neutral" variant="quiet" onClick={onReset}><ArrowCounterClockwise size={16} /> Reset experiment</JellyButton></div>
     <section className="saved-look density-well" data-density-region="well" data-open="true" aria-labelledby="saved-look-title">
       <div className="saved-look-heading"><h4 id="saved-look-title">Keep this look.</h4><span className="panel-note">Saved on this browser.</span></div>
       <div className="saved-look-actions">

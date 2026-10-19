@@ -20,7 +20,7 @@ Hover/focus gathers a moving filled shoulder within the inner concentration, sha
 
 ## Color and state
 
-Glass blue is the resting trio. Highlight invites interaction; a denser pigment expresses commitment. Save is green, Restore blue and Delete red. Focus/checks/words carry meaning as well as color. Palette preview never silently commits. Use shared semantic tones and Spectral color paths; do not start a second renderer interpolation.
+Glass blue is the resting trio. Highlight invites interaction; a denser pigment expresses commitment. Save is green, Restore blue and Delete red. Focus/checks/words carry meaning as well as color. Explicit palette pigments remain visible at rest and gather more concentration on approach; committing a palette never requires hovering each tool to reveal it. Palette preview never silently commits. Use shared semantic tones and Spectral color paths; do not start a second renderer interpolation.
 
 ## Motion and light
 

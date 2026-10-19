@@ -18,9 +18,9 @@ export function controlPigment(tone = 'action', state = 'rest', pigment) {
   const neutral = SEMANTIC_COLORS.neutral.hex;
   if (state === 'disabled') return neutral;
   if (state === 'selected' || state === 'pressed' || state === 'loading') return accent;
-  const semanticAction = ['success', 'danger', 'warning'].includes(tone);
-  if (state === 'highlighted') return createJellyPalette(neutral, accent).sample(semanticAction ? .88 : .58);
-  return semanticAction ? createJellyPalette(neutral, accent).sample(.68) : neutral;
+  const retainsPigment = Boolean(pigment) || ['success', 'danger', 'warning'].includes(tone);
+  if (state === 'highlighted') return createJellyPalette(neutral, accent).sample(retainsPigment ? .88 : .58);
+  return retainsPigment ? createJellyPalette(neutral, accent).sample(.68) : neutral;
 }
 
 export function colorLuminance(hex) {

@@ -32,7 +32,7 @@ Dense inner areas attenuate distracting shadows/caustics behind their reading pl
 
 An independent button joins the upper-left window edge as its tab. Explicit handoff ownership fully retires that separate carrier; distance guesses must not leave a second pill over the title. Primary faces and body content are transparent, with no white contrast card. CSS/forced-color fallbacks remain available.
 
-Spectral.js supplies cached pigment-inspired transitions. It does not simulate colored transparent light. Semantic tones distinguish rest/highlight/selection and save/restore/delete, with stable checks/labels carrying meaning as well. A preview is separate from a committed palette.
+Spectral.js supplies cached pigment-inspired transitions. It does not simulate colored transparent light. Semantic tones distinguish rest/highlight/selection and save/restore/delete, with stable checks/labels carrying meaning as well. An explicitly supplied pigment keeps its quieter concentration at rest, with stronger gathering on approach and an exact selected endpoint. Unpigmented actions and disabled controls retain neutral blue. A preview is separate from a committed palette.
 
 ## Light, scroll and bounds
 

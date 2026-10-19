@@ -1,6 +1,6 @@
 # JellyBox components
 
-The 0.5.14 foundation contains seventeen components. Core components work with React and the scoped stylesheet; the optional Three renderer supplies the liquid material. Forms, focus, text and selected state remain DOM behavior. This is an initial foundation, not a complete component suite or broad accessibility certification.
+The 0.5.15 foundation contains seventeen components. Core components work with React and the scoped stylesheet; the optional Three renderer supplies the liquid material. Forms, focus, text and selected state remain DOM behavior. This is an initial foundation, not a complete component suite or broad accessibility certification.
 
 ```jsx
 import {
@@ -10,6 +10,8 @@ import '@jellybox/react/styles.css';
 ```
 
 The core controls share six semantic `tone` roles and material/motion tokens. JellyActivityButton adds application-owned activity/outcome states; the expanded contracts below cover the larger controls. Labels and state update immediately, independently of decorative motion.
+
+Explicit `pigment` stays visible at rest: its quieter Spectral concentration gathers on hover and reaches the exact accent for selection/press. Disabled controls remain neutral. Actions without an explicit pigment keep their neutral resting appearance; semantic success, warning and danger retain their established tint. The shared `controlPigment` rule serves the native fallback and optional renderer.
 
 ## JellyTabs
 

@@ -101,7 +101,6 @@ export function App({ active = true }) {
   const [light, setLight] = useState(() => defaultLightForViewport(innerWidth));
   const lightFieldRef = useRef(null);
   const [lightOpen, setLightOpen] = useState(false);
-  const [nudge, setNudge] = useState(0);
   const [paused, setPaused] = useState(false);
   const [fallback, setFallback] = useState(false);
   const [reducedMotion, setReducedMotion] = useState(false);
@@ -132,7 +131,6 @@ export function App({ active = true }) {
   sceneRef.current.colors = colors;
   sceneRef.current.windowColor = windowColor;
   sceneRef.current.light = light;
-  sceneRef.current.nudge = nudge;
   sceneRef.current.selected = closing ? null : panel;
   sceneRef.current.tabOwner = panel;
   sceneRef.current.closing = closing;
@@ -316,8 +314,6 @@ export function App({ active = true }) {
           const colors = s.colors.map((color, i) => rgb(controlPigment('action', s.selected === i ? 'selected' : s.pressed[i] ? 'pressed' : s.hovers[i] ? 'highlighted' : 'rest', color)));
           const transfer = toolbarFrame.current;
           const shell = transfer?.shell;
-          const age = (now - s.nudge) / 1000;
-          const impulse = s.nudge && !s.reducedMotion && s.params.motion > 0 && age < 1 ? Math.max(0, Math.sin(age * Math.PI)) * Math.exp(-age * 2) * 2 : 0;
           const lightField = s.lightField;
           const nearby = r => r && r.y + r.height > -320 && r.y < innerHeight + 320;
           let spotlight = null;
@@ -328,7 +324,7 @@ export function App({ active = true }) {
             spotlight = { x: stepJellyResponse(response, 'x', target.x + target.width / 2 - 30, delta, options), y: stepJellyResponse(response, 'y', target.y - 60, delta, options), height: target.lampHeight, intensity: target.intensity, softness: .55, warmth: .5, enabled: true };
           } else s.spotlightResponse = null;
           return { width: s.paintBounds.width, height: canvasFrame.height, documentTop: canvasFrame.top, viewportTop: canvasY, viewportHeight: innerHeight, dpr: Math.min(devicePixelRatio, innerWidth < 700 ? 1.3 : 1.5) * Math.sqrt(innerHeight / canvasFrame.height), pointer: project(s.pointer), parallax: s.parallax, hero: project(s.hero),
-            buttons: s.rects.map((r, i) => nearby(r) ? project({ ...r, ...assist(i), arrival: presentation.current.arrival[i], ...(transfer ? { width: transfer.poses[i].width, height: transfer.poses[i].height, x: r.x + (r.width - transfer.poses[i].width) / 2, y: r.y + (r.height - transfer.poses[i].height) / 2, merge: transfer.poses[i].merge, neckStrain: transfer.poses[i].strain || 0, ...(transfer.materialOnly ? { x: transfer.poses[i].x - scrollX - transfer.poses[i].width / 2, y: transfer.poses[i].y - scrollY - transfer.poses[i].height / 2 } : {}), transferring: true } : {}), hover: Math.max(s.hovers[i], s.selected === i ? 0.35 : 0), pressed: s.pressed[i], stir: impulse, docked: s.selected !== null, tabbed: s.selected === i, color: colors[i] }) : null),
+            buttons: s.rects.map((r, i) => nearby(r) ? project({ ...r, ...assist(i), arrival: presentation.current.arrival[i], ...(transfer ? { width: transfer.poses[i].width, height: transfer.poses[i].height, x: r.x + (r.width - transfer.poses[i].width) / 2, y: r.y + (r.height - transfer.poses[i].height) / 2, merge: transfer.poses[i].merge, neckStrain: transfer.poses[i].strain || 0, ...(transfer.materialOnly ? { x: transfer.poses[i].x - scrollX - transfer.poses[i].width / 2, y: transfer.poses[i].y - scrollY - transfer.poses[i].height / 2 } : {}), transferring: true } : {}), hover: Math.max(s.hovers[i], s.selected === i ? 0.35 : 0), pressed: s.pressed[i], docked: s.selected !== null, tabbed: s.selected === i, color: colors[i] }) : null),
             panel: s.storyPanel ? project({ ...s.storyPanel, id: 'story-density', density: s.storyDensity ? project(s.storyDensity) : null, hover: 0, color: rgb(s.storyPanel.pigment), colorSampled: true, cornerRadius: 30, windowDepth: 1, boundsSampled: true }) : nearby(s.panelRect) && panelSurfaceRef.current ? project({ ...s.panelRect, id: 'primary-window', density: s.densityRegion ? { ...project(s.densityRegion), opacity: s.densityRegion.opacity * Number(panelSurfaceRef.current.parentElement.style.getPropertyValue('--window-reveal') || 1) } : null, hover: shell?.closing ? 0 : 0.12, pressed: 0, stir: 0, color: rgb(transfer?.color ?? s.windowColor), colorSampled: true, cornerRadius: shell?.radius ?? 30, windowDepth: shell ? 1 : transfer ? .62 + .38 * transfer.attachment : s.windowDepth ?? 1, tab: s.tab, ...(shell ? { x: shell.x - scrollX - shell.width / 2, y: shell.y - scrollY - shell.height / 2, width: shell.width, height: shell.height, boundsSampled: true, morph: shell } : {}) }) : null,
             bubbles: s.bubbles.map((r, i) => project({ ...r, ...assist(i + s.rects.length), opacity: r.headerControl && s.closing ? 0 : r.opacity })), selections: s.selections?.map(project), assistanceBlocked, params: s.params, reducedMotion: s.reducedMotion,
             light: spotlight || (lightField ? project({ ...s.light, x: lightField.x + lightField.width * s.light.x, y: lightField.y + lightField.height * s.light.y }) : null),
@@ -473,7 +469,7 @@ export function App({ active = true }) {
   const panelView = index => <div className="panel-view" key={index}>
     <h2 className="sr-only">{PANELS[index].name}</h2>
     <PanelBoundary key={index}><Suspense fallback={<PanelSkeleton panel={index} />}>
-      <PanelContent panel={index} params={params} setParams={setParams} defaults={DEFAULTS} reducedMotion={reducedMotion} onAnnounce={setAnnouncement} onReady={revealContent} onReset={reset} colors={colors} setColors={setColors} palettes={PALETTES} onNudge={() => setNudge(performance.now())} paused={paused} savedLook={savedLook} preferences={panelPreferences} setPreferences={setPanelPreferences} />
+      <PanelContent panel={index} params={params} setParams={setParams} defaults={DEFAULTS} reducedMotion={reducedMotion} onAnnounce={setAnnouncement} onReady={revealContent} onReset={reset} colors={colors} setColors={setColors} palettes={PALETTES} paused={paused} savedLook={savedLook} preferences={panelPreferences} setPreferences={setPanelPreferences} />
     </Suspense></PanelBoundary>
   </div>;
 

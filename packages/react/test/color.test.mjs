@@ -102,3 +102,14 @@ test('the window keeps finite transmission for zero-channel pigments without cha
   assert.deepEqual(windowPigment([.4, .6, .8]), [.4, .6, .8], 'ordinary clear pigments are unchanged');
   assert.deepEqual(surfacePigment([0, 0, 0], 'control'), [0, 0, 0], 'the selected control keeps its exact pigment');
 });
+
+test('explicit pigments remain visible at rest without a hover to reveal the chosen color', async () => {
+  const { controlPigment, SEMANTIC_COLORS } = await import('../src/tokens.js');
+  const rest = controlPigment('action', 'rest', '#dd3c88');
+  const hover = controlPigment('action', 'highlighted', '#dd3c88');
+  assert.notEqual(rest, SEMANTIC_COLORS.neutral.hex, 'a chosen pigment must survive the resting state');
+  assert.notEqual(rest, hover, 'approach still gathers more pigment');
+  assert.equal(controlPigment('action', 'selected', '#dd3c88'), '#dd3c88');
+  assert.equal(controlPigment('action', 'disabled', '#dd3c88'), SEMANTIC_COLORS.neutral.hex);
+  assert.equal(controlPigment('action', 'rest'), SEMANTIC_COLORS.neutral.hex, 'unpigmented actions keep their neutral rest');
+});
