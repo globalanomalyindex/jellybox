@@ -12,6 +12,8 @@ React owns committed values, visible panel, preferences, loading and saved-look 
 
 Native DOM bounds are measured into one shared scene. The renderer shapes transparent volumes around fixed labels and targets. Parent density fields add thickness, absorption, normal and receiver changes within the same window. `JellyDetails` retains content/settings behind a fixed disclosure handle. Surface registration uses stable identities and bounded pools (32 optical surfaces and two selection groups).
 
+The page adapter uses the optical canvas's measured CSS width and horizontal origin for that coordinate frame, including clips, selections, light and ink samples. Window [`innerWidth`](https://developer.mozilla.org/en-US/docs/Web/API/Window/innerWidth) includes reserved desktop scrollbars and must not size a canvas whose `width:100%` excludes them. The existing resize observer also watches the canvas host for width changes, so a scrollbar appearing without a window resize refreshes registration; height-only host changes do not trigger that extra measurement. The optional component scene already measures its own canvas bounds.
+
 One viewport-bounded document canvas follows scroll through `scrollFrame`; its scissor keeps work near the visible region. The page light/receiver continues through the article. Geometry caches settle at subpixel precision; expensive sampled caustics have bounded update rates. Three resources, observers and animation frames have explicit teardown.
 
 Cached caustic textures are translated with their material every frame, independently of the sampling cadence. Document-canvas rebases do not change their attachment or the paper texture's document-space origin.

@@ -152,6 +152,9 @@ export function App({ active = true }) {
     const measure = () => {
       const s = sceneRef.current;
       s.measuredScroll = { x: scrollX, y: scrollY };
+      // Native DOM coordinates and optical pixels share the painted box.
+      // innerWidth includes reserved desktop scrollbars; width:100% does not.
+      s.paintBounds = rectOf(canvasRef.current);
       s.hero = rectOf(heroRef.current);
       s.lightField = rectOf(lightFieldRef.current);
       s.rects = buttonRefs.current.map(rectOf);
@@ -242,7 +245,11 @@ export function App({ active = true }) {
       });
     };
     measureRef.current = measure;
-    const observer = new ResizeObserver(measure);
+    const canvasHost = canvasRef.current.parentElement;
+    const observer = new ResizeObserver(entries => {
+      if (entries.some(entry => entry.target !== canvasHost || entry.contentRect.width !== sceneRef.current.paintBounds?.width)) measure();
+    });
+    observer.observe(canvasHost);
     observer.observe(heroRef.current);
     buttonRefs.current.forEach(el => el && observer.observe(el));
     window.addEventListener('resize', measure);
@@ -296,7 +303,8 @@ export function App({ active = true }) {
           canvasRef.current.style.height = `${canvasFrame.height}px`;
           canvasRef.current.dataset.documentTop = String(canvasFrame.top);
           const canvasY = scrollY - canvasFrame.top;
-          const project = rect => rect && ({ ...rect, y: rect.y + canvasY, ...(rect.clip ? { clip: { ...rect.clip, y: rect.clip.y + canvasY } } : {}) });
+          const project = rect => rect && ({ ...rect, x: rect.x - s.paintBounds.x, y: rect.y + canvasY,
+            ...(rect.clip ? { clip: { ...rect.clip, x: rect.clip.x - s.paintBounds.x, y: rect.clip.y + canvasY } } : {}) });
           // Measure transformed shell only while a container transition runs.
           if (storyDirty.current || now < movingUntil.current) measure();
           // Only the visible explanatory moving surfaces need fresh transformed
@@ -319,7 +327,7 @@ export function App({ active = true }) {
             const options = { duration: MOTION.material, curve: MOTION.gather, instant: s.reducedMotion || s.params.motion === 0 };
             spotlight = { x: stepJellyResponse(response, 'x', target.x + target.width / 2 - 30, delta, options), y: stepJellyResponse(response, 'y', target.y - 60, delta, options), height: target.lampHeight, intensity: target.intensity, softness: .55, warmth: .5, enabled: true };
           } else s.spotlightResponse = null;
-          return { width: innerWidth, height: canvasFrame.height, documentTop: canvasFrame.top, viewportTop: canvasY, viewportHeight: innerHeight, dpr: Math.min(devicePixelRatio, innerWidth < 700 ? 1.3 : 1.5) * Math.sqrt(innerHeight / canvasFrame.height), pointer: project(s.pointer), parallax: s.parallax, hero: project(s.hero),
+          return { width: s.paintBounds.width, height: canvasFrame.height, documentTop: canvasFrame.top, viewportTop: canvasY, viewportHeight: innerHeight, dpr: Math.min(devicePixelRatio, innerWidth < 700 ? 1.3 : 1.5) * Math.sqrt(innerHeight / canvasFrame.height), pointer: project(s.pointer), parallax: s.parallax, hero: project(s.hero),
             buttons: s.rects.map((r, i) => nearby(r) ? project({ ...r, ...assist(i), arrival: presentation.current.arrival[i], ...(transfer ? { width: transfer.poses[i].width, height: transfer.poses[i].height, x: r.x + (r.width - transfer.poses[i].width) / 2, y: r.y + (r.height - transfer.poses[i].height) / 2, merge: transfer.poses[i].merge, neckStrain: transfer.poses[i].strain || 0, ...(transfer.materialOnly ? { x: transfer.poses[i].x - scrollX - transfer.poses[i].width / 2, y: transfer.poses[i].y - scrollY - transfer.poses[i].height / 2 } : {}), transferring: true } : {}), hover: Math.max(s.hovers[i], s.selected === i ? 0.35 : 0), pressed: s.pressed[i], stir: impulse, docked: s.selected !== null, tabbed: s.selected === i, color: colors[i] }) : null),
             panel: s.storyPanel ? project({ ...s.storyPanel, id: 'story-density', density: s.storyDensity ? project(s.storyDensity) : null, hover: 0, color: rgb(s.storyPanel.pigment), colorSampled: true, cornerRadius: 30, windowDepth: 1, boundsSampled: true }) : nearby(s.panelRect) && panelSurfaceRef.current ? project({ ...s.panelRect, id: 'primary-window', density: s.densityRegion ? { ...project(s.densityRegion), opacity: s.densityRegion.opacity * Number(panelSurfaceRef.current.parentElement.style.getPropertyValue('--window-reveal') || 1) } : null, hover: shell?.closing ? 0 : 0.12, pressed: 0, stir: 0, color: rgb(transfer?.color ?? s.windowColor), colorSampled: true, cornerRadius: shell?.radius ?? 30, windowDepth: shell ? 1 : transfer ? .62 + .38 * transfer.attachment : s.windowDepth ?? 1, tab: s.tab, ...(shell ? { x: shell.x - scrollX - shell.width / 2, y: shell.y - scrollY - shell.height / 2, width: shell.width, height: shell.height, boundsSampled: true, morph: shell } : {}) }) : null,
             bubbles: s.bubbles.map((r, i) => project({ ...r, ...assist(i + s.rects.length), opacity: r.headerControl && s.closing ? 0 : r.opacity })), selections: s.selections?.map(project), assistanceBlocked, params: s.params, reducedMotion: s.reducedMotion,

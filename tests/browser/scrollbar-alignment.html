@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>JellyBox scrollbar registration regression</title>
+  <style>
+    html { overflow-y: scroll; scrollbar-width: auto !important; scrollbar-color: auto !important; }
+    ::-webkit-scrollbar { width: 17px; }
+    ::-webkit-scrollbar-thumb { background: #a4bdcf; }
+    ::-webkit-scrollbar-track { background: #f4f5f6; }
+    #registration-check { position: fixed; bottom: 8px; left: 8px; z-index: 100; background: white; color: black; padding: 8px; font: 12px monospace; }
+    #registration-result { display: block; }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+  <aside id="registration-check" aria-label="Registration check">
+    <button id="toggle-scrollbar" type="button" aria-pressed="true">Reserve scrollbar</button>
+    <output id="registration-result" role="status">Waiting for the real optical canvas…</output>
+  </aside>
+  <script type="module" src="/src/main.jsx"></script>
+  <script type="module">
+    // Native Chrome reserves a real scrollbar instead of the macOS overlay.
+    // Compare the rendered pixel scale to the CSS box, allowing buffer rounding.
+    const result = document.getElementById('registration-result');
+    const deadline = performance.now() + 10000;
+    function check() {
+      const canvas = document.querySelector('.optical-canvas');
+      if (!canvas || canvas.dataset.bubblesReady !== 'true') {
+        if (performance.now() < deadline) requestAnimationFrame(check);
+        else { result.dataset.pass = 'false'; result.textContent = 'FAIL: optical canvas did not become ready'; }
+        return;
+      }
+      const box = canvas.getBoundingClientRect(), scale = canvas.height / box.height;
+      const error = Math.abs(canvas.width - scale * box.width) / scale;
+      const rounding = (1 + box.width / box.height) / scale;
+      const gutter = innerWidth - document.documentElement.clientWidth;
+      const reserved = document.getElementById('toggle-scrollbar').getAttribute('aria-pressed') === 'true';
+      const hasGutter = !reserved || gutter > 0;
+      const pass = hasGutter && error <= rounding;
+      result.dataset.pass = String(pass);
+      result.textContent = `${pass ? 'PASS' : 'FAIL'}: ${error.toFixed(2)} CSS px registration error; ${gutter}px scrollbar${hasGutter ? '' : ' (reserved gutter missing)'}`;
+    }
+    const schedule = () => requestAnimationFrame(() => requestAnimationFrame(check));
+    schedule();
+    window.addEventListener('resize', schedule);
+    document.getElementById('toggle-scrollbar').addEventListener('click', event => {
+      const reserved = event.currentTarget.getAttribute('aria-pressed') !== 'true';
+      event.currentTarget.setAttribute('aria-pressed', String(reserved));
+      document.documentElement.style.setProperty('scrollbar-width', reserved ? 'auto' : 'none', 'important');
+      schedule();
+    });
+  </script>
+</body>
+</html>
