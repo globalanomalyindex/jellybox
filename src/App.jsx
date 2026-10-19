@@ -1,7 +1,7 @@
 import { Component, lazy, Suspense, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { Drop, SlidersHorizontal, SquaresFour, X } from '@phosphor-icons/react';
-import { createOptics } from './optics.js';
-import { MOTION, motionStyle } from './motion.js';
+import { createOptics } from '../packages/react/src/renderer/optics.js';
+import { MOTION, motionStyle } from '../packages/react/src/renderer/motion.js';
 import { controlPigment, materialTargetColor, SEMANTIC_COLORS } from '../packages/react/src/tokens.js';
 import { assistTarget, scrollFrame } from '../packages/react/src/interaction.js';
 import { useSavedLook } from './useSavedLook.js';
@@ -112,7 +112,10 @@ export function App({ active = true }) {
   const savedLook = useSavedLook({ params, colors, light, paused }, look => { setParams(look.params); setColors(look.colors); setLight(look.light); setPaused(look.paused); });
 
   // One pigment clock survives opening, withdrawal, and late palette edits.
-  const windowColor = useJellyColor(closing || panel === null ? controlPigment('action', 'rest') : colors[panel], { origin: windowOrigin });
+  const windowPigment = panel === null
+    ? controlPigment('action', 'rest')
+    : closing ? controlPigment('action', 'rest', colors[panel]) : colors[panel];
+  const windowColor = useJellyColor(windowPigment, { origin: windowOrigin });
   const { capture: captureToolbar, frame: toolbarFrame } = useDockedToolbar(buttonRefs, panel, closing, reducedMotion, windowColor, panelSurfaceRef,
     duration => { movingUntil.current = Math.max(movingUntil.current, performance.now() + duration + 80); },
     () => { if (fallback) measureRef.current(); },

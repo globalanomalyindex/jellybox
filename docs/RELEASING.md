@@ -1,53 +1,51 @@
 # Release and deployment
 
-## Reproduce
+I publish the study from [globalanomalyindex/jellybox](https://github.com/globalanomalyindex/jellybox). GitHub Actions validates the source and deploys the static site to GitHub Pages. The React archive is attached to GitHub Releases; it is not published to npm.
 
-Use Node 24 LTS and the committed npm lockfile.
+## Build
+
+Use Node 24 and the committed lockfile:
 
 ```sh
 npm ci
 npm run check
 npm run pack:library
+npm run check:package
 ```
 
-The static website is `dist/client`; the component archive and SHA256SUMS are in ignored `release/`. The optional Sites adapter additionally creates `dist/server/index.js` and `dist/.openai/hosting.json`. GitHub Pages only uploads the static client.
+The site is `dist/`. The component archive and `SHA256SUMS` are generated in ignored `release/`.
 
-For a project subpath:
+For the published project path:
 
 ```sh
 VITE_BASE_PATH=/jellybox/ npm run build
 VITE_BASE_PATH=/jellybox/ npm run preview
 ```
 
-Verify the `/jellybox/` page, logo, dynamic panel chunk, story fragments and optional story-font stylesheet before publishing. A different repository can set its own base path. Hash navigation needs no server rewrite.
+A build without that setting uses `/`. Verify the logo, lazy panel chunk, story links and optional font stylesheet at the chosen path.
 
 ## GitHub Pages
 
-`.github/workflows/pages.yml` validates pull requests/pushes with `npm ci`, tests, build, package checks and source hygiene. A separate trusted-main job rebuilds with `/jellybox/`, uploads the static artifact and deploys to Pages. Official actions are pinned by commit. Deploy only receives contents-read, pages-write and id-token-write. No npm credential is required.
+`.github/workflows/pages.yml` checks pushes and pull requests with installation, tests, types, build, package/source checks and a dependency audit. A separate trusted-main job builds with `/jellybox/`, uploads `dist/` and deploys. Actions are pinned by commit; deployment uses short-lived contents-read, pages-write and id-token-write permissions.
 
-The repository Pages source is GitHub Actions. A push to main or manual workflow run deploys after validation. Check the workflow conclusion and real site; a successful upload alone is not evidence of a working page.
+The Pages source is GitHub Actions. A push to main or manual workflow run deploys after validation. Check both the workflow conclusion and the actual live page.
 
-## Optional licensed font
+## Optional font
 
-Public clones and pull-request checks use the system fallback. The owner can configure their separately licensed web font with authenticated GitHub CLI:
+My live deployment uses separately licensed Dessign Maison. Public builds use the system fallback. An owner with appropriate web-use rights can configure their own font with:
 
 ```sh
 node scripts/configure-font.mjs owner/repo /path/to/licensed.otf
 ```
 
-This sets STORY_FONT_PART_1/2/3 secrets. Only the trusted deployment build uses them. Generated font assets are ignored and never enter the reusable archive. See ASSETS.md.
+Only the trusted deployment receives the three font secrets. Generated font files remain ignored and excluded from the component archive. See [assets](ASSETS.md).
 
-## Cut a version
+## Release checklist
 
-1. Update root/package versions together, add release notes and run the checks above.
-2. Stage intended source and run `npm run check:release`. Inspect the package file list and install it in a separate consumer.
-3. Commit, push main, and verify CI/Pages plus native live controls.
-4. Tag the checked commit and publish the archive/checksum through GitHub Releases.
+1. Update root/package versions and the lockfile together, then update `CHANGELOG.md` and current install links.
+2. Run the checks above, stage the intended files and run `npm run check:release`.
+3. Inspect/install the archive in a separate consumer and test affected native browser states.
+4. Commit with the intended GitHub account identity, push main and verify CI/Pages.
+5. Tag the checked commit. Publish the matching archive and checksum with first-person release notes summarizing the change, validation and limits.
 
-```sh
-git tag v0.5.17
-git push origin v0.5.17
-gh release create v0.5.17 release/jellybox-react-0.5.17.tgz release/SHA256SUMS --verify-tag --title 'JellyBox v0.5.17' --notes-file docs/releases/v0.5.17.md
-```
-
-Do not add commercial fonts, local scratch/history, machine paths, credentials, node_modules or generated builds to source. The release check catches common mistakes but does not replace review of asset rights or intended public content.
+Keep licensed fonts, credentials, generated builds, recordings and local authoring-tool setup out of Git. Preserve dependency notices and source asset rights.

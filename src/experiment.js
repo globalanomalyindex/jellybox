@@ -1,6 +1,6 @@
-import { DEFAULT_MATERIAL } from './material.js';
+import { DEFAULT_MATERIAL } from '../packages/react/src/renderer/material.js';
 
-// Captured from the user's live study; named values win over transient edits.
+// Starting study settings; named values win over transient edits.
 export const DEFAULT_EXPERIMENT = Object.freeze({ ...DEFAULT_MATERIAL, motion: .95, depth: 1, lift: 12, prism: .025, size: 1.31, spacing: 17 });
 export const DEFAULT_COLORS = Object.freeze(['#5baff3', '#5baff3', '#5baff3']);
 export const MOVEMENT_PRESETS = Object.freeze([

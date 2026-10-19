@@ -2,12 +2,13 @@
   "project": "JellyBox",
   "source": {
     "file": "jellybox-logo-source.png",
-    "providedBy": "User",
+    "providedBy": "christopher robin fiore",
     "originalName": "JellyBoxLogo.png",
     "width": 1275,
     "height": 1234,
     "sha256": "dbe3483f257ecc132a8fcbd5e2630cd8c34e5cad00cccd1f2abe0a5122e77dcc",
-    "sha256Note": "Hash of the original supplied file before provenance metadata was embedded in the project copy; original pixels are unchanged."
+    "sha256Note": "Original supplied-file hash. The repository copy removes an authoring-tool text annotation; compressed image pixels are unchanged.",
+    "repositorySha256": "dbe3483f257ecc132a8fcbd5e2630cd8c34e5cad00cccd1f2abe0a5122e77dcc"
   },
   "master": {
     "file": "jellybox-logo.svg",
@@ -30,5 +31,5 @@
       "height": 1120
     }
   },
-  "currentAppearance": "Solid black editable SVG, with no effects, animation or shadow, per the latest user direction."
+  "currentAppearance": "Solid black editable SVG with no effects, animation or shadow."
 }

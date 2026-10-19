@@ -3,15 +3,10 @@ import react from "@vitejs/plugin-react";
 
 export default defineConfig(({ mode }) => ({
   base: process.env.VITE_BASE_PATH || loadEnv(mode, process.cwd(), 'VITE_').VITE_BASE_PATH || '/',
-  build: {
-    outDir: "dist/client",
-  },
   optimizeDeps: {
     include: ["react", "react-dom/client"],
   },
   server: {
-    host: "0.0.0.0",
-    allowedHosts: ["terminal.local"],
     warmup: {
       clientFiles: ["./src/main.jsx"],
     },

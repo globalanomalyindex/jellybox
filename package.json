@@ -1,6 +1,6 @@
 {
   "name": "jellybox-workspace",
-  "version": "0.5.17",
+  "version": "0.5.18",
   "private": true,
   "license": "MIT",
   "workspaces": [
@@ -9,16 +9,15 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build && node scripts/prepare-sites-build.mjs",
+    "build": "vite build",
     "build:library": "vite build --config vite.library.config.mjs",
     "test:components": "npm run build:library && node --test tests/selection-motion.test.mjs tests/story-model.test.mjs tests/story-playback.test.mjs packages/react/test/*.test.mjs",
     "preview": "vite preview",
-    "test:sites": "node --test tests/sites-worker.test.mjs",
     "pack:library": "npm run build:library && node scripts/pack-library.mjs",
     "predev": "node scripts/prepare-font.mjs",
     "prebuild": "node scripts/prepare-font.mjs",
     "test": "npm run test:components",
-    "check": "npm test && npm run check:types && npm run build && npm run test:sites",
+    "check": "npm test && npm run check:types && npm run build",
     "check:release": "node scripts/check-release.mjs",
     "check:package": "node scripts/check-package.mjs",
     "check:types": "tsc --noEmit --strict --jsx react-jsx --module NodeNext --moduleResolution NodeNext --target ES2022 --lib ES2022,DOM tests/package-consumer.tsx"
@@ -29,8 +28,11 @@
     "react-dom": "19.2.9",
     "three": "^0.186.1"
   },
-  "description": "A jelly-inspired interaction and density study, with a reusable React foundation.",
-  "author": "Christopher Robin Fiore",
+  "description": "My study of jelly density, connected motion, color and light as one React interaction system.",
+  "author": {
+    "name": "christopher robin fiore",
+    "url": "https://github.com/globalanomalyindex"
+  },
   "repository": {
     "type": "git",
     "url": "https://github.com/globalanomalyindex/jellybox.git"

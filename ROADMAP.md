@@ -1,11 +1,11 @@
-# Roadmap
+# What I want to explore next
 
-The first public release preserves the current three-tool study and reusable React foundation.
+The three tools let me work on the material and its relationships in detail. I want to test that foundation before expanding it into larger interfaces.
 
-- Run task-based usability sessions comparing ownership, grouping, compact controls and preview/commit behavior against conventional controls.
-- Validate keyboard, assistive technology, forced-color and reduced-motion behavior across more browsers/devices.
-- Profile active/idle GPU and compositor cost on representative hardware; improve budgets without degrading density/readability.
-- Stabilize the public control/renderer API from real consumer feedback before a1.0 claim.
-- Explore larger workspaces, density-based grouping and media previews only when tied to a specific user task.
+- Compare ownership, grouping, compact controls and preview/commit behavior with conventional controls in task-based usability sessions.
+- Check more browser/device combinations, screen readers, forced colors and motion preferences.
+- Profile active and idle graphics cost on representative hardware, keeping density and legibility intact.
+- Improve the reusable API through real consumer feedback before calling it stable.
+- Explore larger workspaces, groups that gather or divide, and media previews around specific user tasks.
 
-No npm publication or production-readiness guarantee is implied by this preview.
+The working interactions are here now. Their broader usability benefits are still a hypothesis I want to evaluate.

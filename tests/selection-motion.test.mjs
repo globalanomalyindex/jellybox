@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { createSelectionMotion, retargetSelection, stepSelection, selectionRect,
-  selectionPresentation, selectionContour, selectionPath } from '../src/selection-motion.js';
+  selectionPresentation, selectionContour, selectionPath } from '../packages/react/src/renderer/selection-motion.js';
 
 const a = { x: 20, y: 40, width: 120, height: 72, cornerRadius: 22 };
 const b = { ...a, x: 164 };

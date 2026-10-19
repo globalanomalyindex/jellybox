@@ -7,7 +7,7 @@ The dependency is bundled in the distributed JavaScript. Its complete license fo
 
 ## Supplied design font
 
-SLTFDessignMaison-Regular.otf is a separately licensed web font. The author confirmed web-use rights only. It is excluded from Git source and the React archive; the owner may supply it privately to the deployed website. Public clones use a system-font fallback.
+SLTFDessignMaison-Regular.otf is a separately licensed web font. I hold web-use rights only. I supply it privately to my deployed website; it is excluded from Git source and the React archive. Public clones use a system-font fallback.
 
 ## Spectral.js 3.0.0
 

@@ -1,6 +1,6 @@
 # Material and density
 
-JellyBox's material is interaction structure. Dense edges establish boundaries and ownership; thin central film supports reading. A child group gathers concentration out of its parent rather than becoming an unrelated outlined card. The current implementation is authored raster optics, not a validated jelly/fluid solver.
+I use JellyBox's material as interaction structure. Dense edges establish boundaries and ownership; thin central film supports reading. A child group gathers concentration out of its parent rather than becoming an unrelated outlined card. The current implementation is authored raster optics, not a validated jelly/fluid solver.
 
 ## Shared implementation
 
@@ -34,7 +34,7 @@ Dense inner areas attenuate distracting shadows/caustics behind their reading pl
 
 An independent button joins the upper-left window edge as its tab. Explicit handoff ownership fully retires that separate carrier; distance guesses must not leave a second pill over the title. Primary faces and body content are transparent, with no white contrast card. CSS/forced-color fallbacks remain available.
 
-Spectral.js supplies cached pigment-inspired transitions. It does not simulate colored transparent light. Semantic tones distinguish rest/highlight/selection and save/restore/delete, with stable checks/labels carrying meaning as well. An explicitly supplied pigment keeps its quieter concentration at rest, with stronger gathering on approach and an exact selected endpoint. Unpigmented actions and disabled controls retain neutral blue. A preview is separate from a committed palette. The study scopes each window's target through `JellyMaterialProvider`: ordinary tracks, bulbs, values, choices and controls retain that ownership. The folder's clearing and gathered shoulder derive from the same pigment, with a quieter neutral reading plateau. Explicit per-control pigments and semantic outcomes override ordinary inheritance.
+Spectral.js supplies cached pigment-inspired transitions. It does not simulate colored transparent light. Semantic tones distinguish rest/highlight/selection and save/restore/delete, with stable checks/labels carrying meaning as well. An explicitly supplied pigment keeps its quieter concentration at rest, with stronger gathering on approach and an exact selected endpoint. Unpigmented actions and disabled controls retain neutral blue. A preview is separate from a committed palette. During withdrawal, the window settles toward the owning tool's resting pigment rather than unpigmented blue. The study scopes each window's target through `JellyMaterialProvider`: ordinary tracks, bulbs, values, choices and controls retain that ownership. The folder's clearing and gathered shoulder derive from the same pigment, with a quieter neutral reading plateau. Explicit per-control pigments and semantic outcomes override ordinary inheritance.
 
 ## Light, scroll and bounds
 

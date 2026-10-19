@@ -17,3 +17,9 @@ coverage/
 # Local browser verification artifacts
 .playwright-cli/
 output/playwright/
+
+# Private authoring tools; not part of the public project
+/AGENTS.md
+/GLOSSARY.md
+/.impeccable/
+/docs/agents/

@@ -1,6 +1,6 @@
 {
   "name": "@jellybox/react",
-  "version": "0.5.17",
+  "version": "0.5.18",
   "description": "Dense liquid rims, calm reading planes, and accessible React controls.",
   "type": "module",
   "license": "MIT",
@@ -63,7 +63,10 @@
   "bugs": {
     "url": "https://github.com/globalanomalyindex/jellybox/issues"
   },
-  "author": "Christopher Robin Fiore",
+  "author": {
+    "name": "christopher robin fiore",
+    "url": "https://github.com/globalanomalyindex"
+  },
   "publishConfig": {
     "access": "public"
   }

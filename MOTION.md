@@ -1,6 +1,6 @@
 # Motion
 
-Canonical values live in `packages/react/src/renderer/motion.js`. CSS, DOM handoffs and rendered material share them. These are authored interface timings informed by viscoelastic settling, not measurements of gelatin.
+I keep canonical values in `packages/react/src/renderer/motion.js`. CSS, DOM handoffs and rendered material share them. These are authored interface timings informed by viscoelastic settling, not measurements of gelatin.
 
 | Purpose | Time | Curve / behavior |
 | --- | --- | --- |

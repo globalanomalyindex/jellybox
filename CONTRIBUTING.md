@@ -1,6 +1,6 @@
 # Contributing
 
-JellyBox is a working study of jelly as interaction structure. Small, inspectable improvements are welcome. Open an issue for a new mechanism or a substantial public API change before expanding the scope.
+I welcome small, inspectable improvements to JellyBox and its shared interaction system. Open an issue for a new mechanism or a substantial public API change before expanding the scope.
 
 ## Development
 
@@ -17,7 +17,7 @@ Use semantic tones (`action`, `info`, `success`, `warning`, `danger`, `neutral`)
 
 ## Pull requests
 
-Explain the concrete problem, resulting behavior, validation and any relevant limitation. Include a before/after image or short recording for visible changes. Keep unrelated formatting and speculative features separate. We use MIT for contributions; do not include third-party assets without compatible permissions and attribution. In particular, never commit a commercial font.
+Explain the concrete problem, resulting behavior, validation and any relevant limitation. Include a before/after image or short recording for visible changes. Keep unrelated formatting and speculative features separate. I release contributions under MIT; do not include third-party assets without compatible permissions and attribution. In particular, never commit a commercial font.
 
 ## Reporting problems
 

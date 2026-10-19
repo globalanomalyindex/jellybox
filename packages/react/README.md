@@ -1,11 +1,11 @@
 # JellyBox React foundation
 
-Experimental React controls and a shared jelly material, used by the [JellyBox study](https://globalanomalyindex.github.io/jellybox/). Seventeen core components work with CSS/SVG alone; optional Three.js rendering supplies depth, transmitted light and connected density. This 0.5.17 preview is distributed on GitHub Releases, not npm.
+I use these experimental React controls and their shared jelly material in the [JellyBox study](https://globalanomalyindex.github.io/jellybox/). The core components work with CSS/SVG alone; optional Three.js rendering supplies depth, transmitted light and connected density. This 0.5.18 preview is distributed on GitHub Releases, not npm.
 
 ## Install
 
 ```sh
-npm install https://github.com/globalanomalyindex/jellybox/releases/download/v0.5.17/jellybox-react-0.5.17.tgz
+npm install https://github.com/globalanomalyindex/jellybox/releases/download/v0.5.18/jellybox-react-0.5.18.tgz
 ```
 
 React and React DOM 18/19 are peers. Import CSS once. For the optical entry, also install the supported Three 0.186 peer.
@@ -47,7 +47,7 @@ import { JellyScene } from '@jellybox/react/renderer';
 
 One scene measures one main window, up to 32 visible registered surfaces and two selection groups. CSS/SVG remains for overflow or unavailable WebGL. `defer` releases graphics resources outside the viewport while retaining child state. Leave room around a scene for casts. Do not create a context for each control.
 
-Registered controls share physical material, stable identity and bounded caches. A dropdown uses one neutral shell and a moving dense blue focus pocket, while selection checks stay immediate. Renderer resources are disposed on unmount. The public `createOptics` controller is a low-level experimental adapter; application-specific tab/folder composition remains in the study source.
+Registered controls share physical material, stable identity and bounded caches. A dropdown uses one neutral shell and a moving dense focus pocket that follows the scoped pigment, while selection checks stay immediate. Renderer resources are disposed on unmount. The public `createOptics` controller is a low-level experimental adapter; application-specific tab/folder composition remains in the study source.
 
 Styles use `.jb-*` and `--jb-*`. Override tokens locally on a wrapper. Import only the core for controls without optics. `createJellyPalette` caches 33 samples by default; `sample` returns hex and `sampleRGB` returns display sRGB. It supplies pigment-inspired color interpolation, not real transparent light transport.
 
@@ -68,4 +68,4 @@ Nine framebuffer samples within the actual lettering bounds verify that intent, 
 
 ### Shared workspace pigment
 
-Wrap a workspace's content in `JellyMaterialProvider pigment={color}` to share its accent with ordinary controls, sliders and dropdowns. Existing Spectral transitions carry changes through their material. Explicit button pigments override the context; success, warning and danger retain their semantic roles. A nested empty provider restores default colors. See the [component contract](../../docs/COMPONENTS.md#shared-window-pigment).
+Wrap a workspace's content in `JellyMaterialProvider pigment={color}` to share its accent with ordinary controls, sliders and dropdowns. Existing Spectral transitions carry changes through their material. Explicit button pigments override the context; success, warning and danger retain their semantic roles. A nested empty provider restores default colors. See the [component contract](https://github.com/globalanomalyindex/jellybox/blob/main/docs/COMPONENTS.md#shared-window-pigment).

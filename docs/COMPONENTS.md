@@ -1,6 +1,6 @@
 # JellyBox components
 
-The 0.5.17 foundation contains seventeen components. Core components work with React and the scoped stylesheet; the optional Three renderer supplies the liquid material. Forms, focus, text and selected state remain DOM behavior. This is an initial foundation, not a complete component suite or broad accessibility certification.
+I use this React foundation in the JellyBox study. Core components work with React and the scoped stylesheet; the optional Three renderer supplies the liquid material. Forms, focus, text and selected state remain DOM behavior. This is an initial foundation, not a complete component suite or broad accessibility certification.
 
 ```jsx
 import {
@@ -204,7 +204,7 @@ Native anchor with the library's button material and face. Accepts normal anchor
 Badge, Alert, Dropdown menu, Table, Skeleton and controls share material-skin.css. Status pills remain noninteractive, with stable frosted reading support inside a colored meniscus. Tables retain readable tinted rows and an enclosing dense perimeter; row selection increases boundary density. Inside JellyScene, badges, dropdown menus/options, table frames/rows and their controls register actual physical-material geometry. Only successful claims lose DOM background paint. Text remains above the scene, with local frosted support. Popup rendering is projected into the popup stacking layer from the same WebGL frame; no extra WebGL context or photon pass is created. CSS uses the canonical 120ms feedback, 240 ms material and exact slight spatial curve; opacity uses monotonic easing and reduced motion removes deformation.
 
 
-### Rendered surface budget (0.4.0)
+### Rendered surface budget
 
 A scene retains up to 32 visible surfaces and two selection contours. Menu surfaces take priority; off-screen and fully clipped nodes do not consume slots. Stable DOM identities preserve pigment/depth history when sorting and filtering. Scroll clipping uses the original geometry and world-space clipping planes, so a partially hidden badge does not grow a new rounded end. Surfaces beyond the budget retain CSS. Passive badges breathe gently but never show actionable hover/press feedback.
 

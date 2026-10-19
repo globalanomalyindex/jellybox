@@ -1,7 +1,7 @@
 # Security
 
-JellyBox is a static browser experiment with local-only saved settings and no account/backend. Only the current 0.4 preview branch is maintained.
+I maintain `main` and the latest JellyBox release. Older preview releases may not receive fixes.
 
-Please report sensitive vulnerabilities through GitHub private vulnerability reporting when available, or contact the maintainer through https://christopherfiore.net/. Public issues are suitable for non-sensitive reproducible bugs. Do not include secrets or private assets.
+JellyBox is a static browser study with browser-local saved settings and no account or backend. For a sensitive security report, contact me through [my portfolio](https://christopherfiore.net/). Please don’t post secrets or private assets in a public issue. Ordinary reproducible bugs belong in [GitHub Issues](https://github.com/globalanomalyindex/jellybox/issues).
 
-Contributors must not commit credentials or commercial fonts. CI pull requests do not receive deployment font secrets. Deployment uses the repository's short-lived GitHub Actions permissions; no personal token or npm token belongs in the source.
+Contributions must not include credentials or commercial fonts. Pull-request checks do not receive deployment font secrets. GitHub Pages uses the workflow’s short-lived permissions; no personal or npm token belongs in the source.

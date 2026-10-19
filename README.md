@@ -1,16 +1,32 @@
 # JellyBox
 
-Three buttons. A little light. A lot of jelly.
+[Live demo](https://globalanomalyindex.github.io/jellybox/) · [Case study](https://christopherfiore.net/product-designs/jellybox/) · [Releases](https://github.com/globalanomalyindex/jellybox/releases)
 
-A design-system study by [Christopher Robin Fiore](https://christopherfiore.net/), using density, connected movement, color and light to explain an interface. The working prototype is three jelly buttons that gather into shared workspaces. The reusable React foundation is included for experimentation; this is a research preview, not a finished production UI kit.
+I built JellyBox to explore how a fluid, light-reactive interface can keep clear structure. I love the color and translucency of old Macintosh interfaces and Frutiger Aero: how fun, vibrant and alive they feel. I wanted to carry that energy into a system for how an interface behaves.
 
-**[Try the live study](https://globalanomalyindex.github.io/jellybox/)** · [Design story](https://globalanomalyindex.github.io/jellybox/#story-abstract) · [Download v0.5.17](https://github.com/globalanomalyindex/jellybox/releases/tag/v0.5.17)
+Jelly gives me a way to do that through density. A concentrated edge can establish a boundary; a thinner area can leave room for reading. A button can stretch into its own workspace, gather into a tab, then return to the same button. Color, motion and light belong to that shared material, while text and controls stay steady.
 
-![JellyBox: three blue jelly controls and the project signature](docs/media/hero.jpg)
+![JellyBox's three jelly buttons and project signature](docs/media/hero.jpg)
 
-## Run it
+## The experiment
 
-Use Node 24 LTS (the version in `.nvmrc`) and npm.
+Three tools are my current proving ground for the wider system:
+
+- **Explore** changes movement, button size and spacing, with an explicit browser-local saved look.
+- **Color** previews palettes before committing them. The preview jelly breathes while a choice is pending; the selected check stays on the accepted palette. Individual pigments can also be edited.
+- **Material** adjusts translucency, surface light, thickness, lift and prism. Shape & optics gathers into a denser inner folder.
+
+The bulb works like a lamp on a desk. Drag it into place or open its lighting options; highlights, transmitted color and surface casts follow it. The design story below the tools includes automatic examples of density, motion, loading states, color relationships and ambient lighting.
+
+The website uses the same React foundation included here. Sliders, choices and inner controls inherit their workspace's pigment; save, warning and destructive actions keep their semantic colors. A closing workspace carries its color back into its button.
+
+![The amber Material workspace, with its denser Shape & optics folder and inherited slider colors](docs/media/density.jpg)
+
+I’ve implemented these interactions, but I haven’t validated their usability benefits yet. This is a working design-system study and experimental React foundation.
+
+## Run locally
+
+Use Node 24 LTS and npm:
 
 ```sh
 git clone https://github.com/globalanomalyindex/jellybox.git
@@ -19,51 +35,36 @@ npm ci
 npm run dev
 ```
 
-Vite prints the local URL. `npm run check` builds and checks the React foundation, the website and the optional static adapter. `npm run preview` serves the production website after a build.
+`npm run build` creates the static site in `dist/`. `npm run preview` serves that build. No account, backend or private asset is required. My live site uses separately licensed Dessign Maison; public clones use the system-font fallback. See [assets and licensing](docs/ASSETS.md).
 
-Public clones intentionally use a system-font fallback. The author's live site uses a separately licensed Dessign Maison font supplied privately at deployment; no font license, account or secret is needed to run the project. See [assets and font setup](docs/ASSETS.md).
+The starting settings are Wobbly, 131% size, spacing 17, Glass blue, 6% translucency and 25% surface light. The desktop workspace and controls grow together; narrow screens keep a bounded layout. Continuous motion can be paused, and reduced-motion preferences are respected. Keyboard controls, visible focus, labels and selected checks remain independent of the material effects.
 
-## Play
+## Use the React foundation
 
-- **Explore:** motion presets, size, spacing, Reset experiment, and one browser-local saved look. Save is explicit; ordinary tuning and Reset do not overwrite it.
-- **Color:** preview a palette before committing, or choose individual pigments.
-- **Material:** translucency, light, thickness, lift and prism. Shape & optics gathers out of the parent window as a denser folder.
-- **Light:** drag the bulb, or focus it and use arrow keys (Shift moves farther). Enter opens its controls.
-- **Close / Escape:** return a workspace to its button. Text and native targets remain anchored while the material reshapes.
-
-Defaults are Wobbly, 131% size, spacing 17, Glass blue, translucency 6% and surface light 25%. Pause continuous motion or use the operating system's reduced-motion preference. Sliders support native keyboard input and draggable value bubbles; Shift gives fine adjustment and Escape cancels a scrub.
-
-## Reuse the React foundation
-
-The repository contains `@jellybox/react`: seventeen core controls, scoped CSS, semantic tones and shared motion/color helpers. Its optional renderer uses Three.js. Core controls can render without WebGL or Three.
+`@jellybox/react` is available as a GitHub release archive; I haven’t published it to npm.
 
 ```sh
-npm run pack:library
-# In another React project:
-npm install /path/to/jellybox/release/jellybox-react-0.5.17.tgz
+npm install https://github.com/globalanomalyindex/jellybox/releases/download/v0.5.18/jellybox-react-0.5.18.tgz
 ```
 
-Release archives are also attached to [GitHub Releases](https://github.com/globalanomalyindex/jellybox/releases). This release is not published on npm. Import `@jellybox/react/styles.css` once; see the [package guide](packages/react/README.md) and [component API](docs/COMPONENTS.md).
+Import `@jellybox/react/styles.css` once. Core controls work without Three.js; the optical renderer is optional. To build the archive locally, run `npm run pack:library`.
 
-## Find your way around
+The [package guide](packages/react/README.md) covers installation and composition. The [API reference](docs/COMPONENTS.md) covers native behavior, props, shared pigment, motion and renderer limits.
 
-| Location | Purpose |
-| --- | --- |
-| `src/` | The three-button study, lighting controls, design story and state composition |
-| `packages/react/src/` | Reusable native React controls, CSS, semantic colors and motion |
-| `packages/react/src/renderer/` | Optional optical geometry, density fields, material, light and shared transitions |
-| `packages/react/test/`, `tests/` | Component/model behavior and the optional static adapter |
-| `public/brand/` | Editable SVG identity, supplied raster source and provenance |
-| `docs/` | Architecture, design, API, asset licensing, release and verification guides |
+## How it works
 
-Start with [architecture](docs/ARCHITECTURE.md), [material](MATERIAL.md), [motion](MOTION.md), [design](docs/DESIGN.md) and [contributing](CONTRIBUTING.md). [Release operations](docs/RELEASING.md) describe Pages deployment and private font configuration.
+I use changing density to communicate hierarchy and grouping, motion to explain ownership and change, and color to distinguish preview, selection and outcomes. Spectral.js supplies cached, pigment-inspired color paths. One optional Three.js scene handles the material, lighting and surface casts.
 
-## What this demonstrates
+These optics are authored real-time approximations. Spectral.js models pigment mixing rather than light passing through transparent jelly; the renderer is not a validated fluid simulation. Native semantics and sampled contrast checks also need broader device and accessibility evaluation.
 
-Jelly can gather density into a boundary while keeping a reading area thin. A button can remain the owner of a space as it becomes a tab, an inner group can gather out of the same material, and color can distinguish a preview from a committed state. These are implemented interactions and design hypotheses; they are not demonstrated usability improvements.
-
-The optics use authored real-time geometry, raster transmission, analytic receiver filtering and bounded sampled caustics. Spectral.js supplies pigment-inspired color paths, not transparent-jelly light transport. Native text remains above the canvas; the bottom scroll cue coordinates a rendered strip with browser backdrop blur. Read [limits and verification](docs/VERIFICATION.md) before using the renderer or making accessibility/performance claims.
+- [Design principles and vocabulary](docs/DESIGN.md)
+- [Material and density](MATERIAL.md) · [Motion](MOTION.md)
+- [Architecture](docs/ARCHITECTURE.md) · [Testing and limits](docs/TESTING.md)
+- [Contributing](CONTRIBUTING.md) · [Roadmap](ROADMAP.md)
+- [Changelog](CHANGELOG.md) · [Release and deployment](docs/RELEASING.md)
 
 ## License
 
-MIT for the code and documentation. [Third-party notices](THIRD_PARTY_NOTICES.md) retain Spectral.js attribution and explain the separate site font. The JellyBox name/logo identify this study; the logo is excluded from the component archive. No commercial font is included in source or package releases.
+I release the code and documentation under [MIT](LICENSE). [Third-party notices](THIRD_PARTY_NOTICES.md) retain dependency attribution. No commercial font is included in source or component archives. The logo identifies this study and is excluded from the reusable package.
+
+— [christopher robin fiore](https://christopherfiore.net/) / [globalanomalyindex](https://github.com/globalanomalyindex)
