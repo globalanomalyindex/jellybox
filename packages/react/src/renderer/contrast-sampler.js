@@ -20,6 +20,9 @@ export function createContrastSampler(renderer, publish) {
   return {
     sample(state, timestamp, materialReactive) {
       if (!publish || pending) return;
+      // Ink intent stays fixed during a handoff. Verify the settled surface
+      // without making GPU readback compete with its first transmission pass.
+      if (state.buttons?.some(button => button?.transferring) || state.panel?.morph) return;
       const visible = (state.contrastTargets || []).filter(item => item.width > 0 && item.height > 0 && item.y >= (state.viewportTop ?? 0) && item.y + item.height <= (state.viewportTop ?? 0) + (state.viewportHeight ?? state.height)).slice(0, 40);
       const reactive = visible.filter(item => item.reactive || materialReactive?.has(item.id)).slice(0, 8);
       if (timestamp - last < (reactive.length ? 1000 / 30 : 100)) return;

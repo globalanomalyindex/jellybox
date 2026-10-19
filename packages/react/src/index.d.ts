@@ -1,6 +1,9 @@
 import * as React from 'react';
 
 export type JellyTone = 'action' | 'info' | 'success' | 'warning' | 'danger' | 'neutral';
+export interface JellyMaterialProviderProps { pigment?: string; children?: React.ReactNode; }
+export function JellyMaterialProvider(props: JellyMaterialProviderProps): React.ReactElement;
+
 export type JellySize = 'sm' | 'md' | 'lg';
 export interface SemanticColor { readonly label: string; readonly hex: string; readonly ink: string; readonly rgb: readonly [number, number, number]; readonly description: string; }
 export const SEMANTIC_COLORS: Readonly<Record<JellyTone, SemanticColor>>;

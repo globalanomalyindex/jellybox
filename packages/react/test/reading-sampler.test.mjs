@@ -69,3 +69,17 @@ test('an unavailable readback preserves the intended ink and reports no contrast
   assert.deepEqual(batches, [[{ id: 'dark', ink: '#ffffff', ratio: 0, halo: false }]]);
   sampler.destroy();
 });
+
+test('contrast verification yields to a window handoff and resumes on the settled material', async () => {
+  const fixture = rendererFixture(), batches = [];
+  const sampler = createContrastSampler(fixture.renderer, rows => batches.push(rows));
+  const scene = { width: 800, height: 600, buttons: [{ transferring: true }], contrastTargets: [{ id: 'tool', x: 20, y: 20, width: 70, height: 8 }] };
+  sampler.sample(scene, 100);
+  assert.equal(fixture.reads.length, 0, 'a reshape must not compete with GPU readback');
+  scene.buttons[0].transferring = false;
+  sampler.sample(scene, 900);
+  assert.equal(fixture.reads.length, 1, 'the settled material is still verified');
+  await fixture.resolve();
+  assert.equal(batches[0][0].id, 'tool');
+  sampler.destroy();
+});

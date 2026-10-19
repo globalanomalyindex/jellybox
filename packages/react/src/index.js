@@ -14,3 +14,5 @@ export { useJellyTransition } from './SelectionContour.jsx';
 export { JellyWindow, useJellyWindow } from './JellyWindow.jsx';
 
 import "./material-skin.css";
+
+export { JellyMaterialProvider } from './MaterialContext.js';

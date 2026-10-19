@@ -38,5 +38,5 @@ export const JELLY_TOKENS = Object.freeze({
 
 export function toneStyle(tone = 'action') {
   const color = SEMANTIC_COLORS[tone] || SEMANTIC_COLORS.action;
-  return { '--jb-color': color.hex, '--jb-ink': color.ink, '--jb-rgb': color.rgb.map((channel) => Math.round(channel * 255)).join(' ') };
+  return { '--jb-color': color.hex, '--jb-target-color': color.hex, '--jb-ink': color.ink, '--jb-rgb': color.rgb.map((channel) => Math.round(channel * 255)).join(' ') };
 }

@@ -56,7 +56,7 @@ export const JellyTabs = forwardRef(function JellyTabs({
         id={`${rootId}-tab-${index}`} type="button" role="tab" aria-selected={index === selectedIndex}
         aria-controls={`${rootId}-panel-${index}`} tabIndex={index === tabStop ? 0 : -1} disabled={disabled || item.disabled}
         data-gel-option="" data-gel-key={`${typeof item.value}:${item.value}`} data-gel-surface="" data-gel-tone={item.tone || tone}
-        className="jb-selection-option jb-tab" style={toneStyle(item.tone || tone)} onFocus={() => select(index)} onClick={() => select(index)}>
+        className="jb-selection-option jb-tab" data-gel-sampled="true" style={item.tone ? toneStyle(item.tone) : materialStyle} onFocus={() => select(index)} onClick={() => select(index)}>
         <span className="jb-selection-content">{item.label}</span>
       </button>)}
     </div>
@@ -88,6 +88,7 @@ export const JellyDropdown = forwardRef(function JellyDropdown({
   const search = useRef({ text: '', time: 0 });
   const current = value === undefined ? internal : value;
   const materialStyle = useJellyToneStyle('neutral');
+  const focusStyle = useJellyToneStyle(tone);
   const latest = useRef({ value });
   latest.current = { value };
   const selected = options.findIndex((option) => Object.is(option.value, current));
@@ -214,13 +215,13 @@ export const JellyDropdown = forwardRef(function JellyDropdown({
   return <div ref={rootRef} data-open={open || undefined} className={cx('jb-dropdown', disabled && 'jb-disabled', className)} style={{ ...materialStyle, ...style }}>
     <label htmlFor={inputId} id={labelId} className="jb-field-label">{label}{required && <span aria-hidden="true"> *</span>}</label>
     <div className="jb-dropdown-control">
-    <div ref={shellRef} className="jb-dropdown-shell" hidden={!open} data-gel-surface="menu" data-gel-tone="neutral" aria-hidden="true" />
+    <div ref={shellRef} className="jb-dropdown-shell" hidden={!open} data-gel-surface="menu" data-gel-tone="neutral" data-gel-sampled="true" style={materialStyle} aria-hidden="true" />
     <button {...props} ref={(node) => { triggerRef.current = node; assignRef(ref, node); }} id={inputId} type="button" form={form}
       role="combobox" aria-haspopup="listbox" aria-expanded={open} aria-controls={listId}
       aria-activedescendant={open && active >= 0 ? `${inputId}-option-${active}` : undefined}
       aria-labelledby={props['aria-labelledby'] || (props['aria-label'] ? undefined : ids(labelId, valueId))} aria-describedby={ids(props['aria-describedby'], descriptionId, errorId)}
       aria-required={required || undefined} aria-invalid={message ? true : props['aria-invalid']} disabled={disabled}
-      className="jb-button jb-dropdown-trigger" data-gel-surface={open ? undefined : 'control'} data-gel-tone="neutral" data-gel-highlight={tone}
+      className="jb-button jb-dropdown-trigger" data-gel-surface={open ? undefined : 'control'} data-gel-tone="neutral" data-gel-highlight={tone} data-gel-sampled="true" style={materialStyle}
       onClick={(event) => { onClick?.(event); if (!event.defaultPrevented) open ? close() : show('ArrowDown'); }} onKeyDown={(event) => {
         onKeyDown?.(event);
         if (event.defaultPrevented || disabled) return;
@@ -241,11 +242,11 @@ export const JellyDropdown = forwardRef(function JellyDropdown({
       </span>
     </button>
     <div ref={listRef} id={listId} role="listbox" aria-labelledby={labelId} hidden={!open}
-      data-gel-connected="true" data-gel-tone="neutral" data-gel-group={listId} data-gel-selection-mode="active" className={cx('jb-dropdown-list', above && 'jb-dropdown-above')}>
-      <SelectionContour groupRef={listRef} selectedKey={active} selector={'[data-active="true"]'} />
+      data-gel-connected="true" data-gel-tone="neutral" data-gel-group={listId} data-gel-selection-mode="active" style={focusStyle} className={cx('jb-dropdown-list', above && 'jb-dropdown-above')}>
+      <SelectionContour groupRef={listRef} selectedKey={active} selector={'[data-active="true"]'} style={focusStyle} />
       {options.map((option, index) => <div key={`${typeof option.value}:${option.value}`} id={`${inputId}-option-${index}`}
         role="option" aria-selected={index === selected} aria-disabled={option.disabled || undefined}
-        data-gel-option="" data-gel-key={`${typeof option.value}:${option.value}`} data-gel-tone={tone} data-active={index === active || undefined} className="jb-dropdown-option" style={toneStyle(tone)}
+        data-gel-option="" data-gel-key={`${typeof option.value}:${option.value}`} data-gel-tone={tone} data-active={index === active || undefined} className="jb-dropdown-option" data-gel-sampled="true" style={focusStyle}
         onPointerMove={() => { if (!option.disabled) setActive(index); }} onPointerDown={(event) => { if (event.pointerType === 'mouse') event.preventDefault(); }} onClick={() => choose(index)}>
         <span className="jb-dropdown-option-copy"><span>{option.label}</span>{option.description && <small>{option.description}</small>}</span>
         <svg className="jb-dropdown-check" width="14" height="14" viewBox="0 0 12 12" aria-hidden="true"><path d="m2.5 6 2.2 2.2 4.8-4.6" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" /></svg>
@@ -295,7 +296,7 @@ export const JellyCheckbox = forwardRef(function JellyCheckbox({
     return () => { clearTimeout(timer); form?.removeEventListener('reset', reset); };
   }, [props.form]);
   return <label htmlFor={inputId} className={cx('jb-checkbox', active && 'jb-checkbox-on', indeterminate && 'jb-checkbox-mixed', disabled && 'jb-disabled', className)} style={{ ...materialStyle, ...style }}>
-    <span className="jb-checkbox-slot"><span className="jb-checkbox-box" data-gel-surface={optical ? '' : undefined} data-gel-tone={error ? 'danger' : tone}>
+    <span className="jb-checkbox-slot"><span className="jb-checkbox-box" data-gel-surface={optical ? '' : undefined} data-gel-tone={error ? 'danger' : tone} data-gel-sampled="true">
       <input {...props} id={inputId} ref={(node) => { inputRef.current = node; assignRef(ref, node); }} type="checkbox" disabled={disabled}
         checked={checked} defaultChecked={checked === undefined ? defaultChecked : undefined}
         aria-checked={indeterminate ? 'mixed' : undefined} aria-invalid={error ? true : props['aria-invalid']}

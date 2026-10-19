@@ -3,6 +3,7 @@ import { createJellyPalette, normalizeJellyColor } from './color.js';
 import { MOTION, sampleBezier } from './renderer/motion.js';
 import { controlPigment, toneStyle } from './tokens.js';
 import { inkStyle } from './contrast.js';
+import { useMaterialPigment } from './MaterialContext.js';
 
 const useBrowserLayoutEffect = typeof window === 'undefined' ? useEffect : useLayoutEffect;
 /** Animate only a surface pigment. Semantic labels, state, and focus stay immediate. */
@@ -65,18 +66,21 @@ export function useJellyColor(target, { duration = MOTION.pigment, disabled = fa
 /** Keep target ink immediate while only the two decorative pigment variables flow. */
 export function useJellyToneStyle(tone = 'action', options) {
   const target = toneStyle(tone);
-  const color = useJellyColor(target['--jb-color'], options);
+  const pigment = useMaterialPigment(tone);
+  const color = useJellyColor(pigment ?? target['--jb-color'], options);
   return {
     ...target,
     ...inkStyle(color),
     '--jb-color': color,
+    '--jb-target-color': pigment ?? target['--jb-color'],
     '--jb-rgb': [1, 3, 5].map((start) => parseInt(color.slice(start, start + 2), 16)).join(' '),
   };
 }
 
 /** Same sampled pigment feeds the optical body and fallback, with immediate semantic state. */
 export function useJellyControlStyle(tone, state, pigment, options) {
-  const target = controlPigment(tone, state, pigment);
+  const accent = useMaterialPigment(tone, pigment);
+  const target = controlPigment(tone, state, accent);
   const color = useJellyColor(target, options);
   return { ...toneStyle(tone), ...inkStyle(color), '--jb-color': color, '--jb-target-color': target,
     '--jb-rgb': [1, 3, 5].map(at => parseInt(color.slice(at, at + 2), 16)).join(' ') };

@@ -1,6 +1,6 @@
 import { createRef, useState } from 'react';
 import { JellyButton, JellySelectionGroup, JellySlider, JellySwitch, JellyDropdown,
-  JellyTabs, JellyCheckbox, JellyDialog, JellyTable, JellyWindow, JellyActivityButton, chooseJellyInk, MOTION } from '@jellybox/react';
+  JellyTabs, JellyCheckbox, JellyDialog, JellyTable, JellyWindow, JellyActivityButton, JellyMaterialProvider, chooseJellyInk, MOTION } from '@jellybox/react';
 import { JellyScene, type OpticalScene } from '@jellybox/react/renderer';
 
 // A consumer composition: generic identities, native refs, inputs and optics.
@@ -19,7 +19,7 @@ export function Consumer() {
   const ink: string = chooseJellyInk(['#085bb9'], undefined, { preferred: '#000000' }).ink;
   void ink;
   void scene; void settleDuration;
-  return <JellyScene>
+  return <JellyMaterialProvider pigment="#ffb251"><JellyScene>
     <JellyActivityButton status="loading" progress={42} />
     <JellyWindow viewKey={choice}>{visible => <span>{visible}</span>}</JellyWindow>
     <JellySelectionGroup aria-label="Choice" value={choice} onValueChange={setChoice} options={[{ value: 1, label: 'One' }, { value: 2, label: 'Two' }]} />
@@ -31,5 +31,5 @@ export function Consumer() {
     <JellyButton ref={button} onClick={() => setOpen(true)}>Open</JellyButton>
     <JellyDialog open={open} onOpenChange={setOpen} title="Details"><JellyButton onClick={() => setOpen(false)}>Done</JellyButton></JellyDialog>
     <JellyTable caption="Choices" rows={[{ id: 1, name: 'One' }]} columns={[{ key: 'name', header: 'Name', render: (_value, row) => row.name }]} />
-  </JellyScene>;
+  </JellyScene></JellyMaterialProvider>;
 }

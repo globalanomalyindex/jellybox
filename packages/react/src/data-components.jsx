@@ -165,12 +165,12 @@ export const JellyTable = forwardRef(function JellyTable({
   };
   const cellCount = Math.max(1, columns.length + (selectionEnabled ? 1 : 0));
 
-  return <div data-gel-surface="table" data-gel-tone={tone} className={cx('jb-table-shell', className)} style={{ ...materialStyle, ...style }}>
+  return <div data-gel-surface="table" data-gel-tone={tone} data-gel-sampled="true" className={cx('jb-table-shell', className)} style={{ ...materialStyle, ...style }}>
     <div className="jb-table-loading-status" role="status">{loading ? 'Loading rows' : ''}</div>
     <div className="jb-table-scroll" role="region" aria-labelledby={captionId} tabIndex={0}>
       <table ref={forwardedRef} className="jb-table" aria-busy={loading || undefined}>
         <caption id={captionId}>{caption}</caption>
-        <thead><tr data-gel-surface="row" data-gel-tone={tone}>
+        <thead><tr data-gel-surface="row" data-gel-tone={tone} data-gel-sampled="true">
           {selectionEnabled && <th scope="col" className="jb-table-selection-cell"><TableCheckbox tone={tone} aria-label="Select all rows on this page"
             checked={allSelected} mixed={mixed} disabled={loading || enabledKeys.length === 0}
             onChange={() => {
@@ -190,7 +190,7 @@ export const JellyTable = forwardRef(function JellyTable({
             : shown.map(({ row, index, id, disabled }, visualIndex) => {
               const defaultLabel = row.name ?? row.label ?? id;
               const rowLabel = getRowLabel ? getRowLabel(row, index) : typeof defaultLabel === 'string' || typeof defaultLabel === 'number' ? String(defaultLabel) : `Row ${index + 1}`;
-              return <tr data-gel-surface="row" data-gel-tone={tone} key={id == null ? index : `${typeof id}:${id}`} data-selected={selectionEnabled && selected.has(id) ? 'true' : undefined} className={disabled ? 'jb-table-row-disabled' : undefined}>
+              return <tr data-gel-surface="row" data-gel-tone={tone} data-gel-sampled="true" key={id == null ? index : `${typeof id}:${id}`} data-selected={selectionEnabled && selected.has(id) ? 'true' : undefined} className={disabled ? 'jb-table-row-disabled' : undefined}>
                 {selectionEnabled && <td className="jb-table-selection-cell"><TableCheckbox tone={tone} aria-label={`Select ${rowLabel}`} checked={selected.has(id)} disabled={disabled}
                   onChange={event => { const next = new Set(selection); if (event.currentTarget.checked) next.add(id); else next.delete(id); changeSelection([...next]); }} /></td>}
                 {columns.map(column => <td key={column.key} style={{ textAlign: column.align || 'left' }}>

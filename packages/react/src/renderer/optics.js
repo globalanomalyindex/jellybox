@@ -30,7 +30,6 @@ const PHOTON_RANGE = 7;
 const LIGHT_DIRECTION = new THREE.Vector3(780, -900, -760).normalize();
 // One cached pigment path wakes the whole parent concentration. Linear working
 // colors are decoded once; the same eased hover gain samples color and strain.
-const DENSITY_HOVER_PIGMENT = createJellyPalette('#bfdfee', '#69bafa').colors.map(hex => new THREE.Color(hex).toArray());
 
 function colorFrom(rgb) {
   return new THREE.Color().setRGB(...rgb, THREE.SRGBColorSpace);
@@ -240,7 +239,6 @@ function installVolumeThickness(material) {
   const controlDensity = { value: new THREE.Vector4(), thumb: { value: 0 } };
   material.userData.controlDensity = controlDensity;
   const densityPixels = new Float32Array(33 * 2 * 4);
-  DENSITY_HOVER_PIGMENT.forEach((color, i) => densityPixels.set([...color.map((c, channel) => c-DENSITY_HOVER_PIGMENT[0][channel]),0],(33+i)*4));
   const densityPalette = new THREE.DataTexture(densityPixels, 33, 2, THREE.RGBAFormat, THREE.FloatType);
   densityPalette.minFilter = densityPalette.magFilter = THREE.LinearFilter;
   densityPalette.needsUpdate = true;
@@ -1028,6 +1026,9 @@ export function createOptics(canvas, { getScene, onError = () => {}, onAfterRend
     scene.add(body.cast);
     return body;
   };
+  const warmBody = makeBubble(0);
+  warmBody.mesh.visible = warmBody.cast.visible = false;
+  bubbles.push(warmBody);
   const clipRight = new THREE.Vector3(), clipUp = new THREE.Vector3();
   const applySurfaceClip = (body, rect, width, height) => {
     const clip = rect || { x: -10000, y: -10000, width: 20000, height: 20000 };
@@ -1039,7 +1040,7 @@ export function createOptics(canvas, { getScene, onError = () => {}, onAfterRend
   };
   const selectionSlots = Array.from({ length: 2 }, (_, index) => makeSelectionRim(scene, index + 1));
   const targetTint = new THREE.Color();
-  let destroyed = false, failed = false, frame = 0;
+  let destroyed = false, failed = false, frame = 0, warmup = null;
   let previous = performance.now(), lastPhoton = -1000, time = 0;
   let dimensions = [0, 0, 0];
   let lastSceneKey = '', lastPanelSceneKey = '', lastLightKey = '';
@@ -1267,13 +1268,17 @@ export function createOptics(canvas, { getScene, onError = () => {}, onAfterRend
           density.jiggle.value = body.density.jiggle;
           density.shape.value.set(body.density.edge, body.density.flow, body.density.fold, body.density.folder ? 1 : 0);
           const pixels = density.palette.value.image.data;
-          const basePixels = body.densityBasePixels ||= new Float32Array(33 * 4);
+          const basePixels = body.densityBasePixels ||= new Float32Array(pixels.length);
           if (body.densityPigment !== region.pigment) {
             body.densityFrom = new Float32Array(basePixels);
             body.densityTarget = new Float32Array(basePixels.length);
             const origin = new THREE.Color(region.pigment).toArray();
-            const palette = createJellyPalette(region.pigment, '#bfdfee');
+            const clear = createJellyPalette('#e8f0f2', region.pigment).sample(.18);
+            const palette = createJellyPalette(region.pigment, clear);
+            const clearRGB = new THREE.Color(clear).toArray();
+            const gathered = createJellyPalette(clear, region.pigment);
             palette.colors.forEach((hex, i) => body.densityTarget.set([...densityClearing(origin, new THREE.Color(hex).toArray()), 0], i * 4));
+            gathered.colors.forEach((hex, i) => body.densityTarget.set([...new THREE.Color(hex).toArray().map((c, channel) => c - clearRGB[channel]), 0], (33 + i) * 4));
             body.densityElapsed = body.densityPigment && wasLive ? 0 : MOTION.pigment;
             body.densityPigment = region.pigment;
             body.densityPaletteDirty = true;
@@ -1639,7 +1644,11 @@ export function createOptics(canvas, { getScene, onError = () => {}, onAfterRend
     else previous = timestamp;
     frame = requestAnimationFrame(animate);
   }
-  try { renderOnce(); frame = requestAnimationFrame(animate); }
+  try {
+    renderOnce(); frame = requestAnimationFrame(animate);
+    const prepare = () => { warmup = null; if (!destroyed) renderer.compileAsync(scene, camera).catch(error => { if (!destroyed) onError(error.message || String(error)); }); };
+    warmup = window.requestIdleCallback ? window.requestIdleCallback(prepare, { timeout: 800 }) : setTimeout(prepare, 0);
+  }
   catch (error) { failed = true; onError(error.message || String(error)); }
 
   return {
@@ -1647,6 +1656,7 @@ export function createOptics(canvas, { getScene, onError = () => {}, onAfterRend
     destroy() {
       destroyed = true;
       cancelAnimationFrame(frame);
+      if (warmup !== null) { if (window.cancelIdleCallback) window.cancelIdleCallback(warmup); else clearTimeout(warmup); }
       bubbles.forEach(body => body.cast.material.dispose()); castGeometry.dispose();
       bodies.concat(bubbles, selectionSlots.map(slot => slot.body)).forEach(body => { body.geometry.dispose(); body.material.userData.flow.palette.value.dispose(); body.material.userData.flow.activityPalette.value.dispose(); body.material.userData.density.palette.value.dispose(); body.material.dispose(); body.depth.dispose(); });
       floor.geometry.dispose(); floorMaterial.dispose();

@@ -1,6 +1,6 @@
 # JellyBox components
 
-The 0.5.15 foundation contains seventeen components. Core components work with React and the scoped stylesheet; the optional Three renderer supplies the liquid material. Forms, focus, text and selected state remain DOM behavior. This is an initial foundation, not a complete component suite or broad accessibility certification.
+The 0.5.16 foundation contains seventeen components. Core components work with React and the scoped stylesheet; the optional Three renderer supplies the liquid material. Forms, focus, text and selected state remain DOM behavior. This is an initial foundation, not a complete component suite or broad accessibility certification.
 
 ```jsx
 import {
@@ -12,6 +12,20 @@ import '@jellybox/react/styles.css';
 The core controls share six semantic `tone` roles and material/motion tokens. JellyActivityButton adds application-owned activity/outcome states; the expanded contracts below cover the larger controls. Labels and state update immediately, independently of decorative motion.
 
 Explicit `pigment` stays visible at rest: its quieter Spectral concentration gathers on hover and reaches the exact accent for selection/press. Disabled controls remain neutral. Actions without an explicit pigment keep their neutral resting appearance; semantic success, warning and danger retain their established tint. The shared `controlPigment` rule serves the native fallback and optional renderer.
+
+## Shared window pigment
+
+`JellyMaterialProvider` supplies an optional `pigment` (CSS hex color) to descendant ordinary controls, including sliders, dropdowns and selection groups. Their existing 480 ms Spectral responses follow that target. An explicit button pigment wins; `success`, `warning` and `danger` keep their semantic colors. A nested provider without a pigment restores the unscoped palette. It adds no DOM wrapper and works in core-only consumers.
+
+```jsx
+<JellyMaterialProvider pigment={windowColor}>
+  <JellySlider label="Thickness" value={thickness} onValueChange={setThickness} />
+  <JellyDropdown label="Shape" options={shapes} value={shape} onValueChange={setShape} />
+  <JellyButton tone="success">Save</JellyButton>
+</JellyMaterialProvider>
+```
+
+The provider carries the target, not an already-animated sample. Each existing material response remains its single owner; the renderer consumes displayed control samples and reads selection targets at their decorative handoff.
 
 ## JellyTabs
 

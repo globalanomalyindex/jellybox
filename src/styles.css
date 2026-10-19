@@ -465,3 +465,34 @@ html { scrollbar-color: #a4bdcf var(--surface); scrollbar-width: thin; }
   .jelly-details .jb-slider-compact { grid-template-columns: minmax(68px, 1fr) minmax(72px, 1fr) 52px; column-gap: 4px; }
   .jelly-details .jb-field-heading > label { white-space: nowrap; }
 }
+
+/* Desktop workspaces use actual larger bounds, shared by DOM and optics. */
+@media (min-width: 900px) {
+  .jelly-workbench { width: min(100%, 760px); }
+  .jelly-toolbar { height: calc(112px * var(--button-size, 1)); }
+  .jelly.jb-button { width: calc(110px * var(--button-size, 1)); height: calc(110px * var(--button-size, 1)); }
+  .jelly.jb-button.is-active { width: calc(210px * var(--button-size, 1)); height: calc(110px * var(--button-size, 1)); }
+  .jelly.jb-button.is-neighbor { width: calc(84px * var(--button-size, 1)); height: calc(84px * var(--button-size, 1)); }
+  .jelly-workbench:not(.is-open) .jelly > .jb-button-face > svg { width: 32px; height: 32px; }
+  .jelly-workbench.is-open .jelly-toolbar { height: 84px; padding: 12px 80px 12px 24px; }
+  .jelly-workbench.is-open .jelly.is-active { width: 176px; height: 56px; }
+  .jelly-workbench.is-open .jelly.is-neighbor { width: 56px; height: 56px; }
+  .jelly-workbench.is-open .jelly.is-selected { margin-top: -28px; }
+  .jelly-workbench.is-open .jelly.is-selected > .jb-button-face { font-size: 16px; }
+  .jelly-workbench .dock-close.jb-button { width: 56px; height: 56px; min-height: 56px; top: 14px; }
+  .jelly-workbench .panel-inner { padding: 24px 32px 28px; }
+  .jelly-workbench .panel-intro h3 { font-size: 27px; }
+  .jelly-workbench .panel-intro p { font-size: 16px; max-width: 60ch; }
+  .jelly-workbench .jb-button-face, .jelly-workbench .jb-selection-content { font-size: 16px; }
+  .jelly-workbench .jb-selection-description, .jelly-workbench .panel-note { font-size: 14px; }
+  .jelly-workbench .study-presets .jb-selection-option { min-height: 100px; }
+  .jelly-workbench .palette-options .jb-selection-option { min-height: 58px; }
+  .jelly-workbench .jb-slider-compact { grid-template-columns: minmax(120px, 1fr) minmax(128px, 232px) 72px; column-gap: 12px; min-height: 48px; }
+  .jelly-workbench .jb-field-heading label { font-size: 16px; }
+  .jelly-workbench .jb-range-control { height: 48px; }
+  .jelly-workbench .jb-range-value { min-width: 72px; min-height: 48px; }
+  .jelly-workbench .jb-range-value > span { font-size: 14px; }
+  .jelly-workbench .jb-range-thumb { width: calc(28px + 6px * var(--jb-slider-emphasis)); height: calc(28px + 6px * var(--jb-slider-emphasis)); }
+  .jelly-workbench .jelly-details-title { font-size: 15px; }
+  .jelly-workbench .jelly-details-summary { font-size: 14px; }
+}

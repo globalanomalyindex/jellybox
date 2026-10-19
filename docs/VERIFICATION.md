@@ -152,3 +152,14 @@ playwright-cli run-code --filename tests/browser/palette-propagation.js
 ```
 
 It requires the optical renderer and checks actual screenshot pixels, not just pigment props. It is a bounded default-light regression, not a universal contrast or physical-color validation.
+
+
+## v0.5.16 workspace scale and pigment ownership
+
+The before/after regressions exercise public provider composition and actual framebuffer pixels. The warm Material value sample changed from RGB199/217/230 (blue) to RGB220/199/146; its gathered folder hover measured217/189/128. `tests/browser/window-palette.js` retains the current application pathname so the same check runs at root and the Pages subpath. `palette-propagation.js` continues to verify a committed palette at rest without pointer feedback.
+
+At1440px the workbench measured760px and the resting button144.09px. Native browser layout checks at1440/1024/390/320px found no horizontal document overflow and retained the same204×44px disclosure anchor before/after toggling. Interrupted switching, close-control removal and reduced-motion range-key changes passed. These checks are browser composition evidence, not physical Windows/touch-device testing.
+
+A cold-opening profile identified GPU readback contention and first-use shader work; layout time was a smaller contributor. The same headed development browser and viewport recorded first-opening maximum frame intervals633ms before and133ms after, with observed p95 dropping633→51ms. Subsequent after-change maxima were66/51ms. Scene shader preparation reuses one invisible pooled control; verification resumes after the morph with fixed ink intent retained. Existing development texture-upload warnings remain outside this scoped change. No universal framerate or complete removal of hardware stalls is claimed.
+
+The176 component/model checks plus4 adapter checks, strict types, site/library builds and package consumer checks passed. Public provider checks cover ordinary controls, explicit overrides, nested reset and independent semantic outcomes. The native sampler regression verifies yielding during transfer and resumed settled verification. Broader hardware, browser and accessibility evaluation remains necessary.

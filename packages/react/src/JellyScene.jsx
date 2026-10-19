@@ -43,6 +43,10 @@ export function JellyScene({ children, params = DEFAULT_MATERIAL, tone = 'action
       clearJellyInk(el);
     });
     const rgb = name => (SEMANTIC_COLORS[name] || SEMANTIC_COLORS.action).rgb;
+    const pigmentOf = (element, tone) => {
+      const target = getComputedStyle(element).getPropertyValue('--jb-target-color').trim();
+      return /^#[0-9a-f]{6}$/i.test(target) ? [1, 3, 5].map(at => parseInt(target.slice(at, at + 2), 16) / 255) : rgb(tone);
+    };
     const visible = el => { const inert = el.closest('[inert]'); return !el.closest('[hidden]') && (!inert || inert.classList.contains('jb-window-content')) && el.getClientRects().length > 0; };
     // Clip the actual mesh, not its measured shape: partial scroll visibility
     // must not create a new rounded end or let glass leak across a dialog header.
@@ -97,7 +101,7 @@ export function JellyScene({ children, params = DEFAULT_MATERIAL, tone = 'action
       bounds = {
         width: canvasBounds.width, height: canvasBounds.height,
         contrastTargets: chosen.filter(({ kind }) => !['track', 'fill', 'thumb'].includes(kind)).map(({ el }) => { const ink = inkElementRect(el); return { ...ink, x: ink.x - canvasBounds.x, y: ink.y - canvasBounds.y, id: idOf(el), ink: jellyReadingInk(el), reactive: Boolean(el.dataset.gelActivity && Number(el.dataset.gelMaterialPhase) < 1) }; }),
-        panel: panel ? { ...box(panel), color: rgb(panel.dataset.gelTone || latest.current.tone) } : null,
+        panel: panel ? { ...box(panel), color: pigmentOf(panel, panel.dataset.gelTone || latest.current.tone) } : null,
         bubbles: chosen.map(({ el, kind, clip }) => ({ ...box(el), id: idOf(el), kind, attached: Boolean(panel?.contains(el)),
           clip: { ...clip, x: clip.x - canvasBounds.x, y: clip.y - canvasBounds.y },
           layer: kind === 'menu' ? 4 : el.closest('.jb-dropdown-list') ? 5 : el.closest('.jb-table-shell') ? (kind === 'table' ? 1 : kind === 'row' ? 2 : 3) : kind === 'thumb' || el.closest('.jb-alert') && kind !== 'alert' ? 2 : kind === 'fill' ? 1.5 : 1,
@@ -122,14 +126,14 @@ export function JellyScene({ children, params = DEFAULT_MATERIAL, tone = 'action
             const width = Math.min(region.width - 8, Math.max(region.height * 2.6, copyWidth + 52));
             return { x: region.x + 4 + width / 2 - shell.x - shell.width / 2,
               y: shell.y + shell.height / 2 - region.y - region.height / 2,
-              width, height: Math.max(20, region.height - 4), color: rgb(active.dataset.gelTone || 'info') };
+              width, height: Math.max(20, region.height - 4), color: pigmentOf(group, active.dataset.gelTone || 'info') };
           })() : null,
           color: el.dataset.gelSampled ? getComputedStyle(el).getPropertyValue('--jb-rgb').trim().split(/\s+/).map(c => Number(c) / 255) : rgb(el.dataset.gelHover === 'true' && el.dataset.gelHighlight || el.dataset.gelTone || latest.current.tone), colorSampled: Boolean(el.dataset.gelSampled), opacity: el.matches(':disabled') ? .4 : 1,
         })),
         selections: groups.filter(group => group.dataset.gelConnected !== 'true').flatMap(group => {
           const selected = selectedOf(group);
           return selected ? [{ ...box(selected), id: group.dataset.gelGroup, key: selected.dataset.gelKey,
-            color: rgb(selected.dataset.gelTone || latest.current.tone), opacity: 1, attached: Boolean(panel?.contains(group)), layer: group.classList.contains('jb-dropdown-list') ? 6 : 2, clip: { ...clipOf(selected), x: clipOf(selected).x - canvasBounds.x, y: clipOf(selected).y - canvasBounds.y } }] : [];
+            color: pigmentOf(selected, selected.dataset.gelTone || latest.current.tone), opacity: 1, attached: Boolean(panel?.contains(group)), layer: group.classList.contains('jb-dropdown-list') ? 6 : 2, clip: { ...clipOf(selected), x: clipOf(selected).x - canvasBounds.x, y: clipOf(selected).y - canvasBounds.y } }] : [];
         }),
       };
       // Copy the already rendered popup pixels into its DOM stacking layer.

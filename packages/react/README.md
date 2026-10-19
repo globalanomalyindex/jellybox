@@ -1,11 +1,11 @@
 # JellyBox React foundation
 
-Experimental React controls and a shared jelly material, used by the [JellyBox study](https://globalanomalyindex.github.io/jellybox/). Seventeen core components work with CSS/SVG alone; optional Three.js rendering supplies depth, transmitted light and connected density. This 0.5.15 preview is distributed on GitHub Releases, not npm.
+Experimental React controls and a shared jelly material, used by the [JellyBox study](https://globalanomalyindex.github.io/jellybox/). Seventeen core components work with CSS/SVG alone; optional Three.js rendering supplies depth, transmitted light and connected density. This 0.5.16 preview is distributed on GitHub Releases, not npm.
 
 ## Install
 
 ```sh
-npm install https://github.com/globalanomalyindex/jellybox/releases/download/v0.5.15/jellybox-react-0.5.15.tgz
+npm install https://github.com/globalanomalyindex/jellybox/releases/download/v0.5.16/jellybox-react-0.5.16.tgz
 ```
 
 React and React DOM 18/19 are peers. Import CSS once. For the optical entry, also install the supported Three 0.186 peer.
@@ -65,3 +65,7 @@ MIT. Spectral.js 3.0.0 attribution is in THIRD_PARTY_NOTICES.md. The package con
 `JellyScene` uses one stable reading intent (`--jb-reading-ink`) with the same CSS skin and optical material. Transmitting controls use black. A custom intentionally dark skin can explicitly choose white; lighting never recolors the letters. The whole volume’s front is a thinner, quieter reading film while its shoulders stay dense and colored. There is no label-shaped backing, outline or text shadow.
 
 Nine framebuffer samples within the actual lettering bounds verify that intent, in one fixed asynchronous atlas: ordinary labels at10Hz, up to eight circulating/settling labels at30Hz, one readback pending. `chooseJellyInk(samples, previous, { preferred })` reports the actual worst ratio for the intended ink, including failures. Without an explicit preference it chooses black when it passes, otherwise the stronger candidate. Custom `createOptics` hosts supply `contrastTargets[].ink` and `onContrast`. Forced colors use system ink. These bounded samples are not exhaustive pixel or WCAG certification.
+
+### Shared workspace pigment
+
+Wrap a workspace's content in `JellyMaterialProvider pigment={color}` to share its accent with ordinary controls, sliders and dropdowns. Existing Spectral transitions carry changes through their material. Explicit button pigments override the context; success, warning and danger retain their semantic roles. A nested empty provider restores default colors. See the [component contract](../../docs/COMPONENTS.md#shared-window-pigment).

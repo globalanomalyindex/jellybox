@@ -17,7 +17,7 @@ import { defaultLightForViewport } from './lighting.js';
 import { tabOutlinePath } from '../packages/react/src/renderer/tab-surface.js';
 import { applyJellyInk, clearJellyInk, inkElementRect, jellyReadingInk } from '../packages/react/src/contrast.js';
 import { stepJellyResponse } from '../packages/react/src/renderer/motion.js';
-import { JellyButton, JellySwitch, useJellyWindow, SEMANTIC_COLORS } from '../packages/react/src/index.js';
+import { JellyButton, JellySwitch, JellyMaterialProvider, useJellyWindow, SEMANTIC_COLORS } from '../packages/react/src/index.js';
 
 const loadPanels = () => import('./PanelContent.jsx');
 const PanelContent = lazy(loadPanels);
@@ -238,7 +238,7 @@ export function App({ active = true }) {
         const selected = group.querySelector('[data-gel-option][aria-checked="true"], [data-gel-option][aria-selected="true"], [data-gel-option][aria-pressed="true"]');
         return selected ? [{ ...rectOf(selected), id: group.dataset.gelGroup, key: selected.dataset.gelKey,
           cornerRadius: parseFloat(getComputedStyle(selected).borderTopLeftRadius) || 25,
-          color: SEMANTIC_COLORS[selected.dataset.gelTone]?.rgb,
+          color: rgb(getComputedStyle(selected).getPropertyValue('--jb-target-color').trim() || SEMANTIC_COLORS[selected.dataset.gelTone]?.hex || SEMANTIC_COLORS.action.hex),
           opacity: Number(getComputedStyle(group.closest('.panel-view')).opacity) * panelOpacity }] : [];
       });
     };
@@ -469,7 +469,7 @@ export function App({ active = true }) {
   const panelView = index => <div className="panel-view" key={index}>
     <h2 className="sr-only">{PANELS[index].name}</h2>
     <PanelBoundary key={index}><Suspense fallback={<PanelSkeleton panel={index} />}>
-      <PanelContent panel={index} params={params} setParams={setParams} defaults={DEFAULTS} reducedMotion={reducedMotion} onAnnounce={setAnnouncement} onReady={revealContent} onReset={reset} colors={colors} setColors={setColors} palettes={PALETTES} paused={paused} savedLook={savedLook} preferences={panelPreferences} setPreferences={setPanelPreferences} />
+      <JellyMaterialProvider pigment={colors[index]}><PanelContent panel={index} params={params} setParams={setParams} defaults={DEFAULTS} reducedMotion={reducedMotion} onAnnounce={setAnnouncement} onReady={revealContent} onReset={reset} colors={colors} setColors={setColors} palettes={PALETTES} paused={paused} savedLook={savedLook} preferences={panelPreferences} setPreferences={setPanelPreferences} /></JellyMaterialProvider>
     </Suspense></PanelBoundary>
   </div>;
 

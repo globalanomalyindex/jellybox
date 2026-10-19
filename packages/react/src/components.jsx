@@ -49,7 +49,7 @@ export const JellyButton = forwardRef(function JellyButton({
 });
 
 export const JellyLink = forwardRef(function JellyLink({ children, tone = 'info', size = 'md', className, style, ...props }, ref) {
-  return <a {...props} ref={ref} data-gel-surface="" data-gel-tone={tone}
+  return <a {...props} ref={ref} data-gel-surface="" data-gel-tone={tone} data-gel-sampled="true"
     className={cx('jb-button', 'jb-link', `jb-size-${size}`, className)} style={{ ...useJellyToneStyle(tone), ...style }}>
     <span className="jb-button-face">{children}</span>
   </a>;
@@ -287,7 +287,7 @@ export const JellySwitch = forwardRef(function JellySwitch({
     return () => { clearTimeout(resetTimer); form?.removeEventListener('reset', reset); };
   }, [checked, defaultChecked]);
   return <label htmlFor={inputId} className={cx('jb-switch', active && 'jb-switch-on', disabled && 'jb-disabled', className)} style={{ ...useJellyToneStyle(active ? tone : 'neutral'), ...style }}>
-    <span className="jb-switch-track" data-gel-surface="" data-gel-tone={active ? tone : 'neutral'}>
+    <span className="jb-switch-track" data-gel-surface="" data-gel-tone={active ? tone : 'neutral'} data-gel-sampled="true">
       <input {...props} ref={(node) => { inputRef.current = node; assignRef(ref, node); }} id={inputId} type="checkbox" role="switch" checked={checked} defaultChecked={checked === undefined ? defaultChecked : undefined}
         disabled={disabled} aria-describedby={ids(props['aria-describedby'], descriptionId)}
         onChange={(event) => { const next = event.currentTarget.checked; setInternal(next); onCheckedChange?.(next); onChange?.(event); }} />
@@ -306,7 +306,7 @@ export const JellyInput = forwardRef(function JellyInput({
   const errorId = error && typeof error !== 'boolean' ? `${inputId}-error` : undefined;
   return <div className={cx('jb-input-field', disabled && 'jb-disabled', className)} style={{ ...useJellyToneStyle(error ? 'danger' : tone), ...style }}>
     <label className="jb-field-label" htmlFor={inputId}>{label}</label>
-    <input {...props} ref={ref} id={inputId} disabled={disabled} className="jb-input" data-gel-surface="" data-gel-tone={error ? 'danger' : tone}
+    <input {...props} ref={ref} id={inputId} disabled={disabled} className="jb-input" data-gel-surface="" data-gel-tone={error ? 'danger' : tone} data-gel-sampled="true"
       aria-invalid={error ? true : props['aria-invalid']} aria-describedby={ids(props['aria-describedby'], descriptionId, errorId)} />
     {description && <p className="jb-field-description" id={descriptionId}>{description}</p>}
     {errorId && <p className="jb-field-error" id={errorId}>{error}</p>}
@@ -314,7 +314,7 @@ export const JellyInput = forwardRef(function JellyInput({
 });
 
 export const JellyBadge = forwardRef(function JellyBadge({ children, tone = 'neutral', className, style, ...props }, ref) {
-  return <span {...props} ref={ref} className={cx('jb-badge', className)} data-jb-tone={tone} data-gel-surface="badge" data-gel-tone={tone} style={{ ...useJellyToneStyle(tone), ...style }}>{children}</span>;
+  return <span {...props} ref={ref} className={cx('jb-badge', className)} data-jb-tone={tone} data-gel-surface="badge" data-gel-tone={tone} data-gel-sampled="true" style={{ ...useJellyToneStyle(tone), ...style }}>{children}</span>;
 });
 
 export const JellyAlert = forwardRef(function JellyAlert({
@@ -326,10 +326,10 @@ export const JellyAlert = forwardRef(function JellyAlert({
   if (!visible) return null;
   return <div {...props} ref={ref} role={props.role || (live === 'assertive' ? 'alert' : live === 'polite' ? 'status' : 'note')}
     aria-live={live} aria-atomic={live === 'off' ? undefined : true}
-    className={cx('jb-alert', className)} style={{ ...materialStyle, ...style }} data-jb-tone={tone} data-gel-surface="alert" data-gel-tone={tone}>
+    className={cx('jb-alert', className)} style={{ ...materialStyle, ...style }} data-jb-tone={tone} data-gel-surface="alert" data-gel-tone={tone} data-gel-sampled="true">
     <span className="jb-alert-dot" aria-hidden="true" />
     <div className="jb-alert-copy">{title && <strong className="jb-alert-title">{title}</strong>}<div className="jb-alert-content">{children}</div></div>
-    {dismissible && <button type="button" className="jb-alert-dismiss" data-gel-surface="" data-gel-tone={tone} aria-label={dismissLabel} onClick={() => { setVisible(false); onDismiss?.(); }}>×</button>}
+    {dismissible && <button type="button" className="jb-alert-dismiss" data-gel-surface="" data-gel-tone={tone} data-gel-sampled="true" aria-label={dismissLabel} onClick={() => { setVisible(false); onDismiss?.(); }}>×</button>}
   </div>;
 });
 
