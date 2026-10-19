@@ -138,3 +138,17 @@ The retained browser regression is [tests/browser/scrollbar-alignment.html](../t
 Material's five number spans retained centered bounds and 44px-high native targets. Lift accepted a keyboard change from 12 to 13; Reset restored defaults. Color's three preview icons retained centered native bounds while keyboard preview changed the palette without committing it. The shared canvas correction covers every surface/selection, the density field and lighting without changing control CSS, text metrics, animation clocks or the reusable package API. Browser diagnostics contained extension-owned custom-element errors; no application or shader error was observed in these checks. The original Windows machine still needs a refresh and confirmation.
 
 All 173 component/model tests plus 4 adapter checks, strict consumer types, site/library builds and source hygiene passed. Spec and Standards reviews found no blocking issue; the fixture now also requires a nonzero gutter when Reserve scrollbar is enabled, following the Standards suggestion. Its assertion verifies framebuffer scale; the native visual/bounds checks supply the additional content alignment evidence. No new design-detector findings or suppressions were added. The reusable package is unchanged, so this ships as a site correction rather than a new library version.
+
+## Palette visibility and main-trio presence (v0.5.15)
+
+The public state-color regression first failed because an explicit resting action pigment was replaced with neutral blue. A real browser pixel check independently reproduced the same symptom after selecting Candy and closing the window with the pointer away. Both now pass; disabled and unpigmented action states remain neutral. The full suite passes174 component/model tests and4 adapter checks.
+
+At1440px the default131% resting button measures110px; at390px and320px it measures84px. The204px inner-folder handle and compact dock targets remain unchanged. Browser checks covered opening, switching, disclosure, closure, the removed manual wobble action and reduced-motion palette colors.
+
+The optional rendered regression uses Playwright CLI against an already-open local or deployed JellyBox page. It retains the current application path, including `/jellybox/`:
+
+```sh
+playwright-cli run-code --filename tests/browser/palette-propagation.js
+```
+
+It requires the optical renderer and checks actual screenshot pixels, not just pigment props. It is a bounded default-light regression, not a universal contrast or physical-color validation.

@@ -1,6 +1,8 @@
 async (page) => {
   await page.setViewportSize({ width: 1440, height: 1000 });
-  await page.goto(new URL('/', page.url()).href);
+  const study = new URL(page.url());
+  study.hash = '';
+  await page.goto(study.href);
   await page.waitForFunction(() => document.documentElement.classList.contains('optics-ready'));
   const tools = page.getByRole('region', { name: 'Interactive JellyBox material experiment', exact: true });
   await tools.getByRole('button', { name: 'Color', exact: true }).click();
