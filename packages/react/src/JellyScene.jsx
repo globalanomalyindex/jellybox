@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { createOptics } from './renderer/optics.js';
 import { DEFAULT_MATERIAL } from './renderer/material.js';
-import { SEMANTIC_COLORS } from './tokens.js';
+import { SEMANTIC_COLORS, materialTargetColor } from './tokens.js';
 import { MOTION } from './renderer/motion.js';
 import { intersectRect, pickSurfaces } from './renderer/surface-layout.js';
 import { applyJellyInk, clearJellyInk, inkElementRect, jellyReadingInk } from './contrast.js';
@@ -44,8 +44,8 @@ export function JellyScene({ children, params = DEFAULT_MATERIAL, tone = 'action
     });
     const rgb = name => (SEMANTIC_COLORS[name] || SEMANTIC_COLORS.action).rgb;
     const pigmentOf = (element, tone) => {
-      const target = getComputedStyle(element).getPropertyValue('--jb-target-color').trim();
-      return /^#[0-9a-f]{6}$/i.test(target) ? [1, 3, 5].map(at => parseInt(target.slice(at, at + 2), 16) / 255) : rgb(tone);
+      const target = materialTargetColor(getComputedStyle(element), tone);
+      return [1, 3, 5].map(at => parseInt(target.slice(at, at + 2), 16) / 255);
     };
     const visible = el => { const inert = el.closest('[inert]'); return !el.closest('[hidden]') && (!inert || inert.classList.contains('jb-window-content')) && el.getClientRects().length > 0; };
     // Clip the actual mesh, not its measured shape: partial scroll visibility

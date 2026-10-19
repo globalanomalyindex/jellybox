@@ -40,3 +40,14 @@ export function toneStyle(tone = 'action') {
   const color = SEMANTIC_COLORS[tone] || SEMANTIC_COLORS.action;
   return { '--jb-color': color.hex, '--jb-target-color': color.hex, '--jb-ink': color.ink, '--jb-rgb': color.rgb.map((channel) => Math.round(channel * 255)).join(' ') };
 }
+
+/** The native control owns the target; decorative carriers own its travel. */
+export function materialTargetColor(style, tone) {
+  const target = style.getPropertyValue('--jb-target-color').trim();
+  if (/^#[0-9a-f]{6}$/i.test(target)) return target;
+  if (SEMANTIC_COLORS[tone]) return SEMANTIC_COLORS[tone].hex;
+  const rgb = style.getPropertyValue('--jb-rgb').trim().split(/\s+/).map(Number);
+  return rgb.length === 3 && rgb.every(Number.isFinite)
+    ? `#${rgb.map(c => Math.round(Math.max(0, Math.min(255, c))).toString(16).padStart(2, '0')).join('')}`
+    : SEMANTIC_COLORS.action.hex;
+}

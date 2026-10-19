@@ -1,0 +1,19 @@
+<!doctype html>
+<html lang="en"><head><meta charset="UTF-8"><title>Material scope fallback check</title></head>
+<body><main id="fixture" style="max-width:720px;padding:32px"></main>
+<script type="module">
+import React, { useState } from 'react';
+import { createRoot } from 'react-dom/client';
+import { JellyMaterialProvider, JellySelectionGroup, JellyTabs } from '../../../packages/react/src/index.js';
+import '../../../packages/react/src/styles.css';
+function Fixture() {
+  const [pigment, setPigment] = useState('#ffb251');
+  const [choice, setChoice] = useState('ordinary');
+  return React.createElement(JellyMaterialProvider, {pigment},
+    React.createElement('button', {onClick:()=>setPigment('#bc69d7')}, 'Change pigment'),
+    React.createElement(JellySelectionGroup, {'aria-label':'Scoped choices', value:choice, onValueChange:setChoice,
+      options:[{value:'ordinary',label:'Ordinary'},{value:'save',label:'Save',tone:'success'}]}),
+    React.createElement(JellyTabs, {'aria-label':'Scoped tabs', items:[{value:'one',label:'First',content:'Content'},{value:'danger',label:'Danger',tone:'danger',content:'Danger content'}]}));
+}
+createRoot(document.getElementById('fixture')).render(React.createElement(Fixture));
+</script></body></html>

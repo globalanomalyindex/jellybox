@@ -2,11 +2,10 @@ import { useEffect, useLayoutEffect, useRef, useState, useId } from 'react';
 import { createSelectionMotion, retargetSelection, stepSelection, selectionContour, selectionPath, selectionPresentation } from './renderer/selection-motion.js';
 import { createJellyPalette } from './color.js';
 import { MOTION } from './renderer/motion.js';
-import { SEMANTIC_COLORS } from './tokens.js';
+import { materialTargetColor } from './tokens.js';
 import './selection-motion.css';
 
 const useBrowserLayoutEffect = typeof window === 'undefined' ? useEffect : useLayoutEffect;
-const rgbHex = rgb => `#${rgb.map(channel => Math.round(Math.max(0, Math.min(1, channel)) * 255).toString(16).padStart(2, '0')).join('')}`;
 
 /** Reusable decorative subsumption. Content/semantic state stays immediate. */
 export function useJellyTransition(targetKey, { onFrame, onAssimilated, reducedMotion = false } = {}) {
@@ -78,9 +77,7 @@ export function SelectionContour({ groupRef, selectedKey, selector = '[aria-chec
       if (!motion.current) motion.current = createSelectionMotion(rect, key);
       else retargetSelection(motion.current, rect, key, media.matches || group.dataset.gelSelectionInstant === 'true');
       element.setAttribute('viewBox', `0 0 ${Math.max(group.clientWidth, 1)} ${Math.max(group.clientHeight, 1)}`);
-      const semantic = SEMANTIC_COLORS[selected.dataset.gelTone];
-      const css = getComputedStyle(selected).getPropertyValue('--jb-rgb').trim().split(/\s+/).map(Number);
-      const nextHex = semantic ? rgbHex(semantic.rgb) : rgbHex(css.length === 3 && css.every(Number.isFinite) ? css.map(value => value / 255) : [0.02, 0.28, 0.96]);
+      const nextHex = materialTargetColor(getComputedStyle(selected), selected.dataset.gelTone);
       if (nextHex !== targetHex) {
         palette = createJellyPalette(shownHex || nextHex, nextHex);
         targetHex = nextHex; colorProgress = 0;
@@ -96,7 +93,7 @@ export function SelectionContour({ groupRef, selectedKey, selector = '[aria-chec
       const dt = Math.max(0.001, Math.min(0.055, (timestamp - previous) / 1000));
       stepSelection(state, dt, media.matches || group.dataset.gelSelectionInstant === 'true');
       previous = timestamp;
-      colorProgress = media.matches || group.dataset.gelSelectionInstant === 'true' ? 1 : Math.min(1, colorProgress + dt / (MOTION.material / 1000));
+      colorProgress = media.matches || group.dataset.gelSelectionInstant === 'true' ? 1 : Math.min(1, colorProgress + dt / (MOTION.pigment / 1000));
       shownHex = palette ? palette.sample(state.travelling ? state.colorProgress : colorProgress) : targetHex;
       if (shownHex && element.style.getPropertyValue('--jb-contour-color') !== shownHex) element.style.setProperty('--jb-contour-color', shownHex);
       element.dataset.selectionPhase = state.phase;
