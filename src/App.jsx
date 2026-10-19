@@ -226,7 +226,7 @@ export function App({ active = true }) {
         bulb: Boolean(el.closest('[data-gel-bulbs]')),
         color: el.dataset.gelSampled ? getComputedStyle(el).getPropertyValue('--jb-rgb').trim().split(/\s+/).map(c => Number(c) / 255) : SEMANTIC_COLORS[el.dataset.gelTone]?.rgb,
         colorSampled: Boolean(el.dataset.gelSampled),
-        hover: el.dataset.gelHover === 'true' ? 1 : 0, pressed: el.dataset.gelPressed === 'true' ? 1 : 0,
+        hover: el.dataset.gelHover === 'true' || el.dataset.gelPreview === 'true' ? 1 : 0, pressed: el.dataset.gelPressed === 'true' ? 1 : 0,
         selected: !el.closest('[data-gel-group]') && (el.getAttribute('aria-pressed') === 'true' || el.getAttribute('aria-expanded') === 'true'),
         opacity: (getComputedStyle(el).visibility === 'hidden' ? 0 : Number(getComputedStyle(el).opacity)) * (el.closest('.panel-view') ? Number(getComputedStyle(el.closest('.panel-view')).opacity) * panelOpacity : 1)
           * (el.closest('.jelly-details-reveal') ? Number(getComputedStyle(el.closest('.jelly-details-reveal')).opacity) : 1),
@@ -361,7 +361,7 @@ export function App({ active = true }) {
     observer.observe(surface);
     observer.observe(panelInnerRef.current);
     const mutations = new MutationObserver(refreshBubbles);
-    mutations.observe(panelInnerRef.current, { childList: true, subtree: true, attributes: true, attributeFilter: ['aria-pressed', 'aria-checked', 'aria-selected', 'aria-expanded', 'aria-disabled', 'disabled', 'inert', 'style', 'data-gel-hover', 'data-gel-pointer', 'data-gel-pressed', 'data-gel-state', 'data-open', 'data-density-hover', 'data-gel-engaged', 'data-gel-dragging'] });
+    mutations.observe(panelInnerRef.current, { childList: true, subtree: true, attributes: true, attributeFilter: ['aria-pressed', 'aria-checked', 'aria-selected', 'aria-expanded', 'aria-disabled', 'disabled', 'inert', 'style', 'data-gel-hover', 'data-gel-preview', 'data-gel-pointer', 'data-gel-pressed', 'data-gel-state', 'data-open', 'data-density-hover', 'data-gel-engaged', 'data-gel-dragging'] });
     const close = toolbarRef.current.querySelector('.dock-close');
     if (close) mutations.observe(close, { attributes: true, attributeFilter: ['style', 'data-gel-hover', 'data-gel-pointer', 'data-gel-pressed'] });
     const followTransition = event => { const duration = event.target.closest('[data-density-region]') ? MOTION.densityGather : MOTION.recoil; movingUntil.current = Math.max(movingUntil.current, performance.now() + duration + 80); };

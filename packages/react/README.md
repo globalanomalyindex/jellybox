@@ -1,11 +1,11 @@
 # JellyBox React foundation
 
-Experimental React controls and a shared jelly material, used by the [JellyBox study](https://globalanomalyindex.github.io/jellybox/). Seventeen core components work with CSS/SVG alone; optional Three.js rendering supplies depth, transmitted light and connected density. This 0.5.16 preview is distributed on GitHub Releases, not npm.
+Experimental React controls and a shared jelly material, used by the [JellyBox study](https://globalanomalyindex.github.io/jellybox/). Seventeen core components work with CSS/SVG alone; optional Three.js rendering supplies depth, transmitted light and connected density. This 0.5.17 preview is distributed on GitHub Releases, not npm.
 
 ## Install
 
 ```sh
-npm install https://github.com/globalanomalyindex/jellybox/releases/download/v0.5.16/jellybox-react-0.5.16.tgz
+npm install https://github.com/globalanomalyindex/jellybox/releases/download/v0.5.17/jellybox-react-0.5.17.tgz
 ```
 
 React and React DOM 18/19 are peers. Import CSS once. For the optical entry, also install the supported Three 0.186 peer.

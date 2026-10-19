@@ -1,6 +1,6 @@
 # JellyBox components
 
-The 0.5.16 foundation contains seventeen components. Core components work with React and the scoped stylesheet; the optional Three renderer supplies the liquid material. Forms, focus, text and selected state remain DOM behavior. This is an initial foundation, not a complete component suite or broad accessibility certification.
+The 0.5.17 foundation contains seventeen components. Core components work with React and the scoped stylesheet; the optional Three renderer supplies the liquid material. Forms, focus, text and selected state remain DOM behavior. This is an initial foundation, not a complete component suite or broad accessibility certification.
 
 ```jsx
 import {

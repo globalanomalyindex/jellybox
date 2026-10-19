@@ -47,3 +47,6 @@ From900px viewport width, the main trio uses144px resting circles at the default
 ## Pigment ownership
 
 A tool's ordinary inner controls share its window pigment through `JellyMaterialProvider`. Rest is a quieter concentration; approach and selection gather within that identity. Sliders, choices and the folder's local shoulder belong to their parent, while explicit pigments and success/warning/danger retain their roles. Label ink remains independent of the decorative pigment.
+
+
+Palette previews stay visibly provisional through the same gathered, moving jelly shoulder as hover. Committing settles that invitation; cancelling restores the accepted palette. Motion identifies preview versus commitment alongside the existing words and check. The three sample icons/labels remain anchored, and motion preferences retain static feedback.

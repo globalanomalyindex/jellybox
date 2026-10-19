@@ -376,7 +376,14 @@ html { scrollbar-color: #a4bdcf var(--surface); scrollbar-width: thin; }
 .palette-preview-heading > span { font-size: 12px; color: #203b50; }
 .pigment-samples { display: flex; gap: 14px; }
 .pigment-sample { flex: 1; min-width: 0; display: flex; flex-direction: column; align-items: center; gap: 9px; font-size: 12px; color: #203b50; }
-.pigment-volume { display: grid; place-items: center; width: 100%; height: 64px; border-radius: 999px; background: rgb(var(--jb-rgb)); box-shadow: var(--jb-meniscus), var(--jb-cast); }
+.pigment-volume { position: relative; display: grid; place-items: center; width: 100%; height: 64px; border-radius: 999px; background: rgb(var(--jb-rgb)); box-shadow: var(--jb-meniscus), var(--jb-cast); }
+/* Fallback invitation stays in the material rim, leaving the icon/label still. */
+.pigment-volume::before { content: ''; position: absolute; inset: 0; border-radius: inherit; pointer-events: none; box-shadow: inset 0 2px 3px #ffffffcc, inset 0 -5px 9px rgb(var(--jb-rgb) / .8), inset 3px 0 7px rgb(var(--jb-rgb) / .6); opacity: 0; transition: opacity var(--motion-flow) var(--ease-effects); animation: pigment-preview-breath var(--motion-breathe) var(--ease-gather) infinite; animation-play-state: paused; }
+.pigment-volume:is([data-gel-preview="true"], :hover)::before { opacity: 1; animation-play-state: running; }
+.pigment-volume[data-gel-rendered="true"]::before { display: none; }
+.app:is(.is-paused, .is-still) .pigment-volume::before { animation-play-state: paused; }
+@keyframes pigment-preview-breath { 0%, 100% { box-shadow: inset 0 1px 2px #ffffff99, inset 0 -3px 6px rgb(var(--jb-rgb) / .55), inset 2px 0 5px rgb(var(--jb-rgb) / .35); } 50% { box-shadow: inset 0 2px 3px #ffffffcc, inset 0 -5px 9px rgb(var(--jb-rgb) / .8), inset 3px 0 7px rgb(var(--jb-rgb) / .6); } }
+@media (forced-colors: active) { .pigment-volume::before { display: none; } }
 .pigment-volume > svg { padding: 5px; width: 33px; height: 33px; border-radius: 50%; color: #03121e; background: #eff8f8a8; }
 .saved-look-status { display: flex; align-items: flex-start; gap: 8px; }
 .saved-look-status > svg { flex-shrink: 0; margin-top: 2px; }

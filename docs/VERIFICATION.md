@@ -168,3 +168,12 @@ The176 component/model checks plus4 adapter checks, strict types, site/library b
 Standards review caught an SVG fallback carrier that still prioritized semantic blue over its owner target, plus an outdated blue-delta description. The fallback browser check first timed out with blue `#5baff3` rims over amber `#ffb251` controls. A small shared target resolver now serves the SVG and both optical adapters; idle SVG pigment uses the canonical480ms duration. `tests/browser/material-scope.js`, run against a local Vite server, verifies inherited amber, purple retargeting and independent green/red option overrides in a core-only fixture. The corrected native check passes.
 
 Final Standards review found no remaining violations after the target resolver/timing correction. Final Spec review found no missing requirements, scope expansion or wrong behavior in the corrected delta.
+
+
+## v0.5.17 provisional palette motion
+
+The native baseline showed Candy preview pigments without an optical hover invitation. The page adapter now projects the application-owned preview flag into its existing hover response. Actual pointer feedback remains independent, and the same renderer owns the gathering/release. No semantic selection changes before commitment.
+
+Native browser checks held an uncommitted palette while recording eight rendered frames; the material changed while the three icon bounds remained identical. Click and Enter committed, Escape restored the accepted palette, and closing/reopening discarded provisional state. Reduced-motion preview remained available and a390px layout had no horizontal overflow. The short Preview label retains the nearby instructions without a second instructional sentence inside the sample header.
+
+A separate native Chrome session disabled WebGL at launch. Its real CSS fallback changed inset shading over time, paused the breath with Continuous motion off, cleared the provisional layer after commitment and retained static preview acknowledgement under reduced motion. Optical claims hide that layer to avoid stacking effects. Browser/source checks supplement the existing176 component/model checks,4 adapter checks, strict types, site/library builds, packed consumers and source hygiene. Broader device and usability evaluation remains outside this pass.
